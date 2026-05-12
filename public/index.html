@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon</title>
+    <script>
+      (function () {
+        try {
+          var isDark = localStorage.getItem('site_theme') !== 'light';
+          var root = document.documentElement;
+          var body = document.body;
+          var bg = isDark ? '#08101d' : '#ffffff';
+          root.classList.toggle('dark-theme', isDark);
+          root.style.colorScheme = isDark ? 'dark' : 'light';
+          root.style.backgroundColor = bg;
+          if (body) {
+            body.classList.toggle('dark-theme', isDark);
+            body.style.backgroundColor = bg;
+          }
+          // Anti-flash during route/iframe transitions before CSS is fully applied.
+          var preload = document.createElement('style');
+          preload.textContent = 'html,body,#root{background:' + bg + ' !important;}';
+          document.head.appendChild(preload);
+        } catch (_) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="/react-assets/index-CqXh6GiW.js"></script>
+    <link rel="stylesheet" crossorigin href="/react-assets/index-DB049yNG.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="/theme-toggle.js" defer></script>
+  </body>
+</html>

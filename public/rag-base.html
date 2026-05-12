@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Base RAG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body class="bg-[#edf3fb] text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+    <div class="min-h-screen">
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <header class="px-6 lg:px-10 py-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 9 4.5-9 4.5L3 7.5 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m3 12.5 9 4.5 9-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="m3 17 9 4 9-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Base Documentaire RAG</h1>
+                        <p class="text-sm text-slate-500">Ajoutez et gérez vos sources de connaissances.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button
+                        id="themeToggleBtn"
+                        type="button"
+                        class="theme-toggle-btn w-10 h-10 flex items-center justify-center"
+                        aria-label="Basculer le thème"
+                        title="Basculer le thème"
+                    >
+                        <span id="themeToggleIcon"></span>
+                    </button>
+                    <button onclick="logout()" class="text-sm text-slate-500 hover:text-red-500 transition">Déconnexion</button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto px-6 lg:px-10 pb-10 space-y-6">
+                <section class="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1">
+                            <label class="block text-sm font-semibold text-slate-700 mb-3">Affecter à un expert (requis)</label>
+                            <select id="ragAvatarSelect" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm transition focus:ring-2 focus:ring-emerald-500/20">
+                                <option value="">Choisir un expert...</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-semibold text-slate-700 mb-3">Ajouter des fichiers</label>
+                            <label class="w-full flex items-center justify-center h-[52px] bg-emerald-50 text-emerald-700 border-2 border-dashed border-emerald-200 rounded-2xl cursor-pointer hover:bg-emerald-100 transition">
+                                <span class="text-sm font-bold">+ Sélectionner des fichiers</span>
+                                <input type="file" id="ragFileInput" class="hidden" multiple accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls">
+                            </label>
+                        </div>
+                    </div>
+                    <p id="uploadStatus" class="mt-4 text-xs font-medium"></p>
+                </section>
+
+                <section class="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6">Documents Vectorisés</h2>
+                    <div id="docsList" class="space-y-3">
+                        <p class="text-slate-400 italic">Chargement des documents...</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let allDocuments = [];
+        const pageParams = new URLSearchParams(window.location.search);
+        const preselectedAvatarId = String(pageParams.get('avatar_id') || '').trim();
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function logout() {
+            try {
+                const isDark = (localStorage.getItem('site_theme') || 'dark') !== 'light';
+                const bg = isDark ? '#08101d' : '#ffffff';
+                document.documentElement.style.backgroundColor = bg;
+                if (document.body) document.body.style.backgroundColor = bg;
+            } catch (_) {}
+            const keepTheme = (() => { try { return localStorage.getItem('site_theme'); } catch (_) { return null; } })();
+            const keepLang = (() => { try { return localStorage.getItem('site_lang'); } catch (_) { return null; } })();
+            localStorage.clear();
+            try {
+                if (keepTheme) localStorage.setItem('site_theme', keepTheme);
+                if (keepLang) localStorage.setItem('site_lang', keepLang);
+            } catch (_) {}
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = '/login';
+            } catch (_) {
+                window.location.href = '/login';
+            }
+        }
+
+        async function loadData() {
+            try {
+                // Load Avatars for select
+                const avatarsRes = await fetch('/api/admin/avatars', { headers: { Authorization: 'Bearer ' + token } });
+                const avatars = await avatarsRes.json();
+                const select = document.getElementById('ragAvatarSelect');
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Choisir un expert...</option>' + avatars.map(a => `<option value="${a.id}">${a.icone || '🧠'} ${a.nom_avatar}</option>`).join('');
+                if (preselectedAvatarId && avatars.some(a => String(a.id) === preselectedAvatarId)) {
+                    select.value = preselectedAvatarId;
+                } else if (currentValue) {
+                    select.value = currentValue;
+                }
+
+                // Load Documents
+                const docsRes = await fetch('/api/admin/rag/documents', { headers: { Authorization: 'Bearer ' + token } });
+                const data = await docsRes.json();
+                allDocuments = data.documents || [];
+                renderDocs();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderDocs() {
+            const avatarId = document.getElementById('ragAvatarSelect').value;
+            const list = document.getElementById('docsList');
+            
+            // Filter documents: if an avatar is selected, show only its docs. 
+            // If no avatar is selected, show an empty state or a message as requested "only see files assigned to an agent".
+            const filtered = avatarId 
+                ? allDocuments.filter(d => String(d.avatar_id) === String(avatarId))
+                : [];
+
+            if (!avatarId) {
+                list.innerHTML = '<p class="text-center py-10 text-slate-400">Sélectionnez un expert pour voir ses documents.</p>';
+                return;
+            }
+
+            if (!filtered.length) {
+                list.innerHTML = '<p class="text-center py-10 text-slate-400">Aucun document pour cet expert.</p>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(d => `
+                <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                    <div>
+                        <p class="font-bold text-slate-800">${d.name}</p>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">${(d.size/1024).toFixed(1)} Ko</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">${d.chunk_count || 0} chunks</span>
+                        <button onclick="deleteDoc(${d.id})" class="text-slate-300 hover:text-red-500 p-1">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('ragAvatarSelect').addEventListener('change', renderDocs);
+
+        async function deleteDoc(id) {
+            if (!confirm('Supprimer ce document ?')) return;
+            try {
+                await fetch('/api/admin/rag/documents/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+                loadData();
+            } catch (e) { alert('Erreur'); }
+        }
+
+        document.getElementById('ragFileInput').addEventListener('change', async function() {
+            const avatarId = document.getElementById('ragAvatarSelect').value;
+            if (!avatarId) { alert('Sélectionnez un expert d\'abord'); return; }
+            
+            const status = document.getElementById('uploadStatus');
+            status.textContent = 'Téléchargement et vectorisation en cours...';
+            status.className = 'mt-4 text-xs font-bold text-emerald-600';
+
+            const files = Array.from(this.files);
+            for (const file of files) {
+                const form = new FormData();
+                form.append('file', file);
+                form.append('avatar_id', avatarId);
+                const ext = file.name.split('.').pop().toLowerCase();
+                const url = (ext === 'xlsx' || ext === 'xls') ? '/api/admin/excel/upload' : '/api/admin/rag/upload';
+                await fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form });
+            }
+            
+            status.textContent = 'Terminé !';
+            this.value = '';
+            loadData();
+        });
+
+        loadData();
+    </script>
+    <script src="js/app-sidebar.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Personnaliser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        :root {
+            --session-zoom: 0.8;
+        }
+
+        html {
+            zoom: var(--session-zoom);
+            overflow: hidden;
+        }
+
+        body.h-screen {
+            width: calc(100vw / var(--session-zoom));
+            height: calc(100vh / var(--session-zoom));
+        }
+
+        @supports not (zoom: 1) {
+            body.h-screen {
+                transform: scale(var(--session-zoom));
+                transform-origin: top left;
+                width: calc(100% / var(--session-zoom));
+                height: calc(100% / var(--session-zoom));
+            }
+        }
+
+        .chat-sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            transition: width 0.25s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-sidebar.collapsed { width: 76px !important; }
+        .chat-sidebar-toggle {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--text-tertiary);
+            background: transparent;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .chat-sidebar-toggle:hover {
+            color: var(--text-primary);
+            border-color: var(--border-light);
+            background: var(--bg-tertiary);
+        }
+        .chat-sidebar.collapsed .sidebar-collapse-hide { display: none !important; }
+        .chat-sidebar.collapsed .chat-sidebar-menu-btn { justify-content: center; padding: 8px; }
+        .chat-sidebar-menu-btn {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: left;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .chat-sidebar-menu-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.7;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;
+        }
+        .chat-sidebar-menu-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        .chat-sidebar-menu-btn.active {
+            background: var(--accent-subtle);
+            color: var(--accent-hover);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+        .chat-sidebar-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .sidebar-session-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            min-height: 36px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: transparent;
+            border: 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 600;
+            text-align: left;
+        }
+        .sidebar-session-item:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .sidebar-session-item.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #047857;
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.18);
+        }
+        .sidebar-session-item .session-title {
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+        .sidebar-session-item .session-meta {
+            margin-top: 2px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .sidebar-session-item .session-chevron {
+            color: #cbd5e1;
+            transition: color 0.2s ease;
+        }
+        .sidebar-session-item:hover .session-chevron {
+            color: #94a3b8;
+        }
+
+        .personalize-serif { font-family: 'Newsreader', Georgia, serif; }
+        .personalize-subnav-item.active {
+            background: rgba(15, 23, 42, 0.06);
+            color: #0f172a;
+        }
+        .personalize-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            overflow: hidden;
+        }
+        .personalize-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+            border-color: #cbd5e1;
+        }
+        .connector-row {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .connector-row:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+        }
+        .directory-card--connected { border-color: #6ee7b7; background: linear-gradient(180deg, #ecfdf5 0%, #fff 40%); }
+        .directory-nav-item.active { background: #e2e8f0; color: #0f172a; font-weight: 600; }
+        .directory-logo { flex-shrink: 0; width: 2.75rem; height: 2.75rem; border-radius: 0.75rem; background: #fff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; overflow: hidden; }
+        .directory-logo img { width: 1.85rem; height: 1.85rem; object-fit: contain; }
+        /* AGENT WORKSPACE DARK MODE */
+        body.dark-theme.agent-workspace-page {
+            background:
+                radial-gradient(circle at 18% 12%, rgba(16, 185, 129, 0.12), transparent 30%),
+                linear-gradient(180deg, #08101d 0%, #0b1220 58%, #101827 100%) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page > .flex-1,
+        body.dark-theme.agent-workspace-page main,
+        body.dark-theme.agent-workspace-page .min-h-screen.flex-1,
+        body.dark-theme.agent-workspace-page .flex-1.flex.flex-col {
+            background: transparent !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar {
+            background: #0b1220 !important;
+            border-right-color: #243247 !important;
+            box-shadow: 16px 0 42px rgba(2, 6, 23, 0.45) !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar [class*="border-slate-"] {
+            border-color: #243247 !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn {
+            color: #d5deea !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn:hover,
+        body.dark-theme.agent-workspace-page .chat-sidebar-card:hover,
+        body.dark-theme.agent-workspace-page .sidebar-session-item:hover,
+        body.dark-theme.agent-workspace-page .directory-nav-item:hover {
+            background: rgba(148, 163, 184, 0.14) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn.active,
+        body.dark-theme.agent-workspace-page .sidebar-session-item.active,
+        body.dark-theme.agent-workspace-page .personalize-subnav-item.active,
+        body.dark-theme.agent-workspace-page .directory-nav-item.active {
+            background: linear-gradient(135deg, #059669, #10b981) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 14px 30px rgba(16, 185, 129, 0.28) !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-card,
+        body.dark-theme.agent-workspace-page .personalize-card,
+        body.dark-theme.agent-workspace-page .connector-row,
+        body.dark-theme.agent-workspace-page .directory-card--connected,
+        body.dark-theme.agent-workspace-page .directory-logo,
+        body.dark-theme.agent-workspace-page .bg-white,
+        body.dark-theme.agent-workspace-page section.bg-white,
+        body.dark-theme.agent-workspace-page #searchModalContent,
+        body.dark-theme.agent-workspace-page #drivePickerContent {
+            background: rgba(15, 23, 42, 0.82) !important;
+            border-color: #334155 !important;
+            box-shadow: 0 18px 42px rgba(2, 6, 23, 0.42) !important;
+        }
+        body.dark-theme.agent-workspace-page .bg-slate-50,
+        body.dark-theme.agent-workspace-page .bg-slate-100 {
+            background: rgba(30, 41, 59, 0.72) !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-900,
+        body.dark-theme.agent-workspace-page .text-slate-800,
+        body.dark-theme.agent-workspace-page h1,
+        body.dark-theme.agent-workspace-page h2,
+        body.dark-theme.agent-workspace-page h3 {
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-700,
+        body.dark-theme.agent-workspace-page .text-slate-600 {
+            color: #d5deea !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-500,
+        body.dark-theme.agent-workspace-page .text-slate-400 {
+            color: #9db0c8 !important;
+        }
+        body.dark-theme.agent-workspace-page .border-slate-100,
+        body.dark-theme.agent-workspace-page .border-slate-200,
+        body.dark-theme.agent-workspace-page .border-slate-300 {
+            border-color: #334155 !important;
+        }
+        body.dark-theme.agent-workspace-page input,
+        body.dark-theme.agent-workspace-page select,
+        body.dark-theme.agent-workspace-page textarea {
+            background: rgba(15, 23, 42, 0.68) !important;
+            border-color: #475569 !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page input::placeholder,
+        body.dark-theme.agent-workspace-page textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        /* Connector directory modal: full dark theme coverage */
+        body.dark-theme.agent-workspace-page #connectorDirectoryBackdrop {
+            background: rgba(2, 6, 23, 0.78) !important;
+            backdrop-filter: blur(5px);
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal > .relative {
+            background: #0b1220 !important;
+            border-color: #334155 !important;
+            box-shadow: 0 30px 84px rgba(2, 6, 23, 0.72) !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal aside {
+            background: #0f172a !important;
+            border-right-color: #334155 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .flex-1.flex.flex-col.min-w-0.min-h-0 {
+            background: #0b1220 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal header,
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .px-6.py-4.border-b {
+            background: rgba(15, 23, 42, 0.92) !important;
+            border-color: #334155 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-nav-item {
+            color: #c7d4e6 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-nav-item:hover {
+            background: rgba(148, 163, 184, 0.14) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-nav-item.active {
+            background: linear-gradient(135deg, #059669, #10b981) !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 28px rgba(16, 185, 129, 0.32) !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-card {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border-color: #334155 !important;
+            box-shadow: 0 14px 34px rgba(2, 6, 23, 0.42) !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-card:hover {
+            border-color: #475569 !important;
+            box-shadow: 0 18px 42px rgba(2, 6, 23, 0.54) !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-logo {
+            background: rgba(30, 41, 59, 0.9) !important;
+            border-color: #475569 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal #directorySearchInput,
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal #directoryFilter,
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal #directorySort {
+            background: rgba(15, 23, 42, 0.92) !important;
+            border-color: #475569 !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal #directorySearchInput::placeholder {
+            color: #94a3b8 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal #btnCloseConnectorDirectory {
+            color: #c7d4e6 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal #btnCloseConnectorDirectory:hover {
+            background: rgba(51, 65, 85, 0.75) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-oauth-btn,
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-soon-btn {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border-color: #475569 !important;
+            color: #c7d4e6 !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-oauth-btn:hover,
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-soon-btn:hover {
+            background: rgba(30, 41, 59, 0.9) !important;
+            border-color: #64748b !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .directory-card--connected {
+            background: linear-gradient(180deg, rgba(6, 95, 70, 0.35) 0%, rgba(15, 23, 42, 0.94) 62%) !important;
+            border-color: rgba(52, 211, 153, 0.62) !important;
+        }
+        body.dark-theme.agent-workspace-page #connectorDirectoryModal .bg-slate-100.border {
+            background: rgba(30, 41, 59, 0.84) !important;
+            border-color: #475569 !important;
+            color: #c7d4e6 !important;
+        }
+    </style>
+</head>
+
+<body class="agent-workspace-page dark-theme min-h-screen antialiased selection:bg-emerald-500 selection:text-white h-screen flex flex-col relative w-full overflow-hidden">
+    <div id="searchModal" class="hidden fixed inset-0 z-[260] flex items-start justify-center pt-[12vh] bg-slate-900/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleSearchModal(event)">
+        <div id="searchModalContent" class="bg-white w-full max-w-2xl rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200 overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" onclick="event.stopPropagation()">
+            <div class="flex items-center px-5 py-4 border-b border-slate-100 bg-white">
+                <svg class="w-6 h-6 text-emerald-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35"></path></svg>
+                <input type="text" id="sidebarSearch" class="flex-1 bg-transparent border-0 ring-0 outline-none focus:ring-0 focus:outline-none text-slate-800 text-lg placeholder-slate-400 font-medium w-full" placeholder="Rechercher une discussion..." autocomplete="off">
+                <button type="button" class="text-[0.65rem] font-bold tracking-wider text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-600 px-2 py-1.5 rounded-md ml-3 border border-slate-200 transition-colors" onclick="toggleSearchModal()">ECHAP</button>
+            </div>
+            <div id="modalSearchResults" class="max-h-[50vh] overflow-y-auto custom-scrollbar flex flex-col">
+                <div class="text-center py-12 text-slate-400 text-sm">Tapez pour rechercher...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex overflow-hidden">
+            <aside id="chatSidebar" class="chat-sidebar w-[280px] flex flex-col shrink-0 hidden md:flex shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                        <button type="button" id="railBackBtn" class="flex items-center gap-2 text-slate-900 hover:text-emerald-700 transition-colors tracking-tight">
+                            <img src="assets/branding/voxeleon-logo.png" alt="Voxeleon" class="sidebar-collapse-hide h-8 w-auto object-contain" />
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                id="themeToggleBtn"
+                                class="chat-sidebar-toggle"
+                                aria-label="Basculer le thème"
+                                title="Basculer le thème"
+                            >
+                                <span id="themeToggleIcon"></span>
+                            </button>
+                            <button type="button" id="chatSidebarToggle" class="chat-sidebar-toggle" title="Ouvrir/Fermer le menu">◧</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col pt-2">
+                    <div class="px-3 pb-2">
+                        <button type="button" id="railNewBtn" class="chat-sidebar-menu-btn text-slate-800">
+                            <svg class="group-hover:scale-110 transition-transform" stroke="currentColor" viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Nouvelle conversation</span>
+                        </button>
+                    </div>
+                    <div class="px-3 mb-4">
+                        <button type="button" id="railSearchBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Rechercher</span>
+                        </button>
+                    </div>
+                    <nav class="px-3 mb-4 space-y-1">
+                        <button type="button" id="railPersonalizeBtn" class="chat-sidebar-menu-btn active">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <rect x="3" y="7" width="18" height="13" rx="2"></rect>
+                                <path d="M8 7V4M16 7V4"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Personnaliser</span>
+                        </button>
+                        <div class="h-px bg-slate-200 my-2 sidebar-collapse-hide"></div>
+                        <button type="button" id="railDiscussionsBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 11.5a8.5 8.5 0 0 1-8.5-8.5c-1.4 0-2.7-.32-3.86-.9L3 20.5l1.43-5.23A8.47 8.47 0 0 1 4 11.5 8.5 8.5 0 0 1 8.5-8.5c1.4 0 2.7.32 3.86.9l7.07 5.23-1.43 5.23z"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Discussions</span>
+                        </button>
+                        <button type="button" id="railFoldersBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Base de Connaissance</span>
+                        </button>
+                        <button type="button" id="railNotifBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="2.5"></circle>
+                                <path d="M4.5 7.5h3v3h-3zM16.5 7.5h3v3h-3zM4.5 16.5h3v3h-3zM16.5 16.5h3v3h-3z"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Paramètres de l'agent</span>
+                        </button>
+                        <button type="button" id="railMascotBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="8" r="3"></circle>
+                                <path d="M7 20a5 5 0 0 1 10 0"></path>
+                                <path d="M4 4l3 3M20 4l-3 3"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Créer/Changer Mascot</span>
+                        </button>
+                    </nav>
+                    <div class="border-b border-slate-200 my-2"></div>
+                    <div class="px-3 py-2 sidebar-collapse-hide">
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-[0.35em] mb-3 shrink-0">Récents</div>
+                        <div id="sessionsList" class="space-y-1">
+                            <div class="text-center py-8 text-slate-400 text-xs">Chargement...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-slate-200 mt-auto"></div>
+                <div class="p-3 group relative">
+                    <div class="chat-sidebar-card flex items-center gap-3 p-2">
+                        <div id="railUserInitial" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg font-bold shadow-inner transition-shadow">
+                            U
+                        </div>
+                        <div class="flex-1 min-w-0 sidebar-collapse-hide">
+                            <div id="railUserName" class="text-[0.95rem] tracking-tight font-medium text-slate-800 truncate transition-colors">Profil</div>
+                            <div id="railUserMeta" class="text-[0.75rem] text-slate-500 truncate transition-colors">Voxeleon</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="flex-1 overflow-y-auto min-w-0">
+                <div class="px-6 lg:px-10 pt-4">
+                    <button type="button" id="backToSessionBtn" class="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 transition">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m15 18-6-6 6-6"></path>
+                        </svg>
+                        <span class="text-2xl font-semibold tracking-tight">Personnaliser</span>
+                    </button>
+                </div>
+                <section id="panel-hub" class="personalize-panel max-w-2xl mx-auto px-6 lg:px-10 py-10 lg:py-12">
+                    <div class="flex justify-center mb-8" aria-hidden="true">
+                        <svg width="120" height="100" viewBox="0 0 120 100" fill="none" class="text-slate-800 opacity-[0.88]">
+                            <path d="M28 38c2-8 10-14 22-14s20 6 22 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                            <rect x="22" y="36" width="76" height="48" rx="4" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M38 36V28h44v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M48 52h24M48 62h18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+                            <circle cx="60" cy="74" r="3" stroke="currentColor" stroke-width="1.2"/>
+                        </svg>
+                    </div>
+                    <h1 class="personalize-serif text-4xl lg:text-[2.75rem] font-semibold text-slate-900 text-center tracking-tight">Personnaliser Voxeleon</h1>
+                    <p class="mt-4 text-center text-slate-600 text-[0.95rem] leading-relaxed max-w-lg mx-auto">
+                        Les compétences, connecteurs et plugins façonnent la manière dont Voxeleon travaille avec vous.
+                    </p>
+
+                    <div class="mt-12 space-y-4">
+                        <button type="button" id="btnOpenConnectorDirectory" class="personalize-card w-full min-w-0 flex flex-col sm:flex-row items-start gap-4 sm:gap-5 text-left p-6 rounded-[2rem] bg-white border border-slate-100 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="mt-0.5 text-slate-700 shrink-0">
+                                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M3 14h7v7H3z"/></svg>
+                            </span>
+                            <span class="min-w-0 w-full flex-1">
+                                <span class="block text-lg font-semibold text-slate-900 break-words">Connectez vos applications</span>
+                                <span class="block mt-1.5 text-sm text-slate-600 leading-relaxed break-words">Permettez à Voxeleon de lire et d'écrire dans les outils que vous utilisez déjà.</span>
+                            </span>
+                        </button>
+                        <button type="button" id="btnConnectElevenLabs" class="personalize-card w-full min-w-0 flex flex-col sm:flex-row items-start gap-4 sm:gap-5 text-left p-6 rounded-[2rem] bg-white border border-slate-100 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="mt-0.5 text-slate-700 shrink-0">
+                                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h6M8 17h4"/><path d="M10 9h1"/></svg>
+                            </span>
+                            <span class="min-w-0 w-full flex-1">
+                                <span class="block text-lg font-semibold text-slate-900 break-words">Personnaliser la voix avec ElevenLabs</span>
+                                <span class="block mt-1.5 text-sm text-slate-600 leading-relaxed break-words">Choisissez une voix, ajustez le style vocal et adaptez le ton de Voxeleon à votre marque.</span>
+                            </span>
+                        </button>
+                    </div>
+                </section>
+
+                <section id="panel-skills" class="personalize-panel hidden max-w-xl mx-auto px-6 lg:px-10 py-10 lg:py-12">
+                    <button type="button" data-personalize-tab="hub" class="text-sm text-slate-500 hover:text-slate-800 mb-6 flex items-center gap-1">
+                        <span aria-hidden="true">←</span> Aperçu Personnaliser
+                    </button>
+                    <h2 class="personalize-serif text-3xl font-semibold text-slate-900">Compétences</h2>
+                    <p class="mt-2 text-slate-600 text-sm">Votre profil et les instructions que l'assistant peut suivre dans vos sessions.</p>
+
+                    <div class="mt-10 bg-white border border-slate-100 rounded-[2rem] p-8 shadow-[0_20px_40px_rgba(15,23,42,0.08)] space-y-8">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 mb-4">Profil utilisateur</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nom complet</label>
+                                    <p id="profileName" class="text-slate-900 font-semibold">—</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
+                                    <p id="profileEmail" class="text-slate-900 font-semibold">—</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Rôle</label>
+                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" id="profileRole">—</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-slate-100">
+                            <h3 class="text-base font-bold text-slate-900 mb-2">Compétences personnalisées</h3>
+                            <p class="text-sm text-slate-500 mb-4">Bientôt : ajoutez des fiches métier et des consignes réutilisables pour vos conversations.</p>
+                            <span class="inline-flex text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full">À venir</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="panel-connectors" class="personalize-panel hidden max-w-3xl mx-auto px-6 lg:px-10 py-10 lg:py-12">
+                    <button type="button" data-personalize-tab="hub" class="text-sm text-slate-500 hover:text-slate-800 mb-6 flex items-center gap-1">
+                        <span aria-hidden="true">←</span> Aperçu Personnaliser
+                    </button>
+                    <h2 class="personalize-serif text-3xl font-semibold text-slate-900">Connecteurs</h2>
+                    <p class="mt-2 text-slate-600 text-sm max-w-2xl">Liez vos outils pour enrichir la base de connaissances, l’accès entreprise et les canaux autour de vos agents vocaux.</p>
+                    <div id="oauthFlash" class="hidden mt-4 rounded-xl border px-4 py-3 text-sm" role="status"></div>
+
+                    <ul class="mt-10 space-y-3 list-none p-0 m-0" aria-label="Connecteurs OAuth">
+                        <li class="connector-row flex flex-col sm:flex-row sm:items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700" aria-hidden="true">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h8M8 12h8M8 18h8"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-base font-semibold text-slate-900">Voix IA (ElevenLabs)</h3>
+                                <p class="text-sm text-slate-600 mt-0.5">Connectez ElevenLabs pour personnaliser la voix de Voxeleon (timbre, style, stabilité).</p>
+                            </div>
+                            <div class="connector-actions shrink-0 flex flex-col items-stretch sm:items-end gap-1.5 min-w-[6.5rem]" data-oauth-row="elevenlabs">
+                                <span class="oauth-connected-label hidden text-xs font-medium text-emerald-700" data-oauth-connected>Connecté</span>
+                                <div class="flex gap-1.5 flex-col sm:flex-row">
+                                    <button type="button" class="oauth-start-btn inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-55" data-oauth-provider="elevenlabs">Connecter</button>
+                                    <button type="button" class="oauth-disconnect-btn hidden inline-flex justify-center rounded-full border border-red-300 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 shadow-sm hover:bg-red-100 hover:border-red-400 transition disabled:opacity-55" data-oauth-provider="elevenlabs">Déconnecter</button>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="connector-row flex flex-col sm:flex-row sm:items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700" aria-hidden="true">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-base font-semibold text-slate-900">Documents &amp; cloud</h3>
+                                <p class="text-sm text-slate-600 mt-0.5">OAuth Google (Drive en lecture) — pour OneDrive/SharePoint, prévoir une seconde app Microsoft.</p>
+                            </div>
+                            <div class="connector-actions shrink-0 flex flex-col items-stretch sm:items-end gap-1.5 min-w-[6.5rem]" data-oauth-row="google_documents">
+                                <span class="oauth-connected-label hidden text-xs font-medium text-emerald-700" data-oauth-connected>Connecté</span>
+                                <div class="flex gap-1.5 flex-col sm:flex-row">
+                                    <button type="button" class="oauth-start-btn inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-55" data-oauth-provider="google_documents">Connecter</button>
+                                    <button type="button" class="oauth-disconnect-btn hidden inline-flex justify-center rounded-full border border-red-300 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 shadow-sm hover:bg-red-100 hover:border-red-400 transition disabled:opacity-55" data-oauth-provider="google_documents">Déconnecter</button>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="connector-row flex flex-col sm:flex-row sm:items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700" aria-hidden="true">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-base font-semibold text-slate-900">SSO &amp; annuaire</h3>
+                                <p class="text-sm text-slate-600 mt-0.5">OAuth Microsoft Entra ID (tenant <code class="text-xs bg-slate-100 px-1 rounded">common</code>) — profil / annuaire de base.</p>
+                            </div>
+                            <div class="connector-actions shrink-0 flex flex-col items-stretch sm:items-end gap-1.5 min-w-[6.5rem]" data-oauth-row="microsoft_sso">
+                                <span class="oauth-connected-label hidden text-xs font-medium text-emerald-700" data-oauth-connected>Connecté</span>
+                                <div class="flex gap-1.5 flex-col sm:flex-row">
+                                    <button type="button" class="oauth-start-btn inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-55" data-oauth-provider="microsoft_sso">Connecter</button>
+                                    <button type="button" class="oauth-disconnect-btn hidden inline-flex justify-center rounded-full border border-red-300 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 shadow-sm hover:bg-red-100 hover:border-red-400 transition disabled:opacity-55" data-oauth-provider="microsoft_sso">Déconnecter</button>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="connector-row flex flex-col sm:flex-row sm:items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700" aria-hidden="true">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 7h8M8 11h6"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-base font-semibold text-slate-900">Wikis &amp; documentation</h3>
+                                <p class="text-sm text-slate-600 mt-0.5">OAuth Notion — accès workspace autorisé par l’utilisateur.</p>
+                            </div>
+                            <div class="connector-actions shrink-0 flex flex-col items-stretch sm:items-end gap-1.5 min-w-[6.5rem]" data-oauth-row="notion">
+                                <span class="oauth-connected-label hidden text-xs font-medium text-emerald-700" data-oauth-connected>Connecté</span>
+                                <button type="button" class="oauth-start-btn inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-55" data-oauth-provider="notion">Connecter</button>
+                            </div>
+                        </li>
+                        <li class="connector-row flex flex-col sm:flex-row sm:items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700" aria-hidden="true">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-base font-semibold text-slate-900">Calendrier &amp; messagerie</h3>
+                                <p class="text-sm text-slate-600 mt-0.5">OAuth Slack (workspace) — scopes configurables côté serveur.</p>
+                            </div>
+                            <div class="connector-actions shrink-0 flex flex-col items-stretch sm:items-end gap-1.5 min-w-[6.5rem]" data-oauth-row="slack">
+                                <span class="oauth-connected-label hidden text-xs font-medium text-emerald-700" data-oauth-connected>Connecté</span>
+                                <div class="flex gap-1.5 flex-col sm:flex-row">
+                                    <button type="button" class="oauth-start-btn inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-55" data-oauth-provider="slack">Connecter</button>
+                                    <button type="button" class="oauth-disconnect-btn hidden inline-flex justify-center rounded-full border border-red-300 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 shadow-sm hover:bg-red-100 hover:border-red-400 transition disabled:opacity-55" data-oauth-provider="slack">Déconnecter</button>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="connector-row flex flex-col sm:flex-row sm:items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700" aria-hidden="true">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><path d="M14.05 2a9 9 0 0 1 8 7.94" stroke-linecap="round"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-base font-semibold text-slate-900">Téléphonie &amp; CRM</h3>
+                                <p class="text-sm text-slate-600 mt-0.5">OAuth HubSpot — accès API selon les scopes déclarés sur l’app.</p>
+                            </div>
+                            <div class="connector-actions shrink-0 flex flex-col items-stretch sm:items-end gap-1.5 min-w-[6.5rem]" data-oauth-row="hubspot">
+                                <span class="oauth-connected-label hidden text-xs font-medium text-emerald-700" data-oauth-connected>Connecté</span>
+                                <button type="button" class="oauth-start-btn inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-55" data-oauth-provider="hubspot">Connecter</button>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+            </main>
+    </div>
+
+    <!-- Répertoire connecteurs (style Voxeleon) -->
+    <div id="connectorDirectoryModal" class="fixed inset-0 z-[200] hidden" role="dialog" aria-modal="true" aria-labelledby="connectorDirectoryTitle">
+        <div class="absolute inset-0 z-0 bg-slate-900/40 backdrop-blur-[2px]" id="connectorDirectoryBackdrop" aria-hidden="true"></div>
+        <div class="relative z-10 w-full max-w-5xl max-h-[min(92vh,880px)] flex bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden mx-auto" style="box-shadow: 0 25px 80px rgba(15,23,42,0.18);">
+            <aside class="w-52 shrink-0 border-r border-slate-200 bg-[#f8fafc] flex flex-col py-5 px-3">
+                <p class="px-2 text-[0.65rem] font-semibold uppercase tracking-wider text-slate-400 mb-2">Menu</p>
+                <button type="button" class="directory-nav-item active w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-slate-600 hover:bg-slate-200/60 transition" data-directory-nav="connectors">
+                    <svg class="w-4 h-4 opacity-70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M3 14h7v7H3z"/></svg>
+                    Connecteurs
+                </button>
+                <button type="button" class="directory-nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-slate-500 hover:bg-slate-200/60 transition" data-directory-nav="plugins" disabled title="Bientôt">
+                    <svg class="w-4 h-4 opacity-50 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+                    Plugins
+                </button>
+            </aside>
+            <div class="flex-1 flex flex-col min-w-0 min-h-0 bg-white">
+                <header class="flex items-start justify-between gap-4 px-6 pt-5 pb-3 border-b border-slate-100 shrink-0">
+                    <div>
+                        <h2 id="connectorDirectoryTitle" class="text-2xl font-semibold text-slate-900 tracking-tight">Répertoire</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Ajoutez des connecteurs pour étendre votre agent vocal.</p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <select id="directoryFilter" class="text-xs font-medium text-slate-600 border border-slate-200 rounded-full px-3 py-2 bg-slate-50 cursor-pointer outline-none focus:ring-2 focus:ring-slate-300" aria-label="Filtrer par catégorie">
+                            <option value="all" selected>Tous</option>
+                            <option value="documents">Documents</option>
+                            <option value="messagerie">Messagerie</option>
+                            <option value="reunions">Réunions</option>
+                            <option value="crm">CRM &amp; ventes</option>
+                        </select>
+                        <label class="sr-only" for="directorySort">Trier</label>
+                        <select id="directorySort" class="text-xs font-medium text-slate-600 border border-slate-200 rounded-full px-3 py-2 bg-slate-50 cursor-pointer outline-none focus:ring-2 focus:ring-slate-300" aria-label="Trier la liste">
+                            <option value="popularity" selected>Popularité</option>
+                            <option value="name">Nom (A–Z)</option>
+                        </select>
+                        <button type="button" id="btnCloseConnectorDirectory" class="w-9 h-9 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition" aria-label="Fermer">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </header>
+                <div class="px-6 py-4 border-b border-slate-100 shrink-0 space-y-3">
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="search" id="directorySearchInput" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-300" placeholder="Rechercher des connecteurs…" autocomplete="off" />
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="inline-flex items-center rounded-full bg-slate-100 border border-slate-200/80 px-3 py-1 text-xs font-medium text-slate-700">Intégrations &amp; partenaires</span>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+                    <div id="connectorDirectoryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="documents" data-directory-popularity="100" data-directory-search="google drive fichiers documents cloud">
+                            <button type="button" class="directory-oauth-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 text-lg font-light leading-none" title="Connecter" data-oauth-provider="google_documents">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/googledrive.svg" alt="Google Drive" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">Google Drive</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Le plus populaire</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Rechercher, lire et déposer des fichiers instantanément.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="reunions" data-directory-popularity="90" data-directory-search="google agenda calendar calendrier réunion">
+                            <button type="button" class="directory-soon-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-400 hover:bg-slate-50 text-lg font-light leading-none" title="Bientôt">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/googlecalendar.svg" alt="Google Agenda" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">Google Agenda</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">#2 populaire</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Gérer votre planning et coordonner des réunions simplement.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="messagerie" data-directory-popularity="75" data-directory-search="gmail mail messagerie inbox">
+                            <button type="button" class="directory-soon-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-400 hover:bg-slate-50 text-lg font-light leading-none" title="Bientôt">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/gmail.svg" alt="Gmail" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">Gmail</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Tendances</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Brouillons, résumés de fils et recherche dans la boîte mail.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="documents" data-directory-popularity="95" data-directory-search="elevenlabs voix synthèse vocale tts ai">
+                            <button type="button" class="directory-oauth-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 text-lg font-light leading-none" title="Connecter ElevenLabs" data-oauth-provider="elevenlabs">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/elevenlabs.svg" alt="ElevenLabs" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">ElevenLabs</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Voix IA</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Personnalisez la voix de l'agent avec des réglages avancés de rendu vocal.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="reunions" data-directory-popularity="55" data-directory-search="zoom visio réunion vidéo">
+                            <button type="button" class="directory-oauth-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 text-lg font-light leading-none" title="Connecter Zoom" data-oauth-provider="zoom">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/zoom.svg" alt="Zoom" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">Zoom</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Visioconférence</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Parcourir, résumer et agir sur vos réunions enregistrées.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="documents" data-directory-popularity="50" data-directory-search="microsoft 365 entra azure office onedrive">
+                            <button type="button" class="directory-oauth-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 text-lg font-light leading-none" title="Connecter" data-oauth-provider="microsoft_sso">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/microsoft.svg" alt="Microsoft 365" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">Microsoft 365</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">SSO &amp; annuaire</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Connexion entreprise et accès profil Entra ID.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-search="notion wiki documentation">
+                            <button type="button" class="directory-oauth-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 text-lg font-light leading-none" title="Connecter" data-oauth-provider="notion">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/notion.svg" alt="Notion" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">Notion</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Wikis</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Pages et bases pour enrichir les compétences de l’agent.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="messagerie" data-directory-popularity="65" data-directory-search="slack équipe messagerie">
+                            <button type="button" class="directory-oauth-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 text-lg font-light leading-none" title="Connecter" data-oauth-provider="slack">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/slack.svg" alt="Slack" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">Slack</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Messagerie</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Canal d’équipe et notifications liées à vos agents.</p>
+                        </article>
+                        <article class="directory-card relative rounded-2xl border border-slate-200 bg-white p-4 pr-12 shadow-sm hover:border-slate-300 transition" data-directory-card data-directory-category="crm" data-directory-popularity="40" data-directory-search="hubspot crm ventes contacts">
+                            <button type="button" class="directory-oauth-btn absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 text-lg font-light leading-none" title="Connecter" data-oauth-provider="hubspot">+</button>
+                            <div class="directory-logo">
+                                <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/hubspot.svg" alt="HubSpot" width="32" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                            </div>
+                            <h3 class="text-[0.95rem] font-semibold text-slate-900">HubSpot</h3>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">CRM</p>
+                            <p class="text-xs text-slate-600 mt-2 leading-snug">Contacts et pipelines pour contextualiser les réponses.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user) window.location.href = 'login.html';
+
+        function logout() {
+            try {
+                const isDark = (localStorage.getItem('site_theme') || 'dark') !== 'light';
+                const bg = isDark ? '#08101d' : '#ffffff';
+                document.documentElement.style.backgroundColor = bg;
+                if (document.body) document.body.style.backgroundColor = bg;
+            } catch (_) {}
+            const keepTheme = (() => { try { return localStorage.getItem('site_theme'); } catch (_) { return null; } })();
+            const keepLang = (() => { try { return localStorage.getItem('site_lang'); } catch (_) { return null; } })();
+            localStorage.clear();
+            try {
+                if (keepTheme) localStorage.setItem('site_theme', keepTheme);
+                if (keepLang) localStorage.setItem('site_lang', keepLang);
+            } catch (_) {}
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = '/login';
+            } catch (_) {
+                window.location.href = '/login';
+            }
+        }
+
+        document.getElementById('profileName').textContent = `${user.prenom || ''} ${user.nom || ''}`.trim() || '—';
+        document.getElementById('profileEmail').textContent = user.email || '—';
+        document.getElementById('profileRole').textContent = user.role || 'Délégué';
+        const railUserInitial = document.getElementById('railUserInitial');
+        const railUserName = document.getElementById('railUserName');
+        const railUserMeta = document.getElementById('railUserMeta');
+        if (railUserInitial) {
+            const first = ((user.prenom || '').trim()[0] || (user.nom || '').trim()[0] || (user.email || 'U')[0] || 'U');
+            railUserInitial.textContent = String(first).toUpperCase();
+        }
+        if (railUserName) {
+            railUserName.textContent = `${user.prenom || ''} ${user.nom || ''}`.trim() || user.email || 'Profil';
+        }
+        if (railUserMeta) {
+            railUserMeta.textContent = user.role || user.email || 'Voxeleon';
+        }
+
+        const panels = {
+            hub: document.getElementById('panel-hub'),
+            skills: document.getElementById('panel-skills'),
+            connectors: document.getElementById('panel-connectors'),
+        };
+        const tabTriggers = document.querySelectorAll('[data-personalize-tab]');
+        const subnavItems = document.querySelectorAll('.personalize-subnav-item[data-personalize-tab]');
+        const pageParams = new URLSearchParams(window.location.search);
+        const sessionParam = String(pageParams.get('session') || '').trim();
+        const avatarParam = String(pageParams.get('avatar_id') || '').trim();
+
+        function setTab(id) {
+            if (id === 'connectors') id = 'hub';
+            Object.entries(panels).forEach(([key, el]) => {
+                if (!el) return;
+                el.classList.toggle('hidden', key !== id);
+            });
+            subnavItems.forEach((btn) => {
+                const t = btn.getAttribute('data-personalize-tab');
+                btn.classList.toggle('active', id !== 'hub' && t === id);
+            });
+            if (id === 'connectors') refreshConnectorStatus();
+        }
+
+        tabTriggers.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const tab = btn.getAttribute('data-personalize-tab');
+                if (tab) setTab(tab);
+            });
+        });
+
+        document.getElementById('backToSessionBtn')?.addEventListener('click', () => {
+            if (sessionParam) {
+                const params = new URLSearchParams();
+                params.set('session', sessionParam);
+                if (avatarParam) params.set('avatar_id', avatarParam);
+                const target = `/session?${params.toString()}`;
+                try {
+                    const topWindow = window.top || window;
+                    topWindow.location.href = target;
+                } catch (_) {
+                    window.location.href = `session.html?${params.toString()}`;
+                }
+                return;
+            }
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            window.location.href = 'session.html';
+        });
+
+        document.getElementById('btnConnectElevenLabs')?.addEventListener('click', (e) => {
+            startOAuth('elevenlabs', e.currentTarget);
+        });
+
+        function goToSessionWithAction(action) {
+            const params = new URLSearchParams();
+            if (sessionParam) params.set('session', sessionParam);
+            if (avatarParam) params.set('avatar_id', avatarParam);
+            if (action) params.set('sidebar_action', action);
+            const qs = params.toString();
+            const target = `/session${qs ? '?' + qs : ''}`;
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = target;
+            } catch (_) {
+                window.location.href = target;
+            }
+        }
+
+        // Left rail actions
+        document.getElementById('railBackBtn')?.addEventListener('click', () => {
+            document.getElementById('backToSessionBtn')?.click();
+        });
+        document.getElementById('railNewBtn')?.addEventListener('click', () => {
+            goToSessionWithAction('new');
+        });
+        document.getElementById('railSearchBtn')?.addEventListener('click', () => {
+            toggleSearchModal();
+        });
+        document.getElementById('railNotifBtn')?.addEventListener('click', () => {
+            goToSessionWithAction('agent_parameters');
+        });
+        document.getElementById('railMascotBtn')?.addEventListener('click', () => {
+            goToSessionWithAction('mascot');
+        });
+        document.getElementById('railFoldersBtn')?.addEventListener('click', () => {
+            goToSessionWithAction('knowledge');
+        });
+        document.getElementById('railPersonalizeBtn')?.addEventListener('click', () => {
+            setTab('hub');
+        });
+        document.getElementById('railDiscussionsBtn')?.addEventListener('click', () => {
+            goToSessionWithAction('');
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('chatSidebar');
+            const toggleBtn = document.getElementById('chatSidebarToggle');
+            if (sidebar && toggleBtn) {
+                toggleBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('collapsed');
+                });
+            }
+            const searchInput = document.getElementById('sidebarSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => renderSearchResults(e.target.value));
+            }
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('searchModal');
+                    if (modal && !modal.classList.contains('hidden')) toggleSearchModal();
+                }
+            });
+            loadSidebarSessions();
+        });
+
+        const token = () => localStorage.getItem('token');
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function summarizeSessionTitle(title) {
+            const normalized = String(title || '').replace(/\s+/g, ' ').trim();
+            if (!normalized) return '';
+            if (normalized.length <= 72) return normalized;
+            return `${normalized.slice(0, 69).trim()}...`;
+        }
+
+        function getSessionDisplayTitle(session) {
+            const firstMessage = summarizeSessionTitle(session?.session_title);
+            if (firstMessage) return firstMessage;
+            return session?.persona || session?.nom_avatar || session?.medicament_nom || 'Discussion';
+        }
+
+        function formatSessionDate(rawDate) {
+            if (!rawDate) return 'Date inconnue';
+            const parsed = new Date(rawDate);
+            if (Number.isNaN(parsed.getTime())) return 'Date inconnue';
+            return parsed.toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        }
+
+        let cachedSidebarSessions = [];
+
+        function renderSidebarSessions(sessions) {
+            const list = document.getElementById('sessionsList');
+            if (!list) return;
+            if (!sessions.length) {
+                list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Aucune discussion.</div>';
+                return;
+            }
+
+            list.innerHTML = sessions.map((session) => {
+                const idStr = session?.id != null ? String(session.id).trim() : '';
+                const safeId = idStr ? encodeURIComponent(idStr) : '';
+                const title = escapeHtml(getSessionDisplayTitle(session));
+                const dateLabel = escapeHtml(formatSessionDate(session?.date_debut || session?.created_at));
+                return `
+                    <button type="button" class="sidebar-session-item" ${safeId ? `onclick="window.location.href='session.html?session=${safeId}'"` : 'disabled'}>
+                        <div class="min-w-0 flex-1 text-left">
+                            <div class="session-title truncate">${title}</div>
+                            <div class="session-meta truncate">${dateLabel}</div>
+                        </div>
+                        <span class="session-chevron" aria-hidden="true">&rsaquo;</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        async function loadSidebarSessions() {
+            const list = document.getElementById('sessionsList');
+            if (!list) return;
+            list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Chargement...</div>';
+
+            const t = token();
+            if (!t) {
+                list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Connectez-vous.</div>';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/sessions', {
+                    headers: { Authorization: 'Bearer ' + t }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const payload = await res.json();
+                const sessions = Array.isArray(payload) ? payload : [];
+                cachedSidebarSessions = sessions;
+                renderSidebarSessions(sessions.slice(0, 8));
+            } catch (_) {
+                list.innerHTML = '<div class="text-center py-8 text-red-400 text-xs">Erreur de chargement.</div>';
+            }
+        }
+
+        function renderSearchResults(query) {
+            const out = document.getElementById('modalSearchResults');
+            if (!out) return;
+            const q = String(query || '').trim().toLowerCase();
+            if (!q) {
+                out.innerHTML = '<div class="text-center py-12 text-slate-400 text-sm">Tapez pour rechercher...</div>';
+                return;
+            }
+            const results = cachedSidebarSessions.filter((s) => {
+                const hay = `${getSessionDisplayTitle(s)} ${s?.persona || ''} ${s?.nom_avatar || ''}`.toLowerCase();
+                return hay.includes(q);
+            }).slice(0, 20);
+            if (!results.length) {
+                out.innerHTML = '<div class="text-center py-12 text-slate-400 text-sm">Aucun résultat.</div>';
+                return;
+            }
+            out.innerHTML = results.map((session) => {
+                const idStr = session?.id != null ? String(session.id).trim() : '';
+                const safeId = idStr ? encodeURIComponent(idStr) : '';
+                const title = escapeHtml(getSessionDisplayTitle(session));
+                const dateLabel = escapeHtml(formatSessionDate(session?.date_debut || session?.created_at));
+                return `
+                    <button type="button" class="sidebar-session-item mx-3 my-1" ${safeId ? `onclick="window.location.href='session.html?session=${safeId}'"` : 'disabled'}>
+                        <div class="min-w-0 flex-1 text-left">
+                            <div class="session-title truncate">${title}</div>
+                            <div class="session-meta truncate">${dateLabel}</div>
+                        </div>
+                        <span class="session-chevron" aria-hidden="true">&rsaquo;</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleSearchModal(event) {
+            const modal = document.getElementById('searchModal');
+            const content = document.getElementById('searchModalContent');
+            const input = document.getElementById('sidebarSearch');
+            if (!modal || !content) return;
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    if (input) {
+                        input.value = '';
+                        input.focus();
+                    }
+                    renderSearchResults('');
+                }, 10);
+                return;
+            }
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function refreshConnectorStatus() {
+            const t = token();
+            if (!t) return;
+            try {
+                const r = await fetch('/api/oauth/connectors/status', { headers: { Authorization: 'Bearer ' + t } });
+                const ct = (r.headers.get('content-type') || '').toLowerCase();
+                if (!ct.includes('application/json')) {
+                    console.warn('[oauth status] Réponse non-JSON', r.status);
+                    return;
+                }
+                const data = await r.json();
+                const connected = new Set((data.connections || []).map((c) => c.provider));
+                document.querySelectorAll('.oauth-start-btn[data-oauth-provider]').forEach((btn) => {
+                    const p = btn.getAttribute('data-oauth-provider');
+                    const row = btn.closest('[data-oauth-row]');
+                    const label = row && row.querySelector('[data-oauth-connected]');
+                    const ok = connected.has(p);
+                    if (label) label.classList.toggle('hidden', !ok);
+                    btn.textContent = ok ? 'Reconnecter' : 'Connecter';
+                });
+                document.querySelectorAll('[data-directory-card]').forEach((card) => {
+                    const oauthBtn = card.querySelector('.directory-oauth-btn[data-oauth-provider]');
+                    if (!oauthBtn) return;
+                    const p = oauthBtn.getAttribute('data-oauth-provider');
+                    const ok = connected.has(p);
+                    card.classList.toggle('directory-card--connected', ok);
+                    oauthBtn.textContent = ok ? '✓' : '+';
+                    oauthBtn.title = ok ? 'Reconnecter' : 'Connecter';
+                });
+            } catch (e) {
+                console.warn('[oauth status]', e);
+            }
+        }
+
+        async function startOAuth(provider, triggerBtn) {
+            const t = token();
+            if (!t) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const btn = triggerBtn || document.querySelector('.oauth-start-btn[data-oauth-provider="' + provider + '"]');
+            const prev = btn ? btn.textContent : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '…';
+            }
+            try {
+                const r = await fetch('/api/oauth/connectors/start/' + encodeURIComponent(provider), {
+                    headers: { Authorization: 'Bearer ' + t },
+                });
+                const data = await r.json().catch(() => ({}));
+                if (!r.ok) {
+                    let msg = data.error || ('Erreur ' + r.status);
+                    if (data.slug) msg += ' (slug : ' + data.slug + ')';
+                    if (data.slugs && data.slugs.length) msg += '\nSlugs reconnus : ' + data.slugs.join(', ');
+                    if (data.hint) msg += '\n' + data.hint;
+                    if (data.doc) msg += '\n' + data.doc;
+                    const miss = data.missingEnv ? ' — manque dans .env : ' + data.missingEnv.join(', ') : '';
+                    alert(msg + miss);
+                    return;
+                }
+                if (data.url) (window.top || window).location.href = data.url;
+                else alert(data.error || 'Réponse serveur invalide');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = prev;
+                }
+                refreshConnectorStatus();
+            }
+        }
+
+        document.getElementById('panel-connectors').addEventListener('click', (ev) => {
+            const btn = ev.target.closest('.oauth-start-btn[data-oauth-provider]');
+            if (!btn) return;
+            const provider = btn.getAttribute('data-oauth-provider');
+            if (provider) startOAuth(provider, btn);
+        });
+
+        const connectorDirectoryModal = document.getElementById('connectorDirectoryModal');
+        const directoryGrid = document.getElementById('connectorDirectoryGrid');
+        const directoryFilterEl = document.getElementById('directoryFilter');
+        const directorySortEl = document.getElementById('directorySort');
+        const directorySearchEl = document.getElementById('directorySearchInput');
+
+        function applyDirectoryFilters() {
+            if (!directoryGrid) return;
+            const cards = [...directoryGrid.querySelectorAll('[data-directory-card]')];
+            const filterVal = directoryFilterEl ? directoryFilterEl.value : 'all';
+            const sortVal = directorySortEl ? directorySortEl.value : 'popularity';
+            const searchQ = (directorySearchEl && directorySearchEl.value.trim().toLowerCase()) || '';
+
+            cards.forEach((card) => {
+                const cat = card.getAttribute('data-directory-category') || '';
+                const hay = (card.getAttribute('data-directory-search') || '').toLowerCase();
+                const passFilter = filterVal === 'all' || cat === filterVal;
+                const passSearch = !searchQ || hay.includes(searchQ);
+                card.classList.toggle('hidden', !passFilter || !passSearch);
+            });
+
+            const sorted = [...directoryGrid.querySelectorAll('[data-directory-card]')];
+            sorted.sort((a, b) => {
+                if (sortVal === 'name') {
+                    const ta = (a.querySelector('h3') && a.querySelector('h3').textContent.trim()) || '';
+                    const tb = (b.querySelector('h3') && b.querySelector('h3').textContent.trim()) || '';
+                    return ta.localeCompare(tb, 'fr', { sensitivity: 'base' });
+                }
+                const pa = parseInt(a.getAttribute('data-directory-popularity') || '0', 10);
+                const pb = parseInt(b.getAttribute('data-directory-popularity') || '0', 10);
+                return pb - pa;
+            });
+            sorted.forEach((c) => directoryGrid.appendChild(c));
+        }
+
+        function openConnectorDirectory() {
+            connectorDirectoryModal.classList.remove('hidden');
+            connectorDirectoryModal.classList.add('flex', 'items-center', 'justify-center', 'p-3', 'sm:p-4');
+            if (directorySearchEl) directorySearchEl.value = '';
+            if (directoryFilterEl) directoryFilterEl.value = 'all';
+            if (directorySortEl) directorySortEl.value = 'popularity';
+            connectorDirectoryModal.querySelectorAll('.directory-nav-item').forEach((n) => n.classList.remove('active'));
+            const navConn = connectorDirectoryModal.querySelector('[data-directory-nav="connectors"]');
+            if (navConn) navConn.classList.add('active');
+            applyDirectoryFilters();
+            refreshConnectorStatus();
+            setTimeout(() => directorySearchEl && directorySearchEl.focus(), 80);
+        }
+        function closeConnectorDirectory() {
+            connectorDirectoryModal.classList.add('hidden');
+            connectorDirectoryModal.classList.remove('flex', 'items-center', 'justify-center', 'p-3', 'sm:p-4');
+        }
+        document.getElementById('btnOpenConnectorDirectory').addEventListener('click', openConnectorDirectory);
+        document.getElementById('btnCloseConnectorDirectory').addEventListener('click', closeConnectorDirectory);
+        document.getElementById('connectorDirectoryBackdrop').addEventListener('click', closeConnectorDirectory);
+        connectorDirectoryModal.addEventListener('click', (ev) => {
+            const oauth = ev.target.closest('.directory-oauth-btn[data-oauth-provider]');
+            if (oauth) {
+                startOAuth(oauth.getAttribute('data-oauth-provider'), oauth);
+                return;
+            }
+            if (ev.target.closest('.directory-soon-btn')) {
+                alert('Ce connecteur sera disponible dans une prochaine version.');
+            }
+        });
+        connectorDirectoryModal.querySelectorAll('[data-directory-nav]').forEach((b) => {
+            b.addEventListener('click', () => {
+                if (b.disabled) return;
+                const n = b.getAttribute('data-directory-nav');
+                connectorDirectoryModal.querySelectorAll('.directory-nav-item').forEach((x) => x.classList.remove('active'));
+                b.classList.add('active');
+                if (n === 'skills') {
+                    closeConnectorDirectory();
+                    setTab('skills');
+                }
+            });
+        });
+        directorySearchEl.addEventListener('input', applyDirectoryFilters);
+        directoryFilterEl.addEventListener('change', applyDirectoryFilters);
+        directorySortEl.addEventListener('change', applyDirectoryFilters);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !connectorDirectoryModal.classList.contains('hidden')) closeConnectorDirectory();
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const initial = params.get('tab');
+        if (initial === 'skills') setTab('skills');
+        else setTab('hub');
+
+        (function oauthReturnFlash() {
+            const p = new URLSearchParams(window.location.search);
+            const el = document.getElementById('oauthFlash');
+            if (!el) return;
+            if (p.get('oauth_ok') === '1') {
+                el.className =
+                    'mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900';
+                const pr = p.get('oauth_provider') || '';
+                el.textContent = pr ? 'Connexion enregistrée (' + pr + ').' : 'Connexion enregistrée.';
+                el.classList.remove('hidden');
+            } else if (p.get('oauth_error')) {
+                el.className =
+                    'mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900';
+                let t = 'OAuth : ' + p.get('oauth_error');
+                if (p.get('oauth_detail')) t += ' — ' + p.get('oauth_detail');
+                el.textContent = t;
+                el.classList.remove('hidden');
+            }
+            if (p.get('oauth_ok') || p.get('oauth_error')) {
+                p.delete('oauth_ok');
+                p.delete('oauth_provider');
+                p.delete('oauth_error');
+                p.delete('oauth_detail');
+                if (!p.get('tab')) p.set('tab', 'hub');
+                history.replaceState(null, '', 'personalize.html?' + p.toString());
+                setTab('hub');
+                refreshConnectorStatus();
+            }
+        })();
+    </script>
+    <script src="js/app-sidebar.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

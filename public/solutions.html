@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solutions - Voxeleon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+            background-position: center;
+        }
+
+        .fade-mask {
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+        }
+    </style>
+</head>
+
+<body class="marketing-page bg-gray-50 text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
+        <a href="index.html" class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-white font-bold text-sm">L
+            </div>
+            <span class="font-bold text-lg tracking-tight text-emerald-950">Voxeleon</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <a href="/solutions" class="text-green-600 hover:text-emerald-950 transition-colors font-semibold">Solutions</a>
+            <a href="/fonctionnalites" class="hover:text-emerald-950 transition-colors">Fonctionnalités</a>
+            <a href="/contact" class="hover:text-emerald-950 transition-colors">Contact</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="login.html"
+                class="hidden md:block text-sm font-medium text-slate-600 hover:text-emerald-950 transition-colors">Connexion</a>
+            <a href="login.html"
+                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full text-sm font-medium shadow-sm shadow-green-600/20 transition-all hover:shadow-md hover:-translate-y-0.5">
+                Démarrer
+            </a>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="marketing-hero relative pt-20 pb-16 text-center overflow-hidden">
+        <div class="marketing-hero-grid absolute inset-0 bg-grid z-0"></div>
+        <div class="marketing-hero-fade absolute inset-0 bg-gradient-to-t from-gray-50 to-transparent z-0"></div>
+
+        <div class="max-w-4xl mx-auto px-6 relative z-10">
+            <div
+                class="marketing-pill inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold mb-8 border border-green-100/50 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                Solutions Innovantes
+            </div>
+
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-emerald-950 mb-6 leading-tight">
+                Nos Solutions pour <br class="hidden md:block" />
+                <span class="relative">
+                    Votre Formation
+                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-green-500/30" viewBox="0 0 100 10"
+                        preserveAspectRatio="none">
+                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="transparent" />
+                    </svg>
+                </span>
+            </h1>
+
+            <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Découvrez comment notre plateforme d'IA vocale révolutionne la formation des délégués médicaux.
+            </p>
+        </div>
+    </section>
+
+    <!-- Solutions Grid -->
+    <section class="max-w-6xl mx-auto px-6 py-20 relative z-10">
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <!-- Solution 1 -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all">
+                <div class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8m0 8l-6-4m6 4l6-4" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-emerald-950 mb-4">Simulations Réalistes</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    Entraînez vos équipes avec des médecins virtuels alimentés par IA, en temps réel. Les interactions sont naturelles et contextualisées pour la formation pharma.
+                </p>
+            </div>
+
+            <!-- Solution 2 -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all">
+                <div class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-emerald-950 mb-4">Analytics & Rapports</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    Suivez la progression de chaque collaborateur avec des tableaux de bord détaillés. Identifiez les forces et les axes d'amélioration instantanément.
+                </p>
+            </div>
+
+            <!-- Solution 3 -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all">
+                <div class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-emerald-950 mb-4">Personnalisation</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    Adaptez les scénarios à vos produits, argumentaires et objectifs. Chaque session peut être configurée selon vos besoins spécifiques.
+                </p>
+            </div>
+
+            <!-- Solution 4 -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all">
+                <div class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-emerald-950 mb-4">Support Multi-Langue</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    Formation disponible dans différentes langues pour atteindre vos équipes mondiales. Interface et interactions adaptées par région.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="max-w-4xl mx-auto px-6 py-20 text-center relative z-10">
+        <h2 class="text-4xl font-bold text-emerald-950 mb-6">Prêt à transformer votre formation ?</h2>
+        <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
+            Découvrez comment Voxeleon peut améliorer les compétences de vos équipes.
+        </p>
+        <a href="login.html"
+            class="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-full font-medium shadow-lg shadow-green-600/30 transition-all hover:-translate-y-1">
+            Commencer une simulation
+        </a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 mt-20 py-12 bg-white relative z-10">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center gap-2 mb-6 md:mb-0">
+                    <div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-white font-bold text-sm">L</div>
+                    <span class="font-bold text-emerald-950">Voxeleon</span>
+                </div>
+                <div class="flex gap-6 text-sm text-slate-600">
+                    <a href="index.html" class="hover:text-emerald-950 transition-colors">Accueil</a>
+                    <a href="/solutions" class="hover:text-emerald-950 transition-colors">Solutions</a>
+                    <a href="/fonctionnalites" class="hover:text-emerald-950 transition-colors">Fonctionnalités</a>
+                    <a href="/contact" class="hover:text-emerald-950 transition-colors">Contact</a>
+                </div>
+            </div>
+            <div class="border-t border-slate-200 mt-8 pt-8 text-center text-sm text-slate-500">
+                <p>&copy; 2024 Voxeleon. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="theme-toggle.js"></script>
+</body>
+
+</html>

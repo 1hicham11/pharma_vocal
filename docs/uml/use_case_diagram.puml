@@ -1,0 +1,70 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Utilisateur" as Utilisateur
+actor "Administrateur" as Admin
+actor "Service OpenAI\n(STT/TTS/LLM)" as OpenAI
+actor "Agent Python ReAct\n(FastAPI)" as PyAgent
+
+rectangle "Systeme Pharma Vocal Agent" {
+  usecase "S inscrire" as UC_Register
+  usecase "Se connecter" as UC_Login
+  usecase "Demarrer une session" as UC_StartSession
+  usecase "Envoyer message vocal" as UC_SendVoice
+  usecase "Envoyer message texte" as UC_SendText
+  usecase "Transcrire audio (STT)" as UC_STT
+  usecase "Obtenir reponse IA" as UC_Chat
+  usecase "Ecouter reponse vocale (TTS)" as UC_TTS
+  usecase "Consulter historique" as UC_History
+  usecase "Consulter evaluation session" as UC_GetEval
+  usecase "Evaluer conversation (auto si absent)" as UC_AutoEval
+  usecase "Cloturer session classique" as UC_EndSession
+
+  usecase "Initialiser session multi-agent" as UC_AgentInit
+  usecase "Dialoguer avec agent autonome" as UC_AgentChat
+  usecase "Cloturer session multi-agent\net generer synthese" as UC_AgentEnd
+
+  usecase "Gerer experts (avatars)" as UC_AvatarMgmt
+  usecase "Gerer medicaments" as UC_MedMgmt
+  usecase "Uploader documents RAG (PDF)" as UC_RagUpload
+  usecase "Uploader donnees Excel" as UC_ExcelUpload
+  usecase "Consulter statistiques dashboard" as UC_Stats
+  usecase "Gerer medicaments inconnus" as UC_UnknownMeds
+}
+
+Utilisateur -- UC_Register
+Utilisateur -- UC_Login
+Utilisateur -- UC_StartSession
+Utilisateur -- UC_SendVoice
+Utilisateur -- UC_SendText
+Utilisateur -- UC_History
+Utilisateur -- UC_GetEval
+Utilisateur -- UC_EndSession
+Utilisateur -- UC_AgentInit
+Utilisateur -- UC_AgentChat
+Utilisateur -- UC_AgentEnd
+
+Admin -- UC_Login
+Admin -- UC_AvatarMgmt
+Admin -- UC_MedMgmt
+Admin -- UC_RagUpload
+Admin -- UC_ExcelUpload
+Admin -- UC_Stats
+Admin -- UC_UnknownMeds
+
+UC_SendVoice .> UC_STT : <<include>>
+UC_SendVoice .> UC_Chat : <<include>>
+UC_SendText .> UC_Chat : <<include>>
+UC_Chat .> UC_TTS : <<include>>
+UC_AutoEval .> UC_GetEval : <<extend>>
+
+OpenAI -- UC_STT
+OpenAI -- UC_Chat
+OpenAI -- UC_TTS
+OpenAI -- UC_AutoEval
+OpenAI -- UC_AgentEnd
+
+PyAgent -- UC_AgentChat
+@enduml

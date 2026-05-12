@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Experts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body class="bg-[#edf3fb] text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+    <div class="min-h-screen">
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <header class="px-6 lg:px-10 py-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Gestion des Experts</h1>
+                        <p class="text-sm text-slate-500">Configurez vos agents IA intelligents.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button
+                        id="themeToggleBtn"
+                        type="button"
+                        class="theme-toggle-btn w-10 h-10 flex items-center justify-center"
+                        aria-label="Basculer le thème"
+                        title="Basculer le thème"
+                    >
+                        <span id="themeToggleIcon"></span>
+                    </button>
+                    <button onclick="window.location.href='create-agent.html'" class="px-5 py-2.5 bg-emerald-500 text-white rounded-full text-sm font-semibold shadow-lg shadow-emerald-500/30">Nouvel Expert</button>
+                    <button onclick="logout()" class="text-sm text-slate-500 hover:text-red-500 transition">Déconnexion</button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="expertsList">
+                    <div class="animate-pulse text-slate-400">Chargement des experts...</div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function logout() {
+            try {
+                const isDark = (localStorage.getItem('site_theme') || 'dark') !== 'light';
+                const bg = isDark ? '#08101d' : '#ffffff';
+                document.documentElement.style.backgroundColor = bg;
+                if (document.body) document.body.style.backgroundColor = bg;
+            } catch (_) {}
+            const keepTheme = (() => { try { return localStorage.getItem('site_theme'); } catch (_) { return null; } })();
+            const keepLang = (() => { try { return localStorage.getItem('site_lang'); } catch (_) { return null; } })();
+            localStorage.clear();
+            try {
+                if (keepTheme) localStorage.setItem('site_theme', keepTheme);
+                if (keepLang) localStorage.setItem('site_lang', keepLang);
+            } catch (_) {}
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = '/login';
+            } catch (_) {
+                window.location.href = '/login';
+            }
+        }
+
+        async function loadExperts() {
+            try {
+                const res = await fetch('/api/admin/avatars', { headers: { Authorization: 'Bearer ' + token } });
+                const experts = await res.json();
+                const container = document.getElementById('expertsList');
+                
+                if (!experts.length) {
+                    container.innerHTML = '<p class="col-span-full text-center py-10 text-slate-400">Aucun expert créé.</p>';
+                    return;
+                }
+
+                container.innerHTML = experts.map(e => {
+                    let visualContent = '';
+                    if (e.image_url) {
+                        visualContent = `<img src="${e.image_url}" alt="${e.nom_avatar}" class="w-16 h-16 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform" />`;
+                    } else {
+                        visualContent = `<div class="text-4xl group-hover:scale-110 transition-transform">
+  <svg class="w-12 h-12 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+</div>`;
+                    }
+
+                    return `
+                    <div class="card card-body shadow-sm hover:shadow-md transition group">
+                        <div class="flex justify-between items-start mb-4">
+                            ${visualContent}
+                            <div class="flex gap-2">
+                                <button onclick="window.location.href='create-agent.html?id=${e.id}'" class="btn-icon text-slate-400 hover:text-emerald-600 p-1" title="Modifier">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3 4 14l2-1 5 6-5 6 1 2 5-6 2 1-13-13 13-13-13 13z"/></svg>
+                                </button>
+                                <button onclick="deleteExpert(${e.id})" class="btn-icon text-slate-400 hover:text-red-600 p-1" title="Supprimer">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">${e.nom_avatar}</h3>
+                        <p class="text-xs text-muted uppercase tracking-widest mb-3">${e.categorie || 'Expert IA'}</p>
+                        <div class="bg-slate-50 rounded-xl p-3 text-xs text-muted line-clamp-3 mb-4">
+                            ${e.prompt_systeme}
+                        </div>
+                        <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                            <div class="flex -space-x-2">
+                                ${e.use_rag ? '<span title="RAG Activé" class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-accent"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span>' : ''}
+                                ${e.use_db ? '<span title="SQL Activé" class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] text-blue-600"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="4" ry="4"/></svg></span>' : ''}
+                            </div>
+                            <span class="text-[10px] text-muted uppercase font-semibold ml-auto">Prêt</span>
+                        </div>
+                    </div>
+                `}).join('');
+            } catch (err) {
+                document.getElementById('expertsList').innerHTML = '<p class="text-red-500">Erreur lors du chargement.</p>';
+            }
+        }
+
+        async function deleteExpert(id) {
+            if (!confirm('Voulez-vous vraiment supprimer cet expert ?')) return;
+            try {
+                await fetch('/api/admin/avatars/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+                loadExperts();
+            } catch (e) { alert('Erreur lors de la suppression'); }
+        }
+
+        loadExperts();
+    </script>
+    <script src="js/app-sidebar.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxeleon — Administration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #f5f7fb 0%, #ecf1fb 55%, #ffffff 100%);
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-active {
+            display: flex !important;
+            animation: modalIn 0.3s ease-out forwards;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        main {
+            background: transparent;
+            min-height: calc(100vh - 5.5rem);
+        }
+
+        #adminLayout {
+            align-items: flex-start;
+            min-height: calc(100vh - 5.5rem);
+            background: transparent;
+        }
+
+        #adminSidebar {
+            min-height: 100%;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.06);
+            border-radius: 36px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: linear-gradient(180deg, #ffffff 0%, #f5faf7 50%, #ecf5ff 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+
+        #adminSidebar nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        #adminSidebar .tab-btn {
+            border-radius: 999px;
+            transition: background 0.3s, color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #475569;
+            border: none;
+            padding: 0.85rem 1rem;
+            background: transparent;
+            text-align: left;
+            width: 100%;
+            box-shadow: inset 0 0 0 1px transparent;
+        }
+
+        #adminSidebar .tab-btn .tab-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        #adminSidebar .tab-btn .tab-label {
+            flex: 1;
+        }
+
+        #adminSidebar .tab-btn.active {
+            background: #dcfce7;
+            color: #065f46;
+            box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.3);
+        }
+
+        #adminSidebar.sidebar-collapsed {
+            width: 72px;
+            padding-inline: 0.75rem;
+        }
+
+        #adminSidebar.sidebar-collapsed .tab-btn {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        #adminSidebar.sidebar-collapsed .tab-btn .tab-label {
+            display: none;
+        }
+
+        #adminSidebar.sidebar-collapsed .tab-btn {
+            border-radius: 999px;
+        }
+
+        #adminLayout.sidebar-collapsed {
+            grid-template-columns: 72px 1fr;
+        }
+
+        #sidebarOpenBtn {
+            position: fixed;
+            top: 92px;
+            left: 90px;
+            z-index: 50;
+        }
+
+        #adminSidebar.sidebar-collapsed #sidebarCloseBtn {
+            display: none;
+        }
+        .stat-card {
+            border-radius: 20px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: linear-gradient(135deg, #ffffff, #f7fbff);
+            padding: 1rem;
+            box-shadow: 0 15px 30px rgba(15, 23, 42, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .stat-card small {
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+        }
+
+        .dashboard-card {
+            border-radius: 32px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: #fff;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.08);
+        }
+
+        .progress-ring {
+            width: 88px;
+            height: 88px;
+            border-radius: 999px;
+            background: conic-gradient(#10b981 0deg, #e2e8f0 0deg);
+            display: grid;
+            place-items: center;
+            box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            color: #0f172a;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen pb-12">
+
+    <!-- Navbar -->
+    <nav
+        class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
+        <a href="dashboard.html"
+            class="flex items-center gap-3 font-bold text-lg text-emerald-950 transition-transform hover:scale-105">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-xl shadow-sm">
+                🩺
+            </div>
+            Voxeleon <span
+                class="text-sm font-semibold text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded ml-2">ADMIN</span>
+        </a>
+        <div class="flex items-center gap-4">
+            <span id="adminName" class="font-medium text-slate-700 hidden sm:block text-sm">Admin</span>
+            <div class="h-8 w-px bg-slate-200"></div>
+            <a href="dashboard.html" class="text-sm text-slate-500 hover:text-green-600 transition-colors font-medium">
+                Retour Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="w-full px-0 py-8">
+
+        <div id="adminLayout" class="grid lg:grid-cols-[260px,1fr] gap-6 mb-8" style="width: 100%;">
+                        <aside id="adminSidebar"
+                class="sticky top-8 self-start rounded-3xl border border-slate-100 bg-white p-6 shadow-sm transition duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400"></p>
+                        <p class="text-[10px] text-slate-500 tracking-[0.6em] uppercase"></p>
+                    </div>
+                    <button id="sidebarCloseBtn"
+                        class="rounded-full border border-slate-200 px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-500 transition hover:text-emerald-600 hover:border-emerald-300">Masquer</button>
+                </div>
+                <nav class="mt-6 flex-1 overflow-y-auto">
+                    <div class="flex flex-col gap-3">
+                        <button
+                            class="tab-btn active"
+                            onclick="switchTab('overview', this)">
+                            <span class="tab-icon">📈</span>
+                            <span class="tab-label">Vue d'ensemble</span>
+                        </button>
+                        <button
+                            class="tab-btn"
+                            onclick="switchTab('meds', this)">
+                            <span class="tab-icon">📚</span>
+                            <span class="tab-label">Produits & Services</span>
+                        </button>
+                        <button
+                            class="tab-btn"
+                            onclick="switchTab('sessions', this)">
+                            <span class="tab-icon">🗓️</span>
+                            <span class="tab-label">Toutes les Sessions</span>
+                        </button>
+                        <button
+                            class="tab-btn"
+                            onclick="switchTab('unknown', this)">
+                            <span class="tab-icon">❓</span>
+                            <span class="tab-label">Meds Inconnus</span>
+                        </button>
+                        <button
+                            class="tab-btn"
+                            onclick="switchTab('avatars', this)">
+                            <span class="tab-icon">🧑‍⚕️</span>
+                            <span class="tab-label">Experts (Personas)</span>
+                        </button>
+                        <button
+                            class="tab-btn"
+                            onclick="switchTab('rag', this)">
+                            <span class="tab-icon">📂</span>
+                            <span class="tab-label">Base RAG</span>
+                        </button>
+                    </div>
+                </nav>
+            </aside>
+
+            <div class="space-y-8">
+                <div>
+                    <button id="sidebarOpenBtn"
+                        class="hidden items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:text-slate-900">
+                        <span class="text-lg leading-none">☰</span> Menu
+                    </button>
+                </div>
+
+                <!-- Tab: Vue d'ensemble -->
+        <div id="overviewTab" class="fade-in space-y-6">
+            <section class="dashboard-card relative overflow-hidden px-6 py-8">
+                <div class="absolute -top-10 right-8 h-32 w-32 rounded-full bg-gradient-to-br from-emerald-400/40 to-transparent blur-3xl"></div>
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Administration</p>
+                        <h1 class="text-3xl font-bold text-slate-900">Tableau de bord administrateur</h1>
+                        <p class="text-sm text-slate-500">Les principaux KPIs et activités sont centralisés ici.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="rounded-2xl bg-slate-100 px-4 py-2 text-right text-sm text-slate-500">
+                            <p class="text-[10px] uppercase tracking-[0.3em]">Mise à jour</p>
+                            <p id="dashboardUpdated" class="font-semibold text-slate-900">--</p>
+                        </div>
+                        <button class="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/40 transition hover:bg-emerald-600">Planifier un meeting</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <span class="text-emerald-600 text-xl">📊</span>
+                            <small class="text-slate-400">Sessions</small>
+                        </div>
+                        <p class="text-3xl font-extrabold text-emerald-950" id="kpiTotalSessions">—</p>
+                        <p class="text-xs text-slate-500">Depuis le début de la semaine</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <span class="text-emerald-600 text-xl">✔️</span>
+                            <small class="text-slate-400">Réussite</small>
+                        </div>
+                        <p class="text-3xl font-extrabold text-emerald-950" id="kpiSuccessRate">—</p>
+                        <p class="text-xs text-slate-500">Score moyen</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <span class="text-emerald-600 text-xl">👥</span>
+                            <small class="text-slate-400">Utilisateurs</small>
+                        </div>
+                        <p class="text-3xl font-extrabold text-emerald-950" id="kpiActiveUsers">—</p>
+                        <p class="text-xs text-slate-500">Délégués actifs</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <span class="text-emerald-600 text-xl">📁</span>
+                            <small class="text-slate-400">Documents</small>
+                        </div>
+                        <p class="text-3xl font-extrabold text-emerald-950" id="kpiRagDocs">—</p>
+                        <p class="text-xs text-slate-500">Référentiels RAG</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-xs uppercase tracking-[0.4em] text-slate-400">Statistiques en direct</p>
+            </section>
+
+            <section class="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr,0.8fr]">
+                <div class="dashboard-card p-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-emerald-900">Activité des 7 derniers jours</h3>
+                        <span class="text-xs font-semibold uppercase text-slate-400">Sessions</span>
+                    </div>
+                    <div class="mt-4 h-64 relative">
+                        <canvas id="sessionsChart" class="absolute inset-0 w-full h-full"></canvas>
+                        <p id="sessionsChartEmpty" class="absolute inset-0 z-10 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 bg-white/80 rounded-2xl hidden">
+                            Aucune activité enregistrée ces 7 derniers jours.
+                            <span class="text-xs text-slate-400 mt-1">Créez des sessions pour générer des données.</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="dashboard-card p-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-emerald-900">Project Analytics</h3>
+                            <span class="text-xs text-slate-400">Vue générale</span>
+                        </div>
+                        <div class="mt-4 h-48 relative">
+                            <canvas id="avatarsChart" class="absolute inset-0 w-full h-full"></canvas>
+                            <p id="avatarsChartEmpty" class="absolute inset-0 z-10 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 bg-white/80 rounded-2xl hidden">
+                                Aucun expert n’a encore été utilisé.
+                                <span class="text-xs text-slate-400 mt-1">Ajoutez des avatars pour activer ce graphique.</span>
+                            </p>
+                        </div>
+                        <div class="mt-4 space-y-2 text-sm text-slate-500">
+                            <div class="flex items-center justify-between">
+                                <span>Total produits suivis</span>
+                                <span class="font-semibold text-slate-900">186</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Projets en cours</span>
+                                <span class="font-semibold text-emerald-600">18</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Projets planifiés</span>
+                                <span class="font-semibold text-slate-900">6</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card p-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-emerald-900">Reminders</h3>
+                            <span class="text-xs font-semibold text-slate-400">Prioritaire</span>
+                        </div>
+                        <div class="mt-4 space-y-4 text-sm text-slate-600">
+                            <div class="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                                <span class="text-emerald-600 text-xl">🕒</span>
+                                <div>
+                                    <p class="font-semibold text-slate-900">Meeting with Arc Company</p>
+                                    <p class="text-xs text-slate-500">Aujourd'hui • 14h00 • Virtuel</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                                <span class="text-slate-400 text-xl">⚡</span>
+                                <div>
+                                    <p class="font-semibold text-slate-900">Valider nouveaux avatars</p>
+                                    <p class="text-xs text-slate-500">Deadline : demain</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-4 w-full rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-xl shadow-emerald-500/30">Lancer un call</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr,0.8fr]">
+                <div class="dashboard-card p-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-emerald-900">Collaboration d’équipe</h3>
+                        <span class="text-xs text-slate-400">5 délégués en ligne</span>
+                    </div>
+                    <div id="recentActivityList" class="mt-6 space-y-4 text-sm text-slate-500">
+                        <p class="text-sm text-slate-400 text-center py-4">Chargement...</p>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="dashboard-card p-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-emerald-900">Performance des experts</h3>
+                            <span class="text-xs text-slate-400">Top avatars</span>
+                        </div>
+                        <div id="expertPerformanceList" class="mt-6 space-y-2 text-sm text-slate-500">
+                            <p class="text-sm text-slate-400 text-center py-4">Chargement...</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card p-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-emerald-900">Project Progress</h3>
+                            <span class="text-xs text-slate-400">Score moyen</span>
+                        </div>
+                        <div class="mt-6 flex items-center gap-5">
+                            <div id="projectProgressCircle" class="progress-ring">
+                                <span id="projectProgressValue" class="text-lg font-bold text-slate-900">0%</span>
+                            </div>
+                            <div>
+                                <p id="projectProgressSubtext" class="text-sm text-slate-500">Chargement...</p>
+                                <p class="text-xs uppercase tracking-[0.4em] text-slate-300">Sur 100</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 space-y-3 text-sm text-slate-500">
+                            <div class="flex items-center justify-between">
+                                <span>Sessions totales</span>
+                                <span id="projectProgressSessions">0</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Taux de réussite</span>
+                                <span id="projectProgressSuccess">0%</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 h-2 rounded-full bg-slate-100">
+                            <div id="projectProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-lime-400" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+<!-- Tab: Produits & Services -->
+        <div id="medsTab" class="hidden fade-in">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 class="text-2xl font-bold text-emerald-950">Catalogue Produits & Services</h2>
+                <button onclick="openMedModal()"
+                    class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm shadow-green-600/20 transition-all hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap text-sm">
+                    + Nouveau Produit
+                </button>
+            </div>
+            <div class="bg-white border border-slate-100 rounded-3xl overflow-x-auto shadow-sm">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tl-3xl">
+                                Nom</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                DCI</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Classe</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Statut</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tr-3xl text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medsList" class="divide-y divide-slate-50">
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-slate-500 text-sm">Chargement...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Sessions -->
+        <div id="sessionsTab" class="hidden fade-in">
+            <h2 class="text-2xl font-bold text-emerald-950 mb-6">Suivi des Sessions</h2>
+            <div class="bg-white border border-slate-100 rounded-3xl overflow-x-auto shadow-sm">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tl-3xl">
+                                Date</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Délégué</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Produit</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Score</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tr-3xl text-right">
+                                Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionsList" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Unknown Meds -->
+        <div id="unknownTab" class="hidden fade-in">
+            <h2 class="text-2xl font-bold text-emerald-950 mb-2">Médicaments non-maîtrisés détectés</h2>
+            <p class="text-slate-500 text-sm mb-6 max-w-2xl">Ces noms ont été mentionnés par les délégués lors de
+                simulations libres, mais ne correspondent à aucun médicament dans votre base. Ajoutez-les si nécessaire.
+            </p>
+            <div class="bg-white border border-slate-100 rounded-3xl overflow-x-auto shadow-sm">
+                <table class="w-full text-left border-collapse min-w-[500px]">
+                    <thead>
+                        <tr>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tl-3xl">
+                                Nom détecté</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Date de détection</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tr-3xl text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unknownList" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Avatars -->
+        <div id="avatarsTab" class="hidden fade-in">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-emerald-950">Gestion des Experts</h2>
+                    <p class="text-slate-500 text-sm">Créez et configurez les personas de l'IA.</p>
+                </div>
+                <button onclick="openAvatarModal()"
+                    class="bg-emerald-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm">
+                    + Nouvel Expert
+                </button>
+            </div>
+            <div class="bg-white border border-slate-100 rounded-3xl overflow-x-auto shadow-sm">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tl-3xl">
+                                Nom de l'expert</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Description / Prompt</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tr-3xl text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="avatarsList" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Base Documentaire RAG -->
+        <div id="ragTab" class="hidden fade-in">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-emerald-950">Base Documentaire RAG</h2>
+                    <p class="text-slate-500 text-sm">Uploadez des fichiers à vectoriser pour enrichir la base de
+                        connaissances des agents IA.</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="ragAvatarSelect" class="block text-sm font-semibold text-slate-700 mb-2">Affecter ces
+                    fichiers à l'expert</label>
+                <select id="ragAvatarSelect"
+                    class="w-full sm:w-[420px] px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                    <option value="">Choisir un expert...</option>
+                </select>
+                <p class="text-xs text-slate-500 mt-2">Les documents uploadés seront utilisés uniquement par l'expert
+                    sélectionné.</p>
+            </div>
+
+            <!-- Upload Zone -->
+            <div id="ragUploadZone"
+                class="border-2 border-dashed border-emerald-300 bg-emerald-50/50 rounded-3xl p-10 flex flex-col items-center gap-4 text-center mb-6 transition-all hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer"
+                onclick="document.getElementById('ragFileInput').click()" ondragover="ragDragOver(event)"
+                ondragleave="ragDragLeave(event)" ondrop="ragDrop(event)">
+                <div class="w-16 h-16 rounded-2xl bg-emerald-100 flex items-center justify-center text-4xl">📄</div>
+                <div>
+                    <p class="font-semibold text-emerald-900 text-lg">Glissez-déposez vos fichiers ici</p>
+                    <p class="text-slate-500 text-sm mt-1">ou cliquez pour sélectionner</p>
+                    <p class="text-slate-400 text-xs mt-2">PDF, DOCX, TXT, MD, XLSX, PPTX · Max 50 MB</p>
+                </div>
+                <input type="file" id="ragFileInput" class="hidden" accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.pptx"
+                    multiple onchange="ragUploadFiles(this.files)">
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="ragProgressWrap" class="hidden mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span id="ragProgressLabel" class="text-sm font-medium text-slate-700">Upload en cours...</span>
+                    <span id="ragProgressPct" class="text-sm font-bold text-emerald-600">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5">
+                    <div id="ragProgressBar"
+                        class="bg-gradient-to-r from-green-500 to-emerald-400 h-2.5 rounded-full transition-all duration-300"
+                        style="width:0%"></div>
+                </div>
+            </div>
+
+            <!-- Feedback message -->
+            <div id="ragFeedback" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium"></div>
+
+            <!-- Documents Table -->
+            <div class="bg-white border border-slate-100 rounded-3xl overflow-x-auto shadow-sm">
+                <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100">
+                    <h3 class="font-semibold text-slate-700 text-sm">Documents vectorisés</h3>
+                    <button onclick="loadRagDocuments()"
+                        class="text-xs text-emerald-600 hover:text-emerald-800 font-medium transition-colors">↻
+                        Actualiser</button>
+                </div>
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 rounded-tl-none">
+                                Nom du fichier</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Expert</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Taille</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Chunks</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100">
+                                Statut</th>
+                            <th
+                                class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold p-4 border-b border-slate-100 text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ragDocsList" class="divide-y divide-slate-50">
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-slate-400 text-sm">Chargement...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+
+    <!-- Modal Medicament -->
+    <div id="medModal"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+            id="medModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-emerald-950" id="modalTitle">Nouveau Médicament</h3>
+                <button onclick="closeMedModal()"
+                    class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+            </div>
+            <form id="medForm" class="space-y-4">
+                <input type="hidden" id="medId">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nom Commercial</label>
+                        <input type="text" id="nom_commercial" required
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">DCI</label>
+                        <input type="text" id="dci" required
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Classe Thérapeutique</label>
+                    <input type="text" id="classe_therapeutique" required
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Indication</label>
+                    <textarea id="indication" rows="2"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Posologie Standard</label>
+                    <textarea id="posologie" rows="2"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Statut</label>
+                    <select id="actif"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                        <option value="1">Actif</option>
+                        <option value="0">Inactif</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeMedModal()"
+                        class="w-full bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-xl font-medium shadow-sm hover:bg-slate-50 transition-colors">Annuler</button>
+                    <button type="submit"
+                        class="w-full bg-emerald-950 hover:bg-black text-white px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Avatar -->
+    <div id="avatarModal"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] z-50 flex items-center justify-center p-4 hidden transition-opacity">
+        <div class="bg-white rounded-[2rem] w-full max-w-3xl shadow-2xl relative" id="avatarModalContent">
+
+            <button onclick="closeAvatarModal()"
+                class="absolute right-4 top-4 text-slate-400 hover:text-red-500 hover:bg-red-50 w-8 h-8 rounded-full flex items-center justify-center transition-colors">&times;</button>
+
+            <div class="flex flex-col md:flex-row min-h-[400px]">
+                <!-- Colonne Gauche -->
+                <div class="w-full md:w-[40%] p-8 md:p-10 flex flex-col justify-center">
+                    <h3 class="text-[28px] font-bold text-emerald-950 leading-tight mb-3" id="avatarModalTitle">Nouvel
+                        Expert<br>(Persona)</h3>
+                    <p class="text-[14px] text-slate-500 leading-relaxed">Définissez son nom, son icône et son
+                        comportement.</p>
+                </div>
+
+                <!-- Colonne Droite: Formulaire -->
+                <div class="w-full md:w-[60%] p-8 md:p-10 md:pl-0 flex flex-col justify-center">
+                    <form id="avatarForm" class="space-y-6 w-full">
+                        <input type="hidden" id="avatarId">
+
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Nom de l'Expert (ex:
+                                    Finance)</label>
+                                <input type="text" id="avatar_nom" required
+                                    class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all placeholder:text-slate-300 shadow-sm"
+                                    style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                            </div>
+                            <div class="w-24">
+                                <label class="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                    <span>Icône</span>
+                                    <span
+                                        class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded cursor-help font-normal"
+                                        title="Emoji (Win + . ou Ctrl + Cmd + Space)">info</span>
+                                </label>
+                                <input type="text" id="avatar_icone" required placeholder="👨‍💼" maxlength="2"
+                                    class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-center text-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-sm"
+                                    style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Contexte IA (Prompt
+                                Système)</label>
+                            <textarea id="avatar_prompt" rows="4" required
+                                placeholder="Ex: Tu es un expert comptable marocain strict et précis. Tu réponds toujours en Markdown structuré..."
+                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 resize-none transition-all placeholder:text-slate-400 shadow-sm"
+                                style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);"></textarea>
+                        </div>
+
+                        <div class="h-px w-full bg-slate-100 my-4"></div>
+
+                        <div class="flex gap-4 justify-end">
+                            <button type="button" onclick="closeAvatarModal()"
+                                class="px-8 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-semibold shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-colors">Annuler</button>
+                            <button type="submit" id="avatarSubmitBtn"
+                                class="px-8 py-3 bg-[#023b2b] hover:bg-emerald-950 text-white rounded-xl font-semibold shadow-sm transition-all shadow-emerald-900/10 hover:shadow-md">Créer
+                                l'Expert</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmation Suppression -->
+    <div id="deleteConfirmModal"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl flex flex-col items-center text-center"
+            id="deleteConfirmContent">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mb-4">
+                ⚠️
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Êtes-vous sûr ?</h3>
+            <p id="deleteConfirmMessage" class="text-slate-500 text-sm mb-6 max-w-[260px] mx-auto">Cette action est
+                irréversible. Souhaitez-vous vraiment continuer ?</p>
+            <div class="flex gap-3 w-full">
+                <button type="button" onclick="closeDeleteModal()"
+                    class="flex-1 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 px-4 py-2.5 rounded-xl font-medium transition-colors">Annuler</button>
+                <button type="button" id="deleteConfirmBtn"
+                    class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-sm transition-all shadow-red-600/20 hover:shadow-md">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const adminLayout = document.getElementById('adminLayout');
+        const adminSidebar = document.getElementById('adminSidebar');
+        const sidebarOpenBtn = document.getElementById('sidebarOpenBtn');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        let sessionsChart = null;
+        let avatarsChart = null;
+        let cachedAvatars = [];
+
+        function setSidebarVisibility(visible) {
+            if (!adminSidebar || !adminLayout) return;
+            adminSidebar.classList.toggle('sidebar-collapsed', !visible);
+            adminLayout.classList.toggle('sidebar-collapsed', !visible);
+            if (sidebarOpenBtn) {
+                sidebarOpenBtn.classList.toggle('hidden', visible);
+            }
+            sidebarCloseBtn?.classList.toggle('hidden', !visible);
+        }
+
+        sidebarOpenBtn?.addEventListener('click', () => setSidebarVisibility(true));
+        sidebarCloseBtn?.addEventListener('click', () => setSidebarVisibility(false));
+
+        function getSevenDayFallback() {
+            const now = new Date();
+            return Array.from({ length: 7 }, (_, idx) => {
+                const day = new Date(now);
+                day.setDate(now.getDate() - (6 - idx));
+                return {
+                    date: day.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+                    count: 0
+                };
+            });
+        }
+
+        // Protection de la route
+        if (!token || user.role !== 'admin') {
+            window.location.href = 'admin-login.html';
+        }
+
+        // Helper fetch avec Token
+        async function fetchWithAuth(url, options = {}) {
+            const headers = { 'Authorization': `Bearer ${token}`, ...options.headers };
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401 || res.status === 403) {
+                window.location.href = 'admin-login.html';
+                throw new Error('Session expirée');
+            }
+            return res;
+        }
+
+        // --- Navigation ---
+        const sidebarTabButtons = document.querySelectorAll('#adminSidebar .tab-btn');
+        function switchTab(tabName, btn) {
+            sidebarTabButtons.forEach(b => b.classList.remove('active'));
+            if (btn) {
+                btn.classList.add('active');
+            }
+
+            ['overviewTab', 'medsTab', 'sessionsTab', 'unknownTab', 'avatarsTab', 'ragTab'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+
+            if (tabName === 'overview') loadOverview();
+            if (tabName === 'meds') loadMeds();
+            if (tabName === 'sessions') loadSessions();
+            if (tabName === 'unknown') loadUnknown();
+            if (tabName === 'avatars') loadAvatars();
+            if (tabName === 'rag') loadRagDocuments();
+        }
+
+        // --- Dashboard ---
+        async function loadOverview() {
+            try {
+                const res = await fetchWithAuth('/api/dashboard/stats?scope=global');
+                const data = await res.json();
+
+                const totalSessions = data.totalSessions || 0;
+                const rawSuccess = data.averageScore;
+                const successRateValue = typeof rawSuccess === 'number'
+                    ? rawSuccess
+                    : parseFloat(String(rawSuccess || '').replace('%', '')) || 0;
+                const successDisplay = typeof rawSuccess === 'number' ? `${rawSuccess}%` : rawSuccess || '0%';
+
+                document.getElementById('kpiTotalSessions').textContent = totalSessions;
+                document.getElementById('kpiSuccessRate').textContent = successDisplay;
+                document.getElementById('kpiActiveUsers').textContent = data.activeDeleguates || 0;
+                document.getElementById('kpiRagDocs').textContent = data.ragStats?.totalDocuments || 0;
+
+                document.getElementById('recentActivityList').innerHTML = data.recentSessions.map(s => `
+                    <div class="flex items-center gap-4 p-3 hover:bg-slate-50 transition-colors rounded-xl">
+                        <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold">${s.delegue_prenom[0]}</div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-slate-800">${s.delegue_prenom} ${s.delegue_nom}</p>
+                            <p class="text-[10px] text-slate-400">${new Date(s.date_debut).toLocaleDateString()} • ${s.medicament_nom || 'Visite libre'}</p>
+                        </div>
+                        <div class="text-xs font-bold ${s.score_global >= 70 ? 'text-emerald-600' : 'text-orange-500'}">${s.score_global}/100</div>
+                    </div>
+                `).join('') || '<p class="text-slate-400 text-sm text-center py-4">Aucune session récente</p>';
+
+                document.getElementById('expertPerformanceList').innerHTML = data.avatarSuccessRate.map(a => `
+                    <div class="flex items-center justify-between p-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors rounded-xl font-medium">
+                        <div class="flex flex-col">
+                            <span class="text-sm text-slate-800">${a.name}</span>
+                            <span class="text-[10px] text-slate-400 font-normal">${a.total} sessions</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="h-1.5 w-20 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full ${a.successRate >= 70 ? 'bg-emerald-500' : 'bg-orange-400'}" style="width: ${a.successRate}%"></div>
+                            </div>
+                            <span class="text-xs text-slate-700">${a.successRate}%</span>
+                        </div>
+                    </div>
+                `).join('') || '<p class="text-slate-400 text-sm text-center py-4">Aucune donnée</p>';
+
+                const updateEl = document.getElementById('dashboardUpdated');
+                if (updateEl) {
+                    updateEl.textContent = new Date().toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                }
+                const progressPercent = Math.min(100, Math.max(0, Math.round(successRateValue)));
+                const progressCircle = document.getElementById('projectProgressCircle');
+                if (progressCircle) {
+                    progressCircle.style.background = `conic-gradient(#10b981 ${progressPercent * 3.6}deg, #e2e8f0 ${progressPercent * 3.6}deg)`;
+                }
+                const progressValueEl = document.getElementById('projectProgressValue');
+                if (progressValueEl) {
+                    progressValueEl.textContent = `${progressPercent}%`;
+                }
+                const progressBar = document.getElementById('projectProgressBar');
+                if (progressBar) {
+                    progressBar.style.width = `${progressPercent}%`;
+                }
+                const progressSessions = document.getElementById('projectProgressSessions');
+                if (progressSessions) {
+                    progressSessions.textContent = totalSessions;
+                }
+                const progressSuccess = document.getElementById('projectProgressSuccess');
+                if (progressSuccess) {
+                    progressSuccess.textContent = `${progressPercent}%`;
+                }
+                const progressSubtext = document.getElementById('projectProgressSubtext');
+                if (progressSubtext) {
+                    progressSubtext.textContent = progressPercent >= 70 ? 'En bonne voie' : 'Besoin d\'attention';
+                }
+
+                renderCharts(data);
+            } catch (err) { console.error(err); }
+        }
+
+        function renderCharts(data) {
+            const sessionSeries = Array.isArray(data.sessionsByDay) && data.sessionsByDay.length
+                ? data.sessionsByDay
+                : getSevenDayFallback();
+            const hasSessionActivity = Array.isArray(data.sessionsByDay) && data.sessionsByDay.some(d => d.count > 0);
+            document.getElementById('sessionsChartEmpty').classList.toggle('hidden', hasSessionActivity);
+
+            if (sessionsChart) sessionsChart.destroy();
+            sessionsChart = new Chart(document.getElementById('sessionsChart'), {
+                type: 'line',
+                data: {
+                    labels: sessionSeries.map(d => d.date),
+                    datasets: [{ label: 'Sessions', data: sessionSeries.map(d => d.count), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+            });
+
+            const avatarData = Array.isArray(data.topMedications) && data.topMedications.length
+                ? data.topMedications
+                : [{ nom_commercial: 'Aucun expert', discussion_count: 1 }];
+            const hasAvatarActivity = Array.isArray(data.topMedications) && data.topMedications.some(a => a.discussion_count > 0);
+            document.getElementById('avatarsChartEmpty').classList.toggle('hidden', hasAvatarActivity);
+
+            if (avatarsChart) avatarsChart.destroy();
+            avatarsChart = new Chart(document.getElementById('avatarsChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: avatarData.map(a => a.nom_commercial),
+                    datasets: [{ data: avatarData.map(a => a.discussion_count), backgroundColor: ['#064e3b', '#059669', '#10b981', '#6ee7b7', '#f1f5f9'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } } } }, cutout: '75%' }
+            });
+        }
+
+        // --- Produits ---
+        async function loadMeds() {
+            try {
+                const res = await fetchWithAuth('/api/medicaments');
+                const meds = await res.json();
+                document.getElementById('medsList').innerHTML = meds.map(m => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 border-b border-slate-50 font-bold text-slate-800 text-sm">${m.nom_commercial}</td>
+                        <td class="p-4 border-b border-slate-50 text-slate-600 text-sm">${m.dci}</td>
+                        <td class="p-4 border-b border-slate-50 text-slate-600 text-sm">${m.classe_therapeutique}</td>
+                        <td class="p-4 border-b border-slate-50">
+                            <span class="${m.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} font-bold px-3 py-1 rounded-full text-[11px] uppercase">${m.actif ? 'Actif' : 'Inactif'}</span>
+                        </td>
+                        <td class="p-4 border-b border-slate-50 text-right">
+                            <button onclick='editMed(${JSON.stringify(m).replace(/'/g, "&apos;")})' class="text-emerald-600 hover:text-emerald-800 font-medium text-sm">Modifier</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { }
+        }
+
+        function openMedModal() {
+            document.getElementById('modalTitle').textContent = 'Nouveau Produit/Service';
+            document.getElementById('medForm').reset();
+            document.getElementById('medId').value = '';
+            document.getElementById('medModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('medModalContent').classList.add('modal-active'), 10);
+        }
+
+        function closeMedModal() {
+            document.getElementById('medModalContent').classList.remove('modal-active');
+            setTimeout(() => document.getElementById('medModal').classList.add('hidden'), 300);
+        }
+
+        function editMed(m) {
+            document.getElementById('modalTitle').textContent = 'Modifier Produit';
+            document.getElementById('medId').value = m.id;
+            document.getElementById('nom_commercial').value = m.nom_commercial;
+            document.getElementById('dci').value = m.dci;
+            document.getElementById('classe_therapeutique').value = m.classe_therapeutique;
+            document.getElementById('indication').value = m.indication || '';
+            document.getElementById('posologie').value = m.posologie || '';
+            document.getElementById('actif').value = m.actif;
+            document.getElementById('medModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('medModalContent').classList.add('modal-active'), 10);
+        }
+
+        document.getElementById('medForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('medId').value;
+            const data = {
+                nom_commercial: document.getElementById('nom_commercial').value,
+                dci: document.getElementById('dci').value,
+                classe_therapeutique: document.getElementById('classe_therapeutique').value,
+                indication: document.getElementById('indication').value,
+                posologie: document.getElementById('posologie').value,
+                actif: parseInt(document.getElementById('actif').value)
+            };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/medicaments/${id}` : '/api/medicaments';
+            await fetchWithAuth(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            closeMedModal(); loadMeds();
+        };
+
+        // --- Sessions ---
+        async function loadSessions() {
+            try {
+                const res = await fetchWithAuth('/api/sessions/all');
+                const sessions = await res.json();
+                document.getElementById('sessionsList').innerHTML = sessions.map(s => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 border-b border-slate-50 text-slate-600 text-sm">${new Date(s.date_debut).toLocaleDateString()}</td>
+                        <td class="p-4 border-b border-slate-50 font-medium text-slate-800 text-sm">${s.delegue_prenom} ${s.delegue_nom}</td>
+                        <td class="p-4 border-b border-slate-50 text-slate-700 text-sm font-medium">${s.medicament_nom || 'Visite libre'}</td>
+                        <td class="p-4 border-b border-slate-50 text-sm">${s.score_global ? `<span class="font-bold text-emerald-700">${s.score_global}</span>/100` : '—'}</td>
+                        <td class="p-4 border-b border-slate-50 text-right text-xs text-slate-500">${s.statut}</td>
+                    </tr>
+                `).join('');
+            } catch (e) { }
+        }
+
+        // --- Inconnus ---
+        async function loadUnknown() {
+            try {
+                const res = await fetchWithAuth('/api/medicaments/admin/unknown');
+                const data = await res.json();
+                document.getElementById('unknownList').innerHTML = data.map(u => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 border-b border-slate-50 font-bold text-emerald-900 text-sm">${u.nom_medicament}</td>
+                        <td class="p-4 border-b border-slate-50 text-slate-500 text-sm">${new Date(u.detecte_le).toLocaleString()}</td>
+                        <td class="p-4 border-b border-slate-50 text-right">
+                            <button onclick="deleteUnknown(${u.id}, '${u.nom_medicament.replace(/'/g, "\\'")}')" class="text-red-500 hover:bg-red-50 px-3 py-1 rounded-lg text-sm">Supprimer</button>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="3" class="p-8 text-center text-slate-400">Aucun terme inconnu ! 🎉</td></tr>';
+            } catch (e) { }
+        }
+
+        // --- Experts ---
+        async function loadAvatars() {
+            try {
+                const res = await fetchWithAuth('/api/admin/avatars');
+                const avatars = await res.json();
+                cachedAvatars = avatars;
+                populateRagAvatarSelect();
+                document.getElementById('avatarsList').innerHTML = avatars.map(a => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 border-b border-slate-50 font-bold text-slate-800 text-sm">${a.icone} ${a.nom_avatar}</td>
+                        <td class="p-4 border-b border-slate-50 text-slate-500 text-xs truncate max-w-md">${a.prompt_systeme}</td>
+                        <td class="p-4 border-b border-slate-50 text-right relative">
+                            <button onclick="toggleAvatarMenu(${a.id}, event)" class="p-2 text-slate-400 hover:text-emerald-900"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                            <div id="avatarMenu_${a.id}" class="hidden absolute right-4 top-full mt-1 w-48 bg-white border border-slate-100 rounded-xl shadow-lg z-50 text-left py-1">
+                                <button onclick="addKnowledgeToAvatar(${a.id}, '${a.nom_avatar}')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">📚 Savoir</button>
+                                <button onclick='editAvatar(${JSON.stringify(a).replace(/'/g, "&apos;")})' class="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">✏️ Modifier</button>
+                                <button onclick="deleteAvatar(${a.id}, '${a.nom_avatar}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">🗑️ Supprimer</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { }
+        }
+
+        function openAvatarModal() {
+            document.getElementById('avatarForm').reset();
+            document.getElementById('avatarId').value = '';
+            document.getElementById('avatarModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('avatarModalContent').classList.add('modal-active'), 10);
+        }
+
+        function closeAvatarModal() {
+            document.getElementById('avatarModalContent').classList.remove('modal-active');
+            setTimeout(() => document.getElementById('avatarModal').classList.add('hidden'), 300);
+        }
+
+        function editAvatar(a) {
+            document.getElementById('avatarId').value = a.id;
+            document.getElementById('avatar_nom').value = a.nom_avatar;
+            document.getElementById('avatar_icone').value = a.icone;
+            document.getElementById('avatar_prompt').value = a.prompt_systeme;
+            openAvatarModal();
+        }
+
+        document.getElementById('avatarForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('avatarId').value;
+            const avatar = cachedAvatars.find(a => String(a.id) === String(id));
+            const data = { 
+                nom_avatar: document.getElementById('avatar_nom').value, 
+                prompt_systeme: document.getElementById('avatar_prompt').value, 
+                icone: document.getElementById('avatar_icone').value,
+                use_rag: avatar ? avatar.use_rag : 1,
+                use_db: avatar ? avatar.use_db : 1,
+                use_knowledge: avatar ? avatar.use_knowledge : 1,
+                manual_ranking: avatar ? avatar.manual_ranking : 0,
+                resource_ranking: avatar ? avatar.resource_ranking : null
+            };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/admin/avatars/${id}` : '/api/admin/avatars';
+            await fetchWithAuth(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            closeAvatarModal(); loadAvatars();
+        };
+
+        function toggleAvatarMenu(id, e) {
+            e.stopPropagation();
+            const isHidden = document.getElementById('avatarMenu_' + id).classList.contains('hidden');
+            document.querySelectorAll('[id^="avatarMenu_"]').forEach(m => m.classList.add('hidden'));
+            if (isHidden) document.getElementById('avatarMenu_' + id).classList.remove('hidden');
+        }
+
+        // --- RAG ---
+        function populateRagAvatarSelect(selectedId = null) {
+            const select = document.getElementById('ragAvatarSelect');
+            if (select) select.innerHTML = '<option value="">Choisir un expert...</option>' + cachedAvatars.map(a => `<option value="${a.id}" ${a.id == selectedId ? 'selected' : ''}>${a.icone} ${a.nom_avatar}</option>`).join('');
+        }
+
+        async function loadRagDocuments() {
+            try {
+                const res = await fetchWithAuth('/api/admin/rag/documents');
+                const data = await res.json();
+                document.getElementById('ragDocsList').innerHTML = data.documents.map(doc => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 border-b border-slate-50 font-medium text-slate-800 text-sm">
+                            ${doc.isExcel ? '📊 ' : '📄 '} ${doc.name}
+                        </td>
+                        <td class="p-4 border-b border-slate-50 text-slate-600 text-sm">${doc.avatar_name || '—'}</td>
+                        <td class="p-4 border-b border-slate-50 text-slate-500 text-sm">${(doc.size / 1024).toFixed(1)} Ko</td>
+                        <td class="p-4 border-b border-slate-50 text-slate-500 text-sm">
+                            <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-semibold">
+                                ${doc.isExcel ? doc.chunk_count + ' lignes' : doc.chunk_count + ' chunks'}
+                            </span>
+                        </td>
+                        <td class="p-4 border-b border-slate-50"><span class="bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full text-[10px] uppercase">${doc.status}</span></td>
+                        <td class="p-4 border-b border-slate-50 text-right"><button onclick="deleteRagDocument('${doc.id}', '${doc.name}')" class="text-red-500 bg-red-50 px-3 py-1 rounded-lg hover:bg-red-100 transition-colors">Supprimer</button></td>
+                    </tr>
+                `).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-400">Aucun document</td></tr>';
+            } catch (e) { }
+        }
+
+        async function ragUploadFiles(files) {
+            const avatarId = document.getElementById('ragAvatarSelect')?.value;
+            if (!avatarId) return alert('Sélectionnez d\'abord un expert');
+
+            const progressWrap = document.getElementById('ragProgressWrap');
+            const progressBar = document.getElementById('ragProgressBar');
+            const progressPct = document.getElementById('ragProgressPct');
+
+            if (progressWrap) {
+                progressWrap.classList.remove('hidden');
+                progressBar.style.width = '0%';
+                progressPct.textContent = '0%';
+            }
+
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('avatar_id', avatarId);
+
+                // Déterminer la route selon l'extension
+                const ext = file.name.split('.').pop().toLowerCase();
+                const isExcel = ext === 'xlsx' || ext === 'xls';
+                const url = isExcel ? '/api/admin/excel/upload' : '/api/admin/rag/upload';
+
+                // Simulation de la progression pendant l'attente du backend
+                let progress = 0;
+                let progressInterval;
+                if (progressWrap) {
+                    progressInterval = setInterval(() => {
+                        progress += Math.random() * 10;
+                        if (progress > 95) progress = 95; // On bloque à 95% jusqu'au retour complet
+                        progressBar.style.width = Math.round(progress) + '%';
+                        progressPct.textContent = Math.round(progress) + '%';
+                    }, 500);
+                }
+
+                try {
+                    const res = await fetchWithAuth(url, { method: 'POST', body: fd });
+                    clearInterval(progressInterval);
+                    
+                    if (progressWrap) {
+                        progressBar.style.width = '100%';
+                        progressPct.textContent = '100%';
+                    }
+
+                    if (!res.ok) {
+                        const errData = await res.json();
+                        throw new Error(errData.error || 'Erreur lors de l\'upload');
+                    }
+                    if (isExcel) {
+                        ragShowFeedback(`✅ Fichier Excel "${file.name}" importé avec succès.`, 'success');
+                    }
+                } catch (e) {
+                    if (progressInterval) clearInterval(progressInterval);
+                    ragShowFeedback(`❌ Erreur pour "${file.name}" : ${e.message}`, 'error');
+                }
+            }
+            
+            if (progressWrap) {
+                setTimeout(() => progressWrap.classList.add('hidden'), 1500);
+            }
+            loadRagDocuments();
+        }
+
+        function ragDragOver(e) { e.preventDefault(); document.getElementById('ragUploadZone').classList.add('bg-emerald-50'); }
+        function ragDragLeave() { document.getElementById('ragUploadZone').classList.remove('bg-emerald-50'); }
+        function ragDrop(e) { e.preventDefault(); ragDragLeave(); ragUploadFiles(e.dataTransfer.files); }
+
+        // --- Modale commune ---
+        let pendingDeleteAction = null;
+        function openDeleteModal(m, cb) {
+            document.getElementById('deleteConfirmMessage').innerHTML = m;
+            pendingDeleteAction = cb;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('deleteConfirmContent').classList.add('modal-active'), 10);
+        }
+        function closeDeleteModal() {
+            document.getElementById('deleteConfirmContent').classList.remove('modal-active');
+            setTimeout(() => document.getElementById('deleteConfirmModal').classList.add('hidden'), 300);
+        }
+        document.getElementById('deleteConfirmBtn').onclick = async () => { if (pendingDeleteAction) await pendingDeleteAction(); closeDeleteModal(); };
+
+        async function deleteAvatar(id, nom) { openDeleteModal(`Supprimer l'expert <b>${nom}</b> ?`, () => fetchWithAuth(`/api/admin/avatars/${id}`, { method: 'DELETE' }).then(loadAvatars)); }
+        async function deleteUnknown(id, nom) { openDeleteModal(`Supprimer le terme <b>${nom}</b> ?`, () => fetchWithAuth(`/api/medicaments/admin/unknown/${id}`, { method: 'DELETE' }).then(loadUnknown)); }
+        async function deleteRagDocument(id, name) { openDeleteModal(`Supprimer le document <b>${name}</b> ?`, () => fetchWithAuth(`/api/admin/rag/documents/${id}`, { method: 'DELETE' }).then(loadRagDocuments)); }
+        function addKnowledgeToAvatar(id, nom) { switchTab('rag', Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.includes('Base RAG'))); populateRagAvatarSelect(id); }
+
+        // Init
+        setSidebarVisibility(true);
+        document.addEventListener('click', () => document.querySelectorAll('[id^="avatarMenu_"]').forEach(m => m.classList.add('hidden')));
+        const defaultTab = document.querySelector('#adminSidebar .tab-btn');
+        if (defaultTab) {
+            switchTab('overview', defaultTab);
+        } else {
+            loadOverview();
+        }
+    </script>
+    <script src="theme-toggle.js"></script>
+</body>
+
+</html>

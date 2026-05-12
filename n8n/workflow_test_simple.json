@@ -1,0 +1,47 @@
+{
+    "name": "Pharma Vocal — TEST DE CONNEXION (Sans BDD)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "pharma-start",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "id": "webhook-test-id",
+            "name": "Webhook — Start",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "return [{\n  json: {\n    session_id: \"TEST-\" + Math.floor(Math.random() * 1000000),\n    message: \"CECI EST UN TEST SANS BASE DE DONNÉES\"\n  }\n}];"
+            },
+            "id": "code-test-id",
+            "name": "Code — Test ID",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook — Start": {
+            "main": [
+                [
+                    {
+                        "node": "Code — Test ID",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

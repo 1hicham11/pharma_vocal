@@ -1,0 +1,49 @@
+{
+    "name": "Pharma Vocal — 3. Evaluation (V5)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "pharma-evaluate",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "node-webhook",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                0,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "{\"status\":\"ok\"}",
+                "options": {}
+            },
+            "id": "node-respond",
+            "name": "Réponse",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                300,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Réponse",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

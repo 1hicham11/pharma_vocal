@@ -1,0 +1,33 @@
+@startuml
+autonumber
+actor Administrateur as Admin
+participant "Frontend Admin\n(admin.html)" as UI
+participant "AdminController" as AdminCtrl
+database "SessionRepository\n(avatar ownership)" as SessionRepo
+participant "DocumentProcessor" as DocProcessor
+participant "VectorStoreService\n(Chroma + Embeddings)" as VectorStore
+database "RagDocumentRepository\n(RAG_DOCUMENTS)" as RagRepo
+participant "ExcelService" as ExcelSvc
+
+Admin -> UI : Importer un fichier pour un avatar
+alt Upload PDF RAG
+  UI -> AdminCtrl : POST /api/admin/rag/upload (file, avatar_id)
+  AdminCtrl -> SessionRepo : getAvatarById(avatar_id, user_id)
+  SessionRepo --> AdminCtrl : avatar autorise
+  AdminCtrl -> DocProcessor : processPDF(filePath, metadata, avatarId)
+  DocProcessor -> VectorStore : addDocuments(chunks, avatarId)
+  VectorStore --> DocProcessor : indexation OK
+  DocProcessor --> AdminCtrl : chunkCount
+  AdminCtrl -> RagRepo : create(uuid, filename, chunk_count, avatar_id)
+  RagRepo --> AdminCtrl : document enregistre
+  AdminCtrl --> UI : {success:true, uuid}
+else Upload Excel
+  UI -> AdminCtrl : POST /api/admin/excel/upload (file, avatar_id)
+  AdminCtrl -> SessionRepo : getAvatarById(avatar_id, user_id)
+  SessionRepo --> AdminCtrl : avatar autorise
+  AdminCtrl -> ExcelSvc : processExcelFile(path, filename, avatarId)
+  ExcelSvc --> AdminCtrl : {table_name,row_count,schema}
+  AdminCtrl --> UI : import confirme
+end
+@enduml
+

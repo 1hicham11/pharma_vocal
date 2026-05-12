@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Paramètres</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body class="bg-[#edf3fb] text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+    <div class="min-h-screen">
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <header class="px-6 lg:px-10 py-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/><path d="m19.4 15 .6 1-2 3-1.1-.3a7.7 7.7 0 0 1-1.7 1l-.2 1.2h-4l-.2-1.2a7.7 7.7 0 0 1-1.7-1L8 19l-2-3 .6-1a8.5 8.5 0 0 1 0-2l-.6-1 2-3 1.1.3a7.7 7.7 0 0 1 1.7-1L11 3h4l.2 1.2a7.7 7.7 0 0 1 1.7 1L18 9l2 3-.6 1a8.5 8.5 0 0 1 0 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                    <h1 class="text-2xl font-bold text-slate-900">Paramètres</h1>
+                </div>
+                <button onclick="logout()" class="text-sm text-slate-500 hover:text-red-500 transition">Déconnexion</button>
+            </header>
+
+            <main class="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
+                <div class="max-w-xl bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm space-y-8">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 mb-4">Profil Utilisateur</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nom Complet</label>
+                                <p id="profileName" class="text-slate-900 font-semibold">—</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
+                                <p id="profileEmail" class="text-slate-900 font-semibold">—</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Rôle</label>
+                                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" id="profileRole">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-6 border-t border-slate-100 space-y-4">
+                        <h2 class="text-lg font-bold text-slate-900">Modifier le profil</h2>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nom</label>
+                                <input id="editNom" type="text" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Prénom</label>
+                                <input id="editPrenom" type="text" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
+                                <input id="editEmail" type="email" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300" />
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="saveProfileBtn" type="button" class="px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">Enregistrer le profil</button>
+                                <span id="profileMsg" class="text-xs text-slate-500"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-6 border-t border-slate-100 space-y-4">
+                        <h2 class="text-lg font-bold text-slate-900">Changer le mot de passe</h2>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mot de passe actuel</label>
+                                <input id="currentPassword" type="password" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nouveau mot de passe</label>
+                                <input id="newPassword" type="password" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confirmer le nouveau mot de passe</label>
+                                <input id="confirmPassword" type="password" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300" />
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="savePasswordBtn" type="button" class="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-black transition">Mettre à jour le mot de passe</button>
+                                <span id="passwordMsg" class="text-xs text-slate-500"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const token = localStorage.getItem('token');
+        if (!user) window.location.href = 'login.html';
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+        document.getElementById('profileName').textContent = `${user.prenom || ''} ${user.nom || ''}`;
+        document.getElementById('profileEmail').textContent = user.email || '';
+        document.getElementById('profileRole').textContent = user.role || 'Délégué';
+
+        document.getElementById('editNom').value = user.nom || '';
+        document.getElementById('editPrenom').value = user.prenom || '';
+        document.getElementById('editEmail').value = user.email || '';
+
+        async function authFetch(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...(options.headers || {}),
+                    Authorization: 'Bearer ' + token,
+                }
+            });
+        }
+
+        function setMsg(elId, text, ok = true) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.textContent = text;
+            el.className = `text-xs ${ok ? 'text-emerald-600' : 'text-red-500'}`;
+        }
+
+        async function hydrateProfileFromApi() {
+            try {
+                const res = await authFetch('/api/auth/me');
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data?.id) return;
+
+                const nextUser = {
+                    ...user,
+                    nom: data.nom || user.nom || '',
+                    prenom: data.prenom || user.prenom || '',
+                    email: data.email || user.email || '',
+                    role: data.role || user.role || 'delegue',
+                };
+                localStorage.setItem('user', JSON.stringify(nextUser));
+
+                document.getElementById('profileName').textContent = `${nextUser.prenom || ''} ${nextUser.nom || ''}`.trim() || '—';
+                document.getElementById('profileEmail').textContent = nextUser.email || '—';
+                document.getElementById('profileRole').textContent = nextUser.role || 'Délégué';
+                document.getElementById('editNom').value = nextUser.nom || '';
+                document.getElementById('editPrenom').value = nextUser.prenom || '';
+                document.getElementById('editEmail').value = nextUser.email || '';
+            } catch (_) { /* noop */ }
+        }
+
+        document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+            const nom = String(document.getElementById('editNom').value || '').trim();
+            const prenom = String(document.getElementById('editPrenom').value || '').trim();
+            const email = String(document.getElementById('editEmail').value || '').trim();
+            if (!nom || !email) {
+                setMsg('profileMsg', 'Nom et email obligatoires.', false);
+                return;
+            }
+            try {
+                const res = await authFetch('/api/auth/me', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nom, prenom, email })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Erreur mise à jour profil');
+
+                const nextUser = { ...user, nom, prenom, email };
+                localStorage.setItem('user', JSON.stringify(nextUser));
+                document.getElementById('profileName').textContent = `${prenom || ''} ${nom || ''}`.trim();
+                document.getElementById('profileEmail').textContent = email || '—';
+                setMsg('profileMsg', 'Profil mis à jour.');
+            } catch (e) {
+                setMsg('profileMsg', e.message || 'Erreur serveur.', false);
+            }
+        });
+
+        document.getElementById('savePasswordBtn').addEventListener('click', async () => {
+            const currentPassword = String(document.getElementById('currentPassword').value || '');
+            const newPassword = String(document.getElementById('newPassword').value || '');
+            const confirmPassword = String(document.getElementById('confirmPassword').value || '');
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                setMsg('passwordMsg', 'Tous les champs mot de passe sont obligatoires.', false);
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                setMsg('passwordMsg', 'La confirmation ne correspond pas.', false);
+                return;
+            }
+            if (newPassword.length < 6) {
+                setMsg('passwordMsg', 'Le nouveau mot de passe doit contenir au moins 6 caractères.', false);
+                return;
+            }
+            try {
+                const res = await authFetch('/api/auth/change-password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Erreur mise à jour mot de passe');
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                setMsg('passwordMsg', 'Mot de passe mis à jour.');
+            } catch (e) {
+                setMsg('passwordMsg', e.message || 'Erreur serveur.', false);
+            }
+        });
+
+        // Initial hydration: avoid showing "—" when email exists server-side.
+        if (!document.getElementById('profileEmail').textContent.trim()) {
+            document.getElementById('profileEmail').textContent = document.getElementById('editEmail').value.trim() || '—';
+        }
+        hydrateProfileFromApi();
+    </script>
+    <script src="js/app-sidebar.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

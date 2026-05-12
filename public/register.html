@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+  <script>
+    (function () {
+      try {
+        var isDark = localStorage.getItem('site_theme') !== 'light';
+        var root = document.documentElement;
+        root.classList.toggle('dark-theme', isDark);
+        root.style.colorScheme = isDark ? 'dark' : 'light';
+        root.style.backgroundColor = isDark ? '#08101d' : '#f8fafc';
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voxeleon — Inscription</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/auth-pages.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body class="auth-page text-slate-900 antialiased selection:bg-emerald-500 selection:text-white">
+
+  <video class="auth-bg-video" autoplay muted loop playsinline preload="metadata"
+    src="/FPV%20Drone%20Flight%20through%20Beautiful%20Iceland%20Canyon.mp4"></video>
+  <div class="auth-bg-overlay"></div>
+
+  <div class="auth-shell">
+    <section class="auth-left">
+      <div class="auth-card auth-card--wide fade-in">
+        <div class="auth-brand">
+          <div class="auth-brand-badge">V</div>
+          <div class="min-w-0">
+            <h1 class="auth-title">Voxeleon</h1>
+            <p class="auth-subtitle">Créez votre compte et démarrez l’entraînement.</p>
+          </div>
+        </div>
+
+        <div class="auth-tabs" role="tablist" aria-label="Connexion ou inscription">
+          <a class="auth-tab" href="/login" role="tab" aria-selected="false">Connexion</a>
+          <a class="auth-tab active" href="/register" role="tab" aria-selected="true">Inscription</a>
+        </div>
+
+        <form id="registerForm" class="auth-form-stack">
+          <div class="auth-row-2">
+            <div class="auth-field">
+              <label class="auth-label" for="nom">Nom</label>
+              <input class="auth-input" type="text" id="nom" placeholder="Ben Ali" required />
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" for="prenom">Prénom</label>
+              <input class="auth-input" type="text" id="prenom" placeholder="Mohamed" required />
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="email">Email professionnel</label>
+            <input class="auth-input" type="email" id="email" placeholder="votre@email.com" required />
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="password">Mot de passe</label>
+            <input class="auth-input" type="password" id="password" placeholder="••••••••" required minlength="6" />
+          </div>
+
+          <div class="auth-row-2">
+            <div class="auth-field">
+              <label class="auth-label" for="entreprise">Entreprise</label>
+              <input class="auth-input" type="text" id="entreprise" placeholder="Laprophan" />
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" for="region">Région</label>
+              <input class="auth-input" type="text" id="region" placeholder="Casablanca" />
+            </div>
+          </div>
+
+          <p class="text-red-500 text-sm mt-3 hidden font-medium" id="errorMsg"></p>
+          <p class="text-emerald-600 text-sm mt-3 hidden font-medium" id="successMsg">✅ Compte créé ! Redirection...</p>
+
+          <button type="submit" class="auth-primary-btn" id="registerBtn">
+            <span id="registerText">Créer mon compte</span>
+            <div class="spinner hidden" id="registerSpinner"></div>
+          </button>
+
+          <p class="auth-footnote">
+            Déjà un compte ?
+            <a href="/login">Se connecter</a>
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <aside class="auth-right" aria-hidden="true">
+      <div class="auth-right-content">
+        <div class="auth-right-pill">
+          <p class="auth-pill-title">Progression guidée</p>
+          <p class="auth-pill-text">
+            Paramétrez vos objectifs, choisissez votre expert IA et lancez des sessions vocales réalistes.
+          </p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('registerBtn');
+      const spinner = document.getElementById('registerSpinner');
+      const text = document.getElementById('registerText');
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+
+      btn.disabled = true;
+      btn.classList.add('opacity-80', 'cursor-not-allowed');
+      spinner.classList.remove('hidden');
+      text.classList.add('hidden');
+      errorMsg.classList.add('hidden');
+      successMsg.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nom: document.getElementById('nom').value,
+            prenom: document.getElementById('prenom').value,
+            email: document.getElementById('email').value,
+            mot_de_passe: document.getElementById('password').value,
+            entreprise: document.getElementById('entreprise').value,
+            region: document.getElementById('region').value
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          successMsg.classList.remove('hidden');
+          setTimeout(() => window.location.href = '/login', 1500);
+        } else {
+          errorMsg.textContent = '❌ ' + (data.error || 'Erreur lors de la création');
+          errorMsg.classList.remove('hidden');
+          btn.disabled = false;
+          btn.classList.remove('opacity-80', 'cursor-not-allowed');
+          spinner.classList.add('hidden');
+          text.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorMsg.textContent = '❌ Serveur inaccessible';
+        errorMsg.classList.remove('hidden');
+        btn.disabled = false;
+        btn.classList.remove('opacity-80', 'cursor-not-allowed');
+        spinner.classList.add('hidden');
+        text.classList.remove('hidden');
+      }
+    });
+  </script>
+  <script src="theme-toggle.js"></script>
+</body>
+
+</html>

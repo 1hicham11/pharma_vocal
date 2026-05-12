@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Toutes les Sessions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <script src="theme-toggle.js"></script>
+</head>
+
+<body class="page-bg text-primary antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+    <div class="min-h-screen">
+        <div class="flex-1 flex flex-col">
+            <header class="page-header px-6 lg:px-10 py-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary">Historique des Sessions</h1>
+                        <p class="text-sm text-secondary">Consultez toutes vos sessions passées.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button
+                        id="themeToggleBtn"
+                        type="button"
+                        class="theme-toggle-btn w-10 h-10 flex items-center justify-center"
+                        aria-label="Basculer le thème"
+                        title="Basculer le thème"
+                    >
+                        <span id="themeToggleIcon"></span>
+                    </button>
+                    <button onclick="logout()" class="text-sm text-muted hover:text-red-500 transition">Déconnexion</button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
+                <section class="sessions-card">
+                    <table class="sessions-table">
+                        <thead>
+                            <tr class="sessions-thead-row">
+                                <th class="px-6 py-4 text-[10px] uppercase tracking-widest text-secondary font-bold">Expert</th>
+                                <th class="px-6 py-4 text-[10px] uppercase tracking-widest text-secondary font-bold">Médicament</th>
+                                <th class="px-6 py-4 text-[10px] uppercase tracking-widest text-secondary font-bold">Date</th>
+                                <th class="px-6 py-4 text-[10px] uppercase tracking-widest text-secondary font-bold text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionsTableBody" class="sessions-tbody">
+                            <tr class="sessions-loading-row">
+                                <td colspan="4" class="px-6 py-10 text-center text-muted">Chargement de l'historique...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function logout() {
+            try {
+                const isDark = (localStorage.getItem('site_theme') || 'dark') !== 'light';
+                const bg = isDark ? '#08101d' : '#ffffff';
+                document.documentElement.style.backgroundColor = bg;
+                if (document.body) document.body.style.backgroundColor = bg;
+            } catch (_) {}
+            const keepTheme = (() => { try { return localStorage.getItem('site_theme'); } catch (_) { return null; } })();
+            const keepLang = (() => { try { return localStorage.getItem('site_lang'); } catch (_) { return null; } })();
+            localStorage.clear();
+            try {
+                if (keepTheme) localStorage.setItem('site_theme', keepTheme);
+                if (keepLang) localStorage.setItem('site_lang', keepLang);
+            } catch (_) {}
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = '/login';
+            } catch (_) {
+                window.location.href = '/login';
+            }
+        }
+
+        async function loadAllSessions() {
+            try {
+                const res = await fetch('/api/sessions', { headers: { Authorization: 'Bearer ' + token } });
+                const sessions = await res.json();
+                const tbody = document.getElementById('sessionsTableBody');
+                
+                if (!sessions.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-12 text-center text-muted">Aucune session enregistrée.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = sessions.map(s => {
+                    const dateStr = new Date(s.date_debut).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' });
+                    
+                    return `
+                        <tr class="sessions-row">
+                            <td class="px-6 py-4 font-semibold text-primary">${s.persona || 'Délegué'}</td>
+                            <td class="px-6 py-4 text-secondary">${s.medicament_nom || 'Visite libre'}</td>
+                            <td class="px-6 py-4 text-xs text-muted font-medium italic">${dateStr}</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="window.location.href='session.html?session=${s.id}'" class="sessions-btn" title="Continuer la discussion">
+                                        Continuer
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                document.getElementById('sessionsTableBody').innerHTML = '<tr><td colspan="4" class="px-6 py-10 text-center text-red-500">Erreur chargement</td></tr>';
+            }
+        }
+
+        loadAllSessions();
+    </script>
+    <script src="js/app-sidebar.js"></script>
+</body>
+</html>

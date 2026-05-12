@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réunion multilingue - Voxeleon</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+    .meeting-page.app-main-offset {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(18px);
+    }
+    .meeting-grid {
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    }
+    .pulse-live {
+      animation: pulseLive 1.4s ease-in-out infinite;
+    }
+    .zoom-embed-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+    .zoom-embed-card.is-expanded {
+      position: fixed;
+      inset: 1rem;
+      z-index: 80;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      border-radius: 1.5rem;
+      box-shadow: 0 30px 90px rgba(15, 23, 42, 0.28);
+    }
+    .zoom-embed-card.is-expanded .zoom-embed-stage {
+      flex: 1;
+      min-height: 0;
+      height: auto;
+    }
+    .zoom-embed-stage {
+      height: clamp(520px, 72vh, 860px);
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 30%),
+        #0f172a;
+    }
+    #meetingSDKElement {
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+    }
+    #meetingSDKElement:empty {
+      display: none;
+    }
+    #meetingSDKElement > div {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    @keyframes pulseLive {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: .65; }
+    }
+    @media (max-width: 1024px) {
+      .meeting-grid {
+        grid-template-columns: 1fr;
+      }
+      .zoom-embed-stage {
+        height: 68vh;
+        min-height: 460px;
+      }
+    }
+    @media (max-width: 640px) {
+      .zoom-embed-card.is-expanded {
+        inset: 0;
+        border-radius: 0;
+      }
+      .zoom-embed-stage {
+        height: 70vh;
+        min-height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="meeting-page min-h-screen app-main-offset px-4 py-5 sm:px-6 lg:px-8">
+    <main class="mx-auto flex max-w-7xl flex-col gap-5">
+      <header class="glass-card rounded-[2rem] p-5 sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Réunion multilingue</p>
+            <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Traduction en direct entre participants</h1>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+              Partagez le lien de salle, chaque participant choisit sa langue, puis les phrases transcrites sont traduites et synchronisées en direct.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button id="btnClear" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Effacer</button>
+            <button id="btnBack" type="button" class="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">Retour dashboard</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="glass-card rounded-[2rem] p-5">
+        <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <label for="roomIdInput" class="text-xs font-bold uppercase tracking-wide text-slate-500">Salle de réunion</label>
+            <div class="mt-2 flex flex-col gap-2 sm:flex-row">
+              <input id="roomIdInput" type="text" class="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" />
+              <button id="btnJoinRoom" type="button" class="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-700">Rejoindre</button>
+              <button id="btnCopyRoom" type="button" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50">Copier le lien</button>
+            </div>
+            <p class="mt-2 text-xs text-slate-500">Ouvrez ce même lien dans un autre navigateur ou ordinateur pour rejoindre la même réunion.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+              <span id="wsDot" class="h-2.5 w-2.5 rounded-full bg-slate-300"></span>
+              <span id="wsStatus">Temps réel non connecté</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass-card rounded-[2rem] p-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Discussion Zoom</p>
+            <h2 class="mt-1 text-xl font-black text-slate-950">Appel audio/vidéo lié à cette salle</h2>
+            <p id="zoomStatus" class="mt-2 text-sm text-slate-500">Vérification de la connexion Zoom...</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button id="btnConnectZoom" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Connecter Zoom</button>
+            <button id="btnCreateZoom" type="button" class="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Créer la réunion Zoom</button>
+            <button id="btnOpenZoom" type="button" class="hidden rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">Ouvrir dans la page</button>
+            <button id="btnCopyZoom" type="button" class="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Copier lien Zoom</button>
+          </div>
+        </div>
+        <div id="zoomMeetingCard" class="mt-4 hidden rounded-2xl border border-blue-100 bg-blue-50 p-4">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p id="zoomMeetingTitle" class="text-sm font-black text-blue-950"></p>
+              <p id="zoomMeetingMeta" class="mt-1 text-xs text-blue-700"></p>
+            </div>
+            <a id="zoomMeetingLink" href="#" target="_blank" rel="noopener" class="break-all text-sm font-bold text-blue-700 hover:text-blue-900"></a>
+          </div>
+        </div>
+        <div id="zoomEmbedCard" class="zoom-embed-card mt-4 hidden rounded-[1.5rem] border border-slate-200 bg-white p-3">
+          <div class="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p class="text-sm font-black text-slate-950">Réunion Zoom intégrée</p>
+              <p id="zoomEmbedStatus" class="text-xs text-slate-500">La réunion s'affichera ici.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="btnExpandEmbeddedZoom" type="button" class="rounded-full bg-slate-950 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800">Plein écran</button>
+              <button id="btnOpenZoomExternal" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50">Ouvrir externe</button>
+              <button id="btnResetEmbeddedZoom" type="button" class="rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-bold text-red-700 shadow-sm hover:bg-red-50">Quitter Zoom</button>
+              <button id="btnLeaveEmbeddedZoom" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50">Masquer</button>
+            </div>
+          </div>
+          <div class="zoom-embed-stage overflow-hidden rounded-2xl border border-slate-100">
+            <div id="meetingSDKElement"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid meeting-grid gap-5">
+        <aside class="space-y-5">
+          <section class="glass-card rounded-[2rem] p-5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-bold text-slate-950">Participants connectés</h2>
+              <span id="participantCount" class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">0</span>
+            </div>
+
+            <form id="participantForm" class="mt-4 space-y-3">
+              <input id="participantName" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" placeholder="Votre nom" />
+              <select id="participantLang" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"></select>
+              <button type="submit" class="w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-700">Mettre à jour mon profil</button>
+            </form>
+
+            <div id="participantsList" class="mt-5 space-y-2"></div>
+          </section>
+
+          <section class="glass-card rounded-[2rem] p-5">
+            <h2 class="text-lg font-bold text-slate-950">Contrôle micro</h2>
+            <label for="speakerSelect" class="mt-4 block text-xs font-bold uppercase tracking-wide text-slate-500">Micro local utilisé</label>
+            <select id="speakerSelect" disabled class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 outline-none"></select>
+
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <span id="liveDot" class="h-2.5 w-2.5 rounded-full bg-slate-300"></span>
+                <span id="liveStatus">Micro arrêté</span>
+              </div>
+              <p id="interimText" class="mt-3 min-h-12 rounded-xl bg-white p-3 text-sm italic text-slate-500">La transcription en cours apparaîtra ici.</p>
+            </div>
+
+            <button id="btnMic" type="button" class="mt-4 w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-slate-800">Démarrer le micro</button>
+            <p id="speechSupport" class="mt-3 text-xs leading-5 text-slate-500"></p>
+          </section>
+        </aside>
+
+        <section class="space-y-5">
+          <section class="glass-card rounded-[2rem] p-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 class="text-lg font-bold text-slate-950">Envoyer une phrase</h2>
+                <p class="mt-1 text-sm text-slate-500">Utile si le navigateur ne supporte pas la reconnaissance vocale ou pour tester vite.</p>
+              </div>
+              <button id="btnSendManual" type="button" class="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700">Traduire</button>
+            </div>
+            <textarea id="manualText" rows="3" class="mt-4 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" placeholder="Tapez ce que la personne vient de dire..."></textarea>
+          </section>
+
+          <section class="glass-card min-h-[34rem] rounded-[2rem] p-5">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="text-lg font-bold text-slate-950">Transcription et traductions</h2>
+                <p class="text-sm text-slate-500">Chaque bloc affiche l'original et la version destinée à chaque participant.</p>
+              </div>
+              <span id="turnCount" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">0 message</span>
+            </div>
+            <div id="timeline" class="mt-5 space-y-4"></div>
+            <div id="emptyState" class="mt-16 flex flex-col items-center justify-center text-center text-slate-500">
+              <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-50 text-2xl text-emerald-700">🎙</div>
+              <p class="mt-4 text-sm font-semibold text-slate-700">La réunion est prête</p>
+              <p class="mt-1 max-w-md text-sm">Ajoutez au moins deux participants, choisissez le locuteur, puis démarrez le micro.</p>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://source.zoom.us/6.0.2/lib/vendor/react.min.js"></script>
+  <script src="https://source.zoom.us/6.0.2/lib/vendor/react-dom.min.js"></script>
+  <script src="https://source.zoom.us/6.0.2/lib/vendor/redux.min.js"></script>
+  <script src="https://source.zoom.us/6.0.2/lib/vendor/redux-thunk.min.js"></script>
+  <script src="https://source.zoom.us/6.0.2/lib/vendor/lodash.min.js"></script>
+  <script src="https://source.zoom.us/zoom-meeting-embedded-6.0.2.min.js"></script>
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    const languages = [
+      { code: 'fr', label: 'Français', speech: 'fr-FR' },
+      { code: 'en', label: 'English', speech: 'en-US' },
+      { code: 'ar', label: 'العربية', speech: 'ar-MA' },
+      { code: 'es', label: 'Español', speech: 'es-ES' },
+      { code: 'de', label: 'Deutsch', speech: 'de-DE' },
+      { code: 'it', label: 'Italiano', speech: 'it-IT' },
+      { code: 'pt', label: 'Português', speech: 'pt-PT' },
+      { code: 'nl', label: 'Nederlands', speech: 'nl-NL' },
+    ];
+
+    const colors = ['bg-emerald-100 text-emerald-800', 'bg-blue-100 text-blue-800', 'bg-violet-100 text-violet-800', 'bg-amber-100 text-amber-800', 'bg-rose-100 text-rose-800'];
+    const params = new URLSearchParams(window.location.search);
+    const defaultRoomId = 'room-' + Math.random().toString(36).slice(2, 8);
+    const localParticipantId = localStorage.getItem('meeting_participant_id') || crypto.randomUUID();
+    localStorage.setItem('meeting_participant_id', localParticipantId);
+    let roomId = (params.get('room') || defaultRoomId).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+    let socket = null;
+    let reconnectTimer = null;
+    let socketGeneration = 0;
+    let participants = [];
+    let turns = [];
+    let recognition = null;
+    let listening = false;
+    let translating = false;
+    let recognitionPausedForTts = false;
+    let autoTtsMutedUntil = 0;
+    const autoSpokenTurns = new Set();
+    let zoomConnected = false;
+    let zoomCanCreateMeetings = false;
+    let zoomMeeting = null;
+    let zoomClient = null;
+    let zoomJoining = false;
+    let zoomExpanded = false;
+    let zoomJoined = false;
+
+    const $ = (id) => document.getElementById(id);
+    const langLabel = (code) => languages.find((l) => l.code === code)?.label || code;
+    const speechLang = (code) => languages.find((l) => l.code === code)?.speech || code;
+
+    function fillLanguageSelect(select) {
+      select.innerHTML = languages.map((lang) => `<option value="${lang.code}">${lang.label}</option>`).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[char]));
+    }
+
+    function localProfile() {
+      return {
+        id: localParticipantId,
+        name: $('participantName').value.trim() || 'Participant',
+        lang: $('participantLang').value || 'fr',
+      };
+    }
+
+    function localParticipant() {
+      const profile = localProfile();
+      const presence = participants.find((p) => p.id === localParticipantId);
+      return presence ? { ...presence, ...profile } : profile;
+    }
+
+    function translationForParticipant(turn, participantId = localParticipantId) {
+      return (turn?.translations || []).find((tr) => tr.participantId === participantId) || null;
+    }
+
+    function setRealtimeStatus(status, connected) {
+      $('wsStatus').textContent = status;
+      $('wsDot').className = connected ? 'h-2.5 w-2.5 rounded-full bg-emerald-500' : 'h-2.5 w-2.5 rounded-full bg-slate-300';
+    }
+
+    function setZoomStatus(status) {
+      $('zoomStatus').textContent = status;
+    }
+
+    function updateZoomActions({ busy = false } = {}) {
+      $('btnConnectZoom').textContent = zoomConnected ? 'Reconnecter Zoom' : 'Connecter Zoom';
+      $('btnCreateZoom').disabled = busy;
+      if (busy) {
+        $('btnCreateZoom').textContent = 'Création...';
+      } else if (!zoomConnected) {
+        $('btnCreateZoom').textContent = 'Connecter Zoom pour démarrer';
+      } else {
+        $('btnCreateZoom').textContent = zoomCanCreateMeetings ? 'Créer la réunion Zoom' : 'Démarrer la réunion Zoom';
+      }
+    }
+
+    function zoomStorageKey(targetRoomId = roomId) {
+      return `meeting_zoom_${targetRoomId}`;
+    }
+
+    function saveZoomMeeting(meeting = zoomMeeting) {
+      if (!meeting?.joinUrl) return;
+      try {
+        localStorage.setItem(zoomStorageKey(meeting.roomId || roomId), JSON.stringify({
+          ...meeting,
+          roomId: meeting.roomId || roomId,
+          savedAt: Date.now(),
+        }));
+      } catch (_) {}
+    }
+
+    function loadStoredZoomMeeting(targetRoomId = roomId) {
+      try {
+        const raw = localStorage.getItem(zoomStorageKey(targetRoomId));
+        if (!raw) return null;
+        const stored = JSON.parse(raw);
+        if (!stored?.joinUrl) return null;
+        return stored;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function renderZoomMeeting() {
+      const hasMeeting = Boolean(zoomMeeting?.joinUrl);
+      $('zoomMeetingCard').classList.toggle('hidden', !hasMeeting);
+      $('btnOpenZoom').classList.toggle('hidden', !hasMeeting);
+      $('btnCopyZoom').classList.toggle('hidden', !hasMeeting);
+
+      if (!hasMeeting) return;
+      $('zoomMeetingTitle').textContent = zoomMeeting.topic || 'Réunion Zoom';
+      $('zoomMeetingMeta').textContent = [
+        zoomMeeting.id ? `ID: ${zoomMeeting.id}` : '',
+        zoomMeeting.password ? `Mot de passe: ${zoomMeeting.password}` : '',
+      ].filter(Boolean).join(' · ') || 'Lien Zoom prêt pour les participants.';
+      $('zoomMeetingLink').href = zoomMeeting.joinUrl;
+      $('zoomMeetingLink').textContent = zoomMeeting.joinUrl;
+    }
+
+    function currentParticipantName() {
+      return $('participantName').value.trim() || 'Participant Voxeleon';
+    }
+
+    function currentParticipantEmail() {
+      try {
+        const rawUser = localStorage.getItem('user');
+        const user = rawUser ? JSON.parse(rawUser) : null;
+        return user?.email || '';
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function meetingNumberFromZoomMeeting(meeting) {
+      return String(meeting?.id || '').replace(/\D/g, '');
+    }
+
+    function externalZoomFallback() {
+      if (zoomMeeting?.joinUrl) window.open(zoomMeeting.joinUrl, '_blank', 'noopener');
+    }
+
+    async function leaveEmbeddedZoom({ hide = false } = {}) {
+      if (zoomClient) {
+        try {
+          await zoomClient.leaveMeeting();
+        } catch (_) {}
+      }
+      zoomClient = null;
+      zoomJoined = false;
+      zoomJoining = false;
+      $('btnOpenZoom').disabled = false;
+      $('btnOpenZoom').textContent = 'Ouvrir dans la page';
+      $('zoomEmbedStatus').textContent = hide ? 'Réunion masquée.' : 'Réunion Zoom quittée dans cette page.';
+      if (hide) {
+        $('zoomEmbedCard').classList.add('hidden');
+        setZoomExpanded(false);
+      }
+    }
+
+    function setZoomExpanded(next) {
+      zoomExpanded = Boolean(next);
+      $('zoomEmbedCard').classList.toggle('is-expanded', zoomExpanded);
+      $('btnExpandEmbeddedZoom').textContent = zoomExpanded ? 'Réduire' : 'Plein écran';
+      document.body.style.overflow = zoomExpanded ? 'hidden' : '';
+    }
+
+    async function toggleZoomFullscreen() {
+      const card = $('zoomEmbedCard');
+      const next = !zoomExpanded;
+      setZoomExpanded(next);
+      if (next && card.requestFullscreen && !document.fullscreenElement) {
+        try { await card.requestFullscreen(); } catch (_) {}
+      } else if (!next && document.fullscreenElement && document.exitFullscreen) {
+        try { await document.exitFullscreen(); } catch (_) {}
+      }
+    }
+
+    async function joinZoomEmbedded() {
+      if (!zoomMeeting?.joinUrl) return;
+      if (zoomJoined) {
+        $('zoomEmbedCard').classList.remove('hidden');
+        $('zoomEmbedCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        $('zoomEmbedStatus').textContent = 'Réunion Zoom déjà active dans Voxeleon.';
+        return;
+      }
+      if (!window.ZoomMtgEmbedded) {
+        alert("Le SDK Zoom n'est pas chargé. Ouverture du lien Zoom externe.");
+        externalZoomFallback();
+        return;
+      }
+      if (zoomJoining) return;
+
+      const meetingNumber = meetingNumberFromZoomMeeting(zoomMeeting);
+      if (!meetingNumber) {
+        alert('Numéro de réunion Zoom indisponible.');
+        return;
+      }
+
+      zoomJoining = true;
+      $('btnOpenZoom').disabled = true;
+      $('btnOpenZoom').textContent = 'Connexion Zoom...';
+      $('zoomEmbedCard').classList.remove('hidden');
+      $('zoomEmbedCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('zoomEmbedStatus').textContent = 'Connexion à la réunion Zoom intégrée...';
+
+      try {
+        const signatureResponse = await fetch('/api/meeting/zoom/signature', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token,
+          },
+          body: JSON.stringify({ meetingNumber, role: 0 }),
+        });
+        const signatureData = await signatureResponse.json().catch(() => ({}));
+        if (!signatureResponse.ok) throw new Error(signatureData.error || 'zoom_signature_failed');
+
+        if (!zoomClient) {
+          zoomClient = ZoomMtgEmbedded.createClient();
+          await zoomClient.init({
+            zoomAppRoot: $('meetingSDKElement'),
+            language: 'fr-FR',
+            patchJsMedia: true,
+          });
+        }
+
+        await zoomClient.join({
+          sdkKey: signatureData.sdkKey,
+          signature: signatureData.signature,
+          meetingNumber,
+          password: zoomMeeting.password || '',
+          userName: currentParticipantName(),
+          userEmail: currentParticipantEmail(),
+        });
+        $('zoomEmbedStatus').textContent = 'Réunion Zoom active dans Voxeleon.';
+        zoomJoined = true;
+      } catch (err) {
+        console.error(err);
+        const zoomReason = err?.reason || err?.message || err?.type || 'Erreur inconnue';
+        const zoomCode = err?.errorCode ? ` (code ${err.errorCode})` : '';
+        if (err?.errorCode === 3000 || String(zoomReason).toLowerCase().includes('autres réunions en cours')) {
+          zoomJoined = true;
+          $('zoomEmbedCard').classList.remove('hidden');
+          $('zoomEmbedStatus').textContent = 'Une réunion Zoom est déjà active dans cette page. Utilisez Quitter Zoom pour changer de réunion.';
+          return;
+        }
+        $('zoomEmbedStatus').textContent = `Zoom intégré a refusé la connexion: ${zoomReason}${zoomCode}.`;
+        alert(`Impossible d'ouvrir Zoom dans la page: ${zoomReason}${zoomCode}`);
+      } finally {
+        zoomJoining = false;
+        $('btnOpenZoom').disabled = false;
+        $('btnOpenZoom').textContent = 'Ouvrir dans la page';
+      }
+    }
+
+    async function loadZoomStatus() {
+      try {
+        const response = await fetch('/api/meeting/zoom/status', {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'zoom_status_failed');
+
+        zoomConnected = Boolean(data.connected);
+        zoomCanCreateMeetings = Boolean(data.canCreateMeetings);
+        updateZoomActions();
+
+        if (!zoomConnected) {
+          setZoomStatus('Connectez votre compte Zoom pour créer une discussion audio/vidéo.');
+        } else if (!zoomCanCreateMeetings) {
+          setZoomStatus('Zoom est connecté. Cliquez sur démarrer; si Zoom refuse, reconnectez Zoom avec le droit de créer des réunions.');
+        } else {
+          setZoomStatus(zoomMeeting?.joinUrl ? 'Réunion Zoom retrouvée pour cette salle. Vous pouvez la rouvrir dans la page.' : 'Zoom connecté. Vous pouvez créer une réunion pour cette salle.');
+        }
+      } catch (err) {
+        console.error(err);
+        updateZoomActions();
+        setZoomStatus('Impossible de vérifier la connexion Zoom pour le moment.');
+      }
+    }
+
+    async function connectZoom() {
+      const returnTo = `/meeting-translate?room=${encodeURIComponent(roomId)}`;
+      const response = await fetch(`/api/oauth/connectors/start/zoom?return_to=${encodeURIComponent(returnTo)}`, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.url) {
+        alert(data.error || 'Impossible de démarrer la connexion Zoom.');
+        return;
+      }
+      if (data.hint) {
+        console.info('[Zoom OAuth]', data.hint);
+        setZoomStatus('Si Zoom affiche « Application not found », lisez l’astuce dans la console (F12).');
+      }
+      window.top.location.href = data.url;
+    }
+
+    async function createZoomMeeting() {
+      if (!zoomConnected) {
+        await connectZoom();
+        return;
+      }
+
+      updateZoomActions({ busy: true });
+      try {
+        const response = await fetch('/api/meeting/zoom/meeting', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token,
+          },
+          body: JSON.stringify({ roomId }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'zoom_meeting_failed');
+        zoomMeeting = data.meeting;
+        saveZoomMeeting();
+        renderZoomMeeting();
+        sendRealtime('zoom:meeting', { meeting: zoomMeeting });
+        setZoomStatus('Réunion Zoom créée et partagée avec les participants.');
+      } catch (err) {
+        console.error(err);
+        const message = err.message === 'zoom_scope_missing'
+          ? 'Zoom ne donne pas encore le droit de créer des réunions. Reconnectez Zoom puis réessayez.'
+          : 'Impossible de créer la réunion Zoom pour le moment.';
+        alert(message);
+      } finally {
+        updateZoomActions();
+      }
+    }
+
+    function meetingWsUrl() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.port === '5173' ? `${window.location.hostname}:3000` : window.location.host;
+      const profile = localProfile();
+      const qs = new URLSearchParams({
+        token,
+        room: roomId,
+        participantId: profile.id,
+        name: profile.name,
+        lang: profile.lang,
+      });
+      return `${protocol}//${host}/ws/meetings?${qs.toString()}`;
+    }
+
+    function updateRoomUrl() {
+      const qs = new URLSearchParams(window.location.search);
+      qs.set('room', roomId);
+      const next = `/meeting-translate?${qs.toString()}`;
+      try {
+        window.top.history.replaceState(null, '', next);
+      } catch (_) {
+        history.replaceState(null, '', `meeting-translate.html?${qs.toString()}`);
+      }
+    }
+
+    function sendRealtime(type, payload = {}) {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return false;
+      socket.send(JSON.stringify({ type, ...payload }));
+      return true;
+    }
+
+    function addTurn(turn) {
+      if (!turn?.id || turns.some((item) => item.id === turn.id)) return;
+      turns.unshift(turn);
+      renderTimeline();
+    }
+
+    function maybeAutoPlayTranslation(turn) {
+      if (!turn?.id || turn.speakerId === localParticipantId || autoSpokenTurns.has(turn.id)) return;
+      const translation = translationForParticipant(turn);
+      if (!translation?.text) return;
+      autoSpokenTurns.add(turn.id);
+      playText(translation.text, translation.lang || localParticipant().lang, { auto: true }).catch((err) => {
+        console.warn('[MeetingTranslate] Auto TTS failed:', err);
+      });
+    }
+
+    function connectRoom() {
+      if (!roomId) roomId = defaultRoomId;
+      $('roomIdInput').value = roomId;
+      updateRoomUrl();
+      clearTimeout(reconnectTimer);
+      const generation = ++socketGeneration;
+      if (socket) socket.close();
+      setRealtimeStatus('Connexion temps réel...', false);
+
+      socket = new WebSocket(meetingWsUrl());
+      socket.addEventListener('open', () => {
+        setRealtimeStatus(`Connecté à ${roomId}`, true);
+      });
+      socket.addEventListener('message', (event) => {
+        let message;
+        try {
+          message = JSON.parse(event.data);
+        } catch (_) {
+          return;
+        }
+        if (message.type === 'ready') {
+          if (message.zoomMeeting) {
+            zoomMeeting = message.zoomMeeting;
+            saveZoomMeeting();
+            renderZoomMeeting();
+            setZoomStatus('Réunion Zoom prête et partagée dans cette salle.');
+          }
+          return;
+        }
+        if (message.type === 'presence') {
+          participants = Array.isArray(message.participants) ? message.participants : [];
+          renderParticipants();
+          return;
+        }
+        if (message.type === 'turn') {
+          addTurn(message.turn);
+          maybeAutoPlayTranslation(message.turn);
+          return;
+        }
+        if (message.type === 'zoom:meeting') {
+          zoomMeeting = message.meeting;
+          saveZoomMeeting();
+          renderZoomMeeting();
+          setZoomStatus('Réunion Zoom reçue pour cette salle.');
+          return;
+        }
+        if (message.type === 'clear') {
+          turns = [];
+          autoSpokenTurns.clear();
+          renderTimeline();
+        }
+      });
+      socket.addEventListener('close', () => {
+        if (generation !== socketGeneration) return;
+        setRealtimeStatus('Temps réel déconnecté', false);
+        reconnectTimer = setTimeout(connectRoom, 2500);
+      });
+      socket.addEventListener('error', () => {
+        setRealtimeStatus('Erreur temps réel', false);
+      });
+    }
+
+    function renderParticipants() {
+      const selectedSpeaker = localParticipantId;
+      $('participantCount').textContent = String(participants.length);
+      $('participantsList').innerHTML = participants.map((p, idx) => `
+        <article class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-black ${colors[idx % colors.length]}">${escapeHtml(p.name.slice(0, 1).toUpperCase())}</span>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-bold text-slate-900">${escapeHtml(p.name)}</p>
+                <p class="text-xs text-slate-500">${escapeHtml(langLabel(p.lang))}</p>
+              </div>
+            </div>
+          </div>
+          ${p.id === localParticipantId ? '<span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Vous</span>' : '<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">En ligne</span>'}
+        </article>
+      `).join('');
+      $('speakerSelect').innerHTML = participants.map((p) => `<option value="${p.id}">${escapeHtml(p.name)} - ${escapeHtml(langLabel(p.lang))}</option>`).join('');
+      if (participants.some((p) => p.id === selectedSpeaker)) {
+        $('speakerSelect').value = selectedSpeaker;
+      } else if (participants.some((p) => p.id === localParticipantId)) {
+        $('speakerSelect').value = localParticipantId;
+      }
+    }
+
+    function renderTimeline() {
+      $('turnCount').textContent = `${turns.length} message${turns.length > 1 ? 's' : ''}`;
+      $('emptyState').classList.toggle('hidden', turns.length > 0);
+      $('timeline').innerHTML = turns.map((turn) => {
+        const isMine = turn.speakerId === localParticipantId;
+        const localTranslation = translationForParticipant(turn);
+        const visibleTranslations = isMine
+          ? (turn.translations || [])
+          : localTranslation
+            ? [localTranslation]
+            : (turn.translations || []).filter((tr) => tr.lang === localParticipant().lang).slice(0, 1);
+        const translationTitle = isMine ? 'Traductions envoyées' : 'Votre traduction';
+        return `
+          <article class="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wide text-emerald-600">${escapeHtml(turn.speakerName)} parle en ${escapeHtml(langLabel(turn.sourceLang))}</p>
+                <p class="mt-2 text-base font-semibold text-slate-950">${escapeHtml(turn.original)}</p>
+                ${!isMine ? '<p class="mt-1 text-xs text-slate-400">Original affiché pour vérification. La traduction ci-dessous est celle destinée à votre langue.</p>' : ''}
+              </div>
+              <span class="text-xs text-slate-400">${new Date(turn.createdAt).toLocaleTimeString()}</span>
+            </div>
+            <div class="mt-4 grid gap-3 ${isMine ? 'md:grid-cols-2' : ''}">
+              ${visibleTranslations.map((tr) => `
+                <section class="rounded-2xl border ${isMine ? 'border-slate-100 bg-slate-50' : 'border-emerald-100 bg-emerald-50/60'} p-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-xs font-bold ${isMine ? 'text-slate-500' : 'text-emerald-700'}">${translationTitle} · ${escapeHtml(tr.participantName)} (${escapeHtml(langLabel(tr.lang))})</p>
+                    <button type="button" class="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-100" data-speak="${turn.id}" data-lang="${tr.lang}" data-text="${escapeHtml(tr.text)}">Écouter</button>
+                  </div>
+                  <p class="mt-2 text-sm leading-6 text-slate-800">${escapeHtml(tr.text || 'Traduction indisponible')}</p>
+                </section>
+              `).join('')}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function translateUtterance(text) {
+      const speaker = localParticipant();
+      if (!speaker || !text.trim() || translating) return;
+      if (participants.length < 2) {
+        alert('Ajoutez au moins deux participants.');
+        return;
+      }
+
+      translating = true;
+      $('btnSendManual').disabled = true;
+      try {
+        const targets = participants
+          .filter((p) => p.id !== speaker.id)
+          .map((p) => ({ id: p.id, name: p.name, lang: p.lang }));
+        const remoteTargets = targets.filter((p) => p.lang !== speaker.lang);
+        const response = await fetch('/api/meeting/translate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token,
+          },
+          body: JSON.stringify({
+            text,
+            sourceLang: speaker.lang,
+            targets: remoteTargets.map((p) => ({ lang: p.lang, label: langLabel(p.lang) })),
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'translation_failed');
+
+        const byLang = new Map((data.translations || []).map((tr) => [tr.lang, tr.text]));
+        const translations = targets.map((target) => ({
+          participantId: target.id,
+          participantName: target.name,
+          lang: target.lang,
+          text: target.lang === speaker.lang ? text : (byLang.get(target.lang) || ''),
+        }));
+
+        const turn = {
+          id: crypto.randomUUID(),
+          createdAt: Date.now(),
+          speakerId: speaker.id,
+          speakerName: speaker.name,
+          sourceLang: speaker.lang,
+          original: text,
+          translations,
+        };
+        addTurn(turn);
+        sendRealtime('turn', { turn });
+      } catch (err) {
+        console.error(err);
+        alert("Impossible de traduire pour le moment. Vérifiez OPENAI_API_KEY et le serveur.");
+      } finally {
+        translating = false;
+        $('btnSendManual').disabled = false;
+      }
+    }
+
+    function setupRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        $('speechSupport').textContent = "Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez la saisie manuelle ou Chrome/Edge.";
+        $('btnMic').disabled = true;
+        return;
+      }
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.onresult = (event) => {
+        let interim = '';
+        let finalText = '';
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const chunk = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalText += chunk;
+          else interim += chunk;
+        }
+        if (Date.now() < autoTtsMutedUntil) return;
+        $('interimText').textContent = interim || 'Écoute en cours...';
+        if (finalText.trim()) translateUtterance(finalText.trim());
+      };
+      recognition.onerror = (event) => {
+        $('liveStatus').textContent = `Erreur micro: ${event.error || 'inconnue'}`;
+      };
+      recognition.onend = () => {
+        if (listening && !recognitionPausedForTts) {
+          try { recognition.start(); } catch (_) {}
+        }
+      };
+      $('speechSupport').textContent = 'Reconnaissance vocale disponible. Autorisez le micro quand le navigateur le demande.';
+    }
+
+    function setListening(next) {
+      if (!recognition) return;
+      listening = next;
+      const speaker = localParticipant();
+      recognition.lang = speechLang(speaker?.lang || 'fr');
+      $('btnMic').textContent = listening ? 'Arrêter le micro' : 'Démarrer le micro';
+      $('liveStatus').textContent = listening ? `Écoute de ${speaker.name} (${langLabel(speaker.lang)})` : 'Micro arrêté';
+      $('liveDot').className = listening ? 'h-2.5 w-2.5 rounded-full bg-red-500 pulse-live' : 'h-2.5 w-2.5 rounded-full bg-slate-300';
+      if (listening) {
+        try { recognition.start(); } catch (_) {}
+      } else {
+        try { recognition.stop(); } catch (_) {}
+        $('interimText').textContent = 'La transcription en cours apparaîtra ici.';
+      }
+    }
+
+    async function playText(text, lang, { auto = false } = {}) {
+      if (!String(text || '').trim()) return;
+      const shouldPauseRecognition = auto && listening && recognition;
+      if (shouldPauseRecognition) {
+        recognitionPausedForTts = true;
+        autoTtsMutedUntil = Date.now() + 1200;
+        try { recognition.stop(); } catch (_) {}
+      }
+      const response = await fetch(`/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(lang)}`, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!response.ok) {
+        alert('Lecture audio indisponible.');
+        recognitionPausedForTts = false;
+        if (shouldPauseRecognition && listening) {
+          try { recognition.start(); } catch (_) {}
+        }
+        return;
+      }
+      const blob = await response.blob();
+      const audio = new Audio(URL.createObjectURL(blob));
+      if (auto) {
+        audio.addEventListener('ended', () => {
+          autoTtsMutedUntil = Date.now() + 800;
+          recognitionPausedForTts = false;
+          if (shouldPauseRecognition && listening) {
+            try { recognition.start(); } catch (_) {}
+          }
+        }, { once: true });
+        audio.addEventListener('error', () => {
+          recognitionPausedForTts = false;
+          if (shouldPauseRecognition && listening) {
+            try { recognition.start(); } catch (_) {}
+          }
+        }, { once: true });
+      }
+      try {
+        await audio.play();
+      } catch (err) {
+        recognitionPausedForTts = false;
+        if (shouldPauseRecognition && listening) {
+          try { recognition.start(); } catch (_) {}
+        }
+        throw err;
+      }
+    }
+
+    fillLanguageSelect($('participantLang'));
+    $('roomIdInput').value = roomId;
+    $('participantName').value = localStorage.getItem('meeting_participant_name') || 'Participant';
+    $('participantLang').value = localStorage.getItem('meeting_participant_lang') || 'fr';
+    zoomMeeting = loadStoredZoomMeeting();
+    renderTimeline();
+    renderZoomMeeting();
+    setupRecognition();
+    loadZoomStatus();
+    connectRoom();
+
+    $('participantForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = $('participantName').value.trim();
+      const lang = $('participantLang').value;
+      if (!name) return;
+      localStorage.setItem('meeting_participant_name', name);
+      localStorage.setItem('meeting_participant_lang', lang);
+      sendRealtime('participant:update', { name, lang });
+      if (listening && recognition) {
+        recognition.lang = speechLang(lang);
+        $('liveStatus').textContent = `Écoute de ${name} (${langLabel(lang)})`;
+      }
+      if (!socket || socket.readyState !== WebSocket.OPEN) connectRoom();
+    });
+
+    $('btnJoinRoom').addEventListener('click', () => {
+      roomId = ($('roomIdInput').value || defaultRoomId).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+      turns = [];
+      autoSpokenTurns.clear();
+      participants = [];
+      zoomMeeting = loadStoredZoomMeeting(roomId);
+      renderParticipants();
+      renderTimeline();
+      renderZoomMeeting();
+      loadZoomStatus();
+      connectRoom();
+    });
+
+    $('btnCopyRoom').addEventListener('click', async () => {
+      updateRoomUrl();
+      const url = window.top.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        $('btnCopyRoom').textContent = 'Lien copié';
+        setTimeout(() => { $('btnCopyRoom').textContent = 'Copier le lien'; }, 1500);
+      } catch (_) {
+        prompt('Copiez le lien de réunion', url);
+      }
+    });
+
+    $('btnConnectZoom').addEventListener('click', connectZoom);
+    $('btnCreateZoom').addEventListener('click', createZoomMeeting);
+    $('btnOpenZoom').addEventListener('click', () => {
+      joinZoomEmbedded();
+    });
+    $('btnExpandEmbeddedZoom').addEventListener('click', toggleZoomFullscreen);
+    $('btnOpenZoomExternal').addEventListener('click', externalZoomFallback);
+    $('btnResetEmbeddedZoom').addEventListener('click', () => leaveEmbeddedZoom());
+    $('btnLeaveEmbeddedZoom').addEventListener('click', () => {
+      $('zoomEmbedCard').classList.add('hidden');
+      setZoomExpanded(false);
+      $('zoomEmbedStatus').textContent = zoomJoined ? 'Réunion masquée, toujours active dans Voxeleon.' : 'Réunion masquée.';
+    });
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && zoomExpanded) {
+        setZoomExpanded(false);
+      }
+    });
+    $('btnCopyZoom').addEventListener('click', async () => {
+      if (!zoomMeeting?.joinUrl) return;
+      try {
+        await navigator.clipboard.writeText(zoomMeeting.joinUrl);
+        $('btnCopyZoom').textContent = 'Lien Zoom copié';
+        setTimeout(() => { $('btnCopyZoom').textContent = 'Copier lien Zoom'; }, 1500);
+      } catch (_) {
+        prompt('Copiez le lien Zoom', zoomMeeting.joinUrl);
+      }
+    });
+
+    $('btnMic').addEventListener('click', () => setListening(!listening));
+    $('btnSendManual').addEventListener('click', () => {
+      const text = $('manualText').value.trim();
+      if (!text) return;
+      $('manualText').value = '';
+      translateUtterance(text);
+    });
+    $('btnClear').addEventListener('click', () => {
+      turns = [];
+      autoSpokenTurns.clear();
+      renderTimeline();
+      sendRealtime('clear');
+    });
+    $('btnBack').addEventListener('click', () => {
+      window.top.location.href = '/dashboard';
+    });
+    $('timeline').addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-speak]');
+      if (!btn) return;
+      playText(btn.getAttribute('data-text') || '', btn.getAttribute('data-lang') || 'fr');
+    });
+  </script>
+  <script src="js/app-sidebar.js"></script>
+</body>
+</html>

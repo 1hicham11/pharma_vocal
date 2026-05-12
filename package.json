@@ -1,0 +1,47 @@
+{
+  "name": "pharma-vocal-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "client:install": "npm install --prefix client",
+    "client:dev": "npm run dev --prefix client",
+    "client:build": "npm run build --prefix client",
+    "build": "npm run client:build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/community": "^1.1.23",
+    "@langchain/core": "^1.1.32",
+    "@langchain/groq": "^1.1.5",
+    "@langchain/openai": "^1.2.13",
+    "@langchain/textsplitters": "^1.0.1",
+    "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
+    "chromadb": "^3.3.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "edge-tts-universal": "^1.4.0",
+    "elevenlabs": "^1.59.0",
+    "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
+    "jsonwebtoken": "^9.0.3",
+    "langchain": "^1.2.32",
+    "multer": "^2.0.2",
+    "mysql2": "^3.17.2",
+    "openai": "^6.27.0",
+    "pdf-parse": "^2.4.5",
+    "sharp": "^0.33.5",
+    "uuid": "^13.0.0",
+    "ws": "^8.19.0",
+    "xlsx": "^0.18.5"
+  },
+  "optionalDependencies": {
+    "@img/sharp-win32-x64": "^0.34.5"
+  }
+}

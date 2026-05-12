@@ -1,0 +1,2428 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ajouter un agent — Voxeleon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        html {
+            zoom: 0.8;
+        }
+
+        @supports not (zoom: 1) {
+            body {
+                transform: scale(0.8);
+                transform-origin: top left;
+                width: 125%;
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #e3f5ff, #fefefe 60%, #f6f6fb 100%);
+            color: #0f172a;
+        }
+
+        body.dark-theme {
+            background: radial-gradient(circle at top, #1f2937, #0b1220 55%, #050a14 100%);
+            color: #e5e7eb;
+        }
+
+        body.dark-theme nav {
+            background: rgba(15, 23, 42, 0.85) !important;
+            border-bottom: 1px solid #1f2937 !important;
+        }
+
+        body.dark-theme .page-panel {
+            background: rgba(15, 23, 42, 0.88);
+            border-color: rgba(148, 163, 184, 0.18);
+            box-shadow: 0 25px 60px rgba(2, 6, 23, 0.45);
+        }
+
+        body.dark-theme .page-panel input,
+        body.dark-theme .page-panel textarea,
+        body.dark-theme .page-panel label.block,
+        body.dark-theme .suggestion-chip {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: rgba(148, 163, 184, 0.35);
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.45);
+        }
+
+        body.dark-theme .text-slate-900 { color: #f8fafc !important; }
+        body.dark-theme .text-slate-800 { color: #e2e8f0 !important; }
+        body.dark-theme .text-slate-700 { color: #cbd5e1 !important; }
+        body.dark-theme .text-slate-600 { color: #94a3b8 !important; }
+        body.dark-theme .text-slate-500 { color: #94a3b8 !important; }
+        body.dark-theme .text-slate-400 { color: #64748b !important; }
+        body.dark-theme .bg-white { background-color: #0f172a !important; }
+        body.dark-theme .bg-slate-50 { background-color: #0b1220 !important; }
+        body.dark-theme .bg-emerald-50\/50 { background-color: rgba(6, 78, 59, 0.25) !important; }
+        body.dark-theme .border-slate-200,
+        body.dark-theme .border-slate-100,
+        body.dark-theme .border-emerald-100 {
+            border-color: rgba(148, 163, 184, 0.25) !important;
+        }
+
+        #agentPage {
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        .page-panel {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 32px;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
+            padding: 3rem 5vw;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .page-panel input,
+        .page-panel textarea {
+            border-radius: 18px;
+            border: 1px solid rgba(15, 23, 42, 0.15);
+            background: #fff;
+            box-shadow: inset 0 1px 4px rgba(15, 23, 42, 0.08);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .page-panel input:focus,
+        .page-panel textarea:focus {
+            outline: none;
+            border-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2);
+        }
+
+        .hero-pill {
+            background: #e6f6ef;
+            border-radius: 999px;
+            padding: 0.3rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            color: #047857;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 36px;
+            height: 36px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #22c55e, #10b981);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+
+        .btn-round {
+            background: linear-gradient(135deg, #10b981, #22c55e);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.35);
+            border: none;
+        }
+
+        .suggestion-chip {
+            border-radius: 999px;
+            padding: 0.25rem 0.8rem;
+            border: 1px solid rgba(15, 23, 42, 0.15);
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .suggestion-chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+        }
+
+        #languageMenu {
+            z-index: 20;
+        }
+
+        .floating-ball {
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(1px);
+            opacity: 0.45;
+        }
+
+        .ball-1 {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(239, 246, 255, 0.7), transparent 60%);
+            top: 32px;
+            right: 5%;
+        }
+
+        .ball-2 {
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, rgba(34, 197, 94, 0.3), transparent 70%);
+            bottom: 50px;
+            left: 5%;
+        }
+
+        #sessionsList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #sessionsList::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #sessionsList::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+        #sessionsList::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .chat-sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            transition: width 0.25s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-sidebar.collapsed { width: 76px !important; }
+        .chat-sidebar-toggle {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            background: transparent;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .chat-sidebar-toggle:hover {
+            color: #334155;
+            border-color: #94a3b8;
+            background: #f1f5f9;
+        }
+        .chat-sidebar.collapsed .sidebar-collapse-hide { display: none !important; }
+        .chat-sidebar.collapsed .chat-sidebar-menu-btn { justify-content: center; padding: 8px; }
+        .chat-sidebar-menu-btn {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #334155;
+            text-align: left;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .chat-sidebar-menu-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.7;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;
+        }
+        .chat-sidebar-menu-btn:hover { background: #f1f5f9; color: #0f172a; }
+        .chat-sidebar-menu-btn.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+        .chat-sidebar-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+        .sidebar-session-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            min-height: 36px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: transparent;
+            border: 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 600;
+            text-align: left;
+        }
+        .sidebar-session-item:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .sidebar-session-item.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #047857;
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.18);
+        }
+        .sidebar-session-item .session-title {
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+        .sidebar-session-item .session-meta {
+            margin-top: 2px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .sidebar-session-item .session-chevron {
+            color: #cbd5e1;
+            transition: color 0.2s ease;
+        }
+        .sidebar-session-item:hover .session-chevron {
+            color: #94a3b8;
+        }
+        .sidebar-session-item.active .session-meta,
+        .sidebar-session-item.active .session-chevron {
+            color: rgba(236, 253, 245, 0.9);
+        }
+
+        /* Layout plein écran pour édition (paramètres/mascot) */
+        body.agent-edit-mode #agentPage {
+            min-height: 0;
+            height: 100%;
+            overflow: hidden;
+            overflow-x: hidden;
+            align-items: stretch;
+            background: #ffffff;
+        }
+        body.agent-edit-mode {
+            background: #ffffff !important;
+            overflow-x: hidden;
+        }
+        body.agent-edit-mode #appShell {
+            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
+            overflow-x: hidden;
+            background: #ffffff;
+        }
+        body.agent-edit-mode #chatSidebar {
+            height: 100%;
+            min-height: 0;
+            overflow-y: scroll;
+            scrollbar-gutter: stable;
+            zoom: 0.8;
+        }
+        body.mascot-sidebar-locked #chatSidebar,
+        body.mascot-sidebar-locked #chatSidebar.collapsed {
+            width: 280px !important;
+            min-width: 280px !important;
+            flex: 0 0 280px !important;
+        }
+        body.mascot-sidebar-locked #chatSidebar.collapsed .sidebar-collapse-hide {
+            display: initial !important;
+        }
+        body.mascot-sidebar-locked #chatSidebar.collapsed .chat-sidebar-menu-btn {
+            justify-content: flex-start !important;
+            padding: 8px 12px !important;
+        }
+        body.mascot-sidebar-locked #mascotFinalSummaryCard {
+            display: none !important;
+        }
+        body.agent-edit-mode .page-panel {
+            flex: 1 1 auto;
+            width: auto;
+            min-height: 0;
+            height: 100%;
+            min-width: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #ffffff;
+            border-radius: 0;
+            box-shadow: none;
+            border: 0;
+            backdrop-filter: none;
+            padding: 1.5rem 2rem;
+        }
+        body.agent-edit-mode .floating-ball {
+            display: none;
+        }
+        #chatSidebar::-webkit-scrollbar { width: 10px; }
+        #chatSidebar::-webkit-scrollbar-track { background: #f1f5f9; }
+        #chatSidebar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+            border: 2px solid #f1f5f9;
+        }
+        body.agent-edit-mode #mascotImagesGrid {
+            width: 100%;
+            min-width: 0;
+            overflow-x: auto;
+        }
+
+        /*
+         * Grille 5×5 : items-start + min-height 0 pour éviter les débordements de grille.
+         * Média en plein cadre + object-fit: contain (sans translate) : pas de chevauchement entre cellules.
+         */
+        #mascotImagesGrid .mascot-pose-cell {
+            position: relative;
+            width: 100%;
+            min-height: 0;
+            align-self: start;
+            box-sizing: border-box;
+            background: #ffffff;
+            contain: layout style paint;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+        }
+        #mascotImagesGrid .mascot-pose-cell > img,
+        #mascotImagesGrid .mascot-pose-cell > video {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            object-position: center center;
+        }
+        #mascotImagesGrid .mascot-pose-label {
+            pointer-events: none;
+            z-index: 2;
+        }
+        #mascotImagesGrid .mascot-sprite-preview-inner {
+            background: #ffffff;
+        }
+
+        /* AGENT WORKSPACE DARK MODE */
+        body.dark-theme.agent-workspace-page,
+        body.dark-theme.agent-workspace-page.agent-edit-mode,
+        body.dark-theme.agent-workspace-page.agent-edit-mode #appShell,
+        body.dark-theme.agent-workspace-page.agent-edit-mode #agentPage {
+            background:
+                radial-gradient(circle at 18% 12%, rgba(16, 185, 129, 0.12), transparent 30%),
+                linear-gradient(180deg, #08101d 0%, #0b1220 58%, #101827 100%) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page #topNav {
+            background: rgba(11, 18, 32, 0.92) !important;
+            border-bottom-color: #243247 !important;
+            box-shadow: 0 10px 30px rgba(2, 6, 23, 0.25) !important;
+        }
+        body.dark-theme.agent-workspace-page #agentPage,
+        body.dark-theme.agent-workspace-page .page-panel,
+        body.dark-theme.agent-workspace-page.agent-edit-mode .page-panel {
+            background: transparent !important;
+            color: #f8fafc !important;
+            box-shadow: none !important;
+            border-color: transparent !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar {
+            background: #0b1220 !important;
+            border-right-color: #243247 !important;
+            box-shadow: 16px 0 42px rgba(2, 6, 23, 0.45) !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar [class*="border-slate-"] {
+            border-color: #243247 !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn {
+            color: #d5deea !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn:hover,
+        body.dark-theme.agent-workspace-page .chat-sidebar-card:hover,
+        body.dark-theme.agent-workspace-page .sidebar-session-item:hover {
+            background: rgba(148, 163, 184, 0.14) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn.active,
+        body.dark-theme.agent-workspace-page .sidebar-session-item.active {
+            background: linear-gradient(135deg, #059669, #10b981) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 14px 30px rgba(16, 185, 129, 0.28) !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-card,
+        body.dark-theme.agent-workspace-page .page-panel .bg-white,
+        body.dark-theme.agent-workspace-page .page-panel .bg-slate-50,
+        body.dark-theme.agent-workspace-page .page-panel .bg-emerald-50\/50,
+        body.dark-theme.agent-workspace-page #mascotProgressContainer,
+        body.dark-theme.agent-workspace-page #mascotFinalSummaryCard,
+        body.dark-theme.agent-workspace-page #searchModalContent,
+        body.dark-theme.agent-workspace-page #drivePickerContent {
+            background: rgba(15, 23, 42, 0.82) !important;
+            border-color: #334155 !important;
+            box-shadow: 0 18px 42px rgba(2, 6, 23, 0.38) !important;
+        }
+        body.dark-theme.agent-workspace-page .page-panel input,
+        body.dark-theme.agent-workspace-page .page-panel textarea,
+        body.dark-theme.agent-workspace-page .page-panel select {
+            background: rgba(15, 23, 42, 0.72) !important;
+            color: #f8fafc !important;
+            border-color: #475569 !important;
+            box-shadow: inset 0 1px 2px rgba(2, 6, 23, 0.5) !important;
+        }
+        body.dark-theme.agent-workspace-page .page-panel input::placeholder,
+        body.dark-theme.agent-workspace-page .page-panel textarea::placeholder {
+            color: #9db0c8 !important;
+        }
+        body.dark-theme.agent-workspace-page .page-panel label,
+        body.dark-theme.agent-workspace-page .page-panel h1,
+        body.dark-theme.agent-workspace-page .page-panel h2,
+        body.dark-theme.agent-workspace-page .page-panel h3,
+        body.dark-theme.agent-workspace-page .text-slate-900,
+        body.dark-theme.agent-workspace-page .text-slate-800 {
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-700,
+        body.dark-theme.agent-workspace-page .text-slate-600,
+        body.dark-theme.agent-workspace-page .page-panel p {
+            color: #d5deea !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-500,
+        body.dark-theme.agent-workspace-page .text-slate-400 {
+            color: #9db0c8 !important;
+        }
+        body.dark-theme.agent-workspace-page .border-slate-100,
+        body.dark-theme.agent-workspace-page .border-slate-200,
+        body.dark-theme.agent-workspace-page .border-slate-300 {
+            border-color: #334155 !important;
+        }
+        body.dark-theme.agent-workspace-page #mascotImagesGrid .mascot-pose-cell,
+        body.dark-theme.agent-workspace-page #mascotImagesGrid .mascot-sprite-preview-inner {
+            background: rgba(2, 6, 23, 0.52) !important;
+            border-color: #334155 !important;
+        }
+        body.dark-theme.agent-workspace-page #mascotImagesGrid .mascot-pose-label {
+            background: rgba(15, 23, 42, 0.92) !important;
+            color: #cbd5e1 !important;
+            border-top: 1px solid rgba(51, 65, 85, 0.85);
+        }
+        body.dark-theme.agent-workspace-page #chatSidebar::-webkit-scrollbar-track {
+            background: #0b1220 !important;
+        }
+        body.dark-theme.agent-workspace-page #chatSidebar::-webkit-scrollbar-thumb {
+            background: #334155 !important;
+            border-color: #0b1220 !important;
+        }
+    </style>
+</head>
+
+<body class="agent-workspace-page dark-theme bg-[#edf3fb] text-slate-900 min-h-screen antialiased selection:bg-emerald-500 selection:text-white">
+    <div id="appShell" class="min-h-screen flex flex-col">
+        <nav id="topNav" class="flex items-center justify-between px-6 py-4 bg-white border-b border-transparent shadow-none">
+            <div class="flex items-center gap-3">
+                <button id="backButton" onclick="goBack()" aria-label="Retour" class="text-slate-600 hover:text-slate-900 transition">
+                    ← Retour au dashboard
+                </button>
+                <div id="agentPageLabel" class="text-sm text-slate-500">Nouvel agent</div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="themeToggleBtn" type="button" onclick="toggleTheme()"
+                    class="px-3 py-1 rounded-full border border-slate-200 text-sm text-slate-600 hover:border-slate-300 transition">
+                    Mode sombre
+                </button>
+                <div class="relative" id="languagePicker">
+                    <button type="button" onclick="toggleLanguageMenu()"
+                        class="flex items-center gap-1 px-3 py-1 border border-slate-200 rounded-full text-sm text-slate-600 hover:border-slate-300 transition">
+                        <span>🌐</span>
+                        <span id="selectedLang">FR</span>
+                        <span class="text-xs">▼</span>
+                    </button>
+                    <ul id="languageMenu"
+                        class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-xl shadow-lg text-left text-sm">
+                        <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="EN">EN – English</li>
+                        <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="DE">DE – Deutsch</li>
+                        <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="FR">FR – Français</li>
+                        <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="IT">IT – Italiano</li>
+                        <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="ES">ES – Español</li>
+                        <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="JP">JP – 日本語</li>
+                    </ul>
+                </div>
+                <button onclick="logout()" class="px-4 py-2 rounded-full border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition">
+                    Déconnexion
+                </button>
+            </div>
+        </nav>
+
+        <main id="agentPage" class="flex-1 flex items-stretch justify-start px-0 py-0 relative overflow-hidden">
+            <aside id="chatSidebar" class="chat-sidebar hidden md:flex shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                        <button type="button" id="railBackBtn" class="flex items-center gap-2 text-slate-900 hover:text-emerald-700 transition-colors tracking-tight">
+                            <img src="assets/branding/voxeleon-logo.png" alt="Voxeleon" class="sidebar-collapse-hide h-8 w-auto object-contain" />
+                        </button>
+                        <button type="button" id="chatSidebarToggle" class="chat-sidebar-toggle" title="Ouvrir/Fermer le menu">◧</button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col pt-2">
+                    <div class="px-3 pb-2">
+                        <button type="button" id="railNewBtn" class="chat-sidebar-menu-btn text-slate-800">
+                            <svg stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span class="sidebar-collapse-hide">Nouvelle conversation</span>
+                        </button>
+                    </div>
+                    <div class="px-3 mb-4">
+                        <button type="button" id="railSearchBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                            <span class="sidebar-collapse-hide">Rechercher</span>
+                        </button>
+                    </div>
+                    <nav class="px-3 mb-4 space-y-1">
+                        <button type="button" id="railPersonalizeBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V4M16 7V4"></path></svg>
+                            <span class="sidebar-collapse-hide">Personnaliser</span>
+                        </button>
+                        <div class="h-px bg-slate-200 my-2 sidebar-collapse-hide"></div>
+                        <button type="button" id="railDiscussionsBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5-8.5c-1.4 0-2.7-.32-3.86-.9L3 20.5l1.43-5.23A8.47 8.47 0 0 1 4 11.5 8.5 8.5 0 0 1 8.5-8.5c1.4 0 2.7.32 3.86.9l7.07 5.23-1.43 5.23z"></path></svg>
+                            <span class="sidebar-collapse-hide">Discussions</span>
+                        </button>
+                        <button type="button" id="railFoldersBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path></svg>
+                            <span class="sidebar-collapse-hide">Base de Connaissance</span>
+                        </button>
+                        <button type="button" id="railParamsBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"></circle><path d="M4.5 7.5h3v3h-3zM16.5 7.5h3v3h-3zM4.5 16.5h3v3h-3zM16.5 16.5h3v3h-3z"></path></svg>
+                            <span class="sidebar-collapse-hide">Paramètres de l'agent</span>
+                        </button>
+                        <button type="button" id="railMascotBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"></circle><path d="M7 20a5 5 0 0 1 10 0"></path><path d="M4 4l3 3M20 4l-3 3"></path></svg>
+                            <span class="sidebar-collapse-hide">Créer/Changer Mascot</span>
+                        </button>
+                    </nav>
+                    <div class="border-b border-slate-200 my-2"></div>
+                    <div class="px-3 py-2 sidebar-collapse-hide">
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-[0.35em] mb-3 shrink-0">Récents</div>
+                        <div id="sessionsList" class="space-y-1">
+                            <div class="text-center py-8 text-slate-400 text-xs">Chargement...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-slate-200 mt-auto"></div>
+                <div class="p-3">
+                    <div class="chat-sidebar-card flex items-center gap-3 hover:bg-slate-50 p-2 cursor-pointer transition-all duration-300 border border-transparent hover:border-slate-200">
+                        <div id="railUserInitial" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg font-bold">U</div>
+                        <div class="sidebar-collapse-hide">
+                            <div class="text-[0.95rem] tracking-tight font-medium text-slate-800 truncate">Profil</div>
+                            <div class="text-[0.75rem] text-slate-500 truncate">Voxeleon</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <div class="floating-ball ball-1"></div>
+            <div class="floating-ball ball-2"></div>
+            <div class="flex-1 min-w-0 page-panel relative z-10">
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between text-xs text-slate-500 uppercase tracking-[0.4em]">
+                        <span id="wizardStepLabel">Étape 1 sur 4</span>
+                        <span id="wizardStatus" class="text-[0.7rem] text-emerald-500 font-semibold"></span>
+                    </div>
+
+                    <form id="agentWizardForm" class="space-y-6">
+                        <!-- ÉTAPE 1 : IDENTITÉ -->
+                        <div id="step1" class="space-y-4">
+                            <div>
+                                <label id="labelAgentName" class="text-sm font-semibold text-slate-700">Nom de l'expert</label>
+                                <input type="text" id="agentName" required
+                                    class="w-full mt-2 px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label id="labelAgentEmoji" class="text-sm font-semibold text-slate-700">Emoji</label>
+                                    <input list="emojiSuggestions" type="text" id="agentEmoji" maxlength="2"
+                                        class="w-full mt-2 px-4 py-3 border border-slate-200 rounded-2xl text-center text-2xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm">
+                                    <datalist id="emojiSuggestions">
+                                        <option value="🧠">
+                                        <option value="🤖">
+                                        <option value="📊">
+                                        <option value="💊">
+                                        <option value="💡">
+                                        <option value="🧬">
+                                        <option value="🚀">
+                                    </datalist>
+                                    <div class="mt-2 flex flex-wrap gap-2 text-sm">
+                                        <button type="button" class="suggestion-chip" data-emoji="🧠">🧠</button>
+                                        <button type="button" class="suggestion-chip" data-emoji="🤖">🤖</button>
+                                        <button type="button" class="suggestion-chip" data-emoji="📊">📊</button>
+                                        <button type="button" class="suggestion-chip" data-emoji="💊">💊</button>
+                                        <button type="button" class="suggestion-chip" data-emoji="💡">💡</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label id="labelAgentCategory" class="text-sm font-semibold text-slate-700">Catégorie</label>
+                                    <input type="text" id="agentCategory"
+                                        class="w-full mt-2 px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm"
+                                        placeholder="Ex : Logistique">
+                                </div>
+                            </div>
+                            <div>
+                                <label id="labelAgentPrompt" class="text-sm font-semibold text-slate-700">Prompt système</label>
+                                <textarea id="agentPrompt" required rows="4"
+                                    class="w-full mt-2 px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm resize-none"></textarea>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="button" onclick="nextStep()"
+                                    class="wizard-next px-6 py-2 rounded-full bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition">
+                                    Suivant
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ÉTAPE 2 : ALIMENTATION (DOCS & DB) -->
+                        <div id="step2" class="space-y-6 hidden">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <div id="ragHeading" class="text-sm font-semibold text-slate-700">Documents RAG (PDF, Docx...)</div>
+                                    <span data-i18n="optionalLabel" class="text-xs text-slate-500">Optionnel</span>
+                                </div>
+                                <label
+                                    class="block border border-dashed border-slate-200 rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-500 cursor-pointer hover:border-emerald-300 transition">
+                                    <input type="file" id="ragFiles" class="hidden" multiple accept=".pdf,.docx,.doc,.txt,.md">
+                                    <span id="ragDropHint">Cliquez ou déposez vos fichiers PDF, DOCX...</span>
+                                </label>
+                                <div id="ragFileList" class="text-xs text-slate-500 space-y-1 min-h-[40px]"></div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <div id="dbHeading" class="text-sm font-semibold text-slate-700">Base de données Excel (BD)</div>
+                                    <span data-i18n="optionalLabel" class="text-xs text-slate-500">Optionnel</span>
+                                </div>
+                                <label
+                                    class="block border border-dashed border-slate-200 rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-500 cursor-pointer hover:border-emerald-300 transition">
+                                    <input type="file" id="dbFiles" class="hidden" multiple accept=".xlsx,.xls">
+                                    <span id="dbDropHint">Cliquez ou déposez vos fichiers Excel (BD)</span>
+                                </label>
+                                <div id="dbFileList" class="text-xs text-slate-500 space-y-1 min-h-[40px]"></div>
+                            </div>
+                            <div class="flex justify-between">
+                                <button type="button" onclick="prevStep()"
+                                    class="wizard-prev px-6 py-2 rounded-full border border-slate-200 text-sm text-slate-600 hover:border-slate-300 transition">
+                                    Retour
+                                </button>
+                                <button type="button" onclick="nextStep()"
+                                    class="wizard-next px-6 py-2 rounded-full bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition">
+                                    Suivant
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ÉTAPE 3 : RÉGLAGES DES RESSOURCES -->
+                        <div id="step3" class="space-y-6 hidden">
+                            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Activation des ressources</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xl">📄</span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-700">Recherche RAG</p>
+                                            <p class="text-[11px] text-slate-500">Utilise les documents uploadés (PDF, etc.)</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="useRag" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xl">📊</span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-700">Base de données SQL</p>
+                                            <p class="text-[11px] text-slate-500">Utilise les fichiers Excel importés</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="useDb" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xl">🌍</span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-700">Connaissance Générale</p>
+                                            <p class="text-[11px] text-slate-500">Utilise les connaissances internes du modèle LLM</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="useKnowledge" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <button type="button" onclick="prevStep()"
+                                    class="wizard-prev px-6 py-2 rounded-full border border-slate-200 text-sm text-slate-600 hover:border-slate-300 transition">
+                                    Retour
+                                </button>
+                                <button type="button" onclick="nextStep()"
+                                    class="wizard-next px-6 py-2 rounded-full bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition">
+                                    Suivant
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ÉTAPE 4 : CLASSEMENT & LOGIQUE -->
+                        <div id="step4" class="space-y-6 hidden">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Classement des ressources</h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-slate-500">Gestion automatique (IA)</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="manualRanking" class="sr-only peer" onchange="toggleManualRanking(this.checked)">
+                                        <div class="w-11 h-6 bg-emerald-500 peer-focus:outline-none rounded-full peer peer-checked:bg-slate-200 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                    </label>
+                                    <span class="text-xs text-slate-500">Classement Manuel</span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-slate-500">L'IA décidera elle-même de la meilleure source si vous laissez le mode automatique activé.</p>
+                            
+                            <div id="rankingListContainer" class="hidden space-y-3">
+                                <p class="text-[11px] font-semibold text-emerald-600 uppercase tracking-tighter">Priorité des ressources (Haut = Prioritaire)</p>
+                                <div id="rankingList" class="space-y-2">
+                                    <div class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-move hover:border-emerald-300 transition" draggable="true" data-source="rag">
+                                        <span class="text-slate-400">☰</span>
+                                        <span class="text-sm font-medium">Recherche RAG</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-move hover:border-emerald-300 transition" draggable="true" data-source="db">
+                                        <span class="text-slate-400">☰</span>
+                                        <span class="text-sm font-medium">Base de données SQL</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-move hover:border-emerald-300 transition" draggable="true" data-source="knowledge">
+                                        <span class="text-slate-400">☰</span>
+                                        <span class="text-sm font-medium">Connaissance Générale</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <button type="button" onclick="prevStep()"
+                                    class="wizard-prev px-6 py-2 rounded-full border border-slate-200 text-sm text-slate-600 hover:border-slate-300 transition">
+                                    Retour
+                                </button>
+                                <button type="button" onclick="nextStep()"
+                                    class="wizard-next px-6 py-2 rounded-full bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition">
+                                    Suivant
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ÉTAPE 5 : MASCOTTE & VALIDATION -->
+                        <div id="step5" class="space-y-6 hidden">
+                            <div class="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-700">Voix ElevenLabs</p>
+                                        <p class="text-[11px] text-slate-500">Choisissez la voix utilisée par cet agent pendant les sessions vocales.</p>
+                                    </div>
+                                    <span id="voiceLoadStatus" class="text-[11px] font-semibold text-slate-400">Chargement...</span>
+                                </div>
+                                <select id="agentVoiceId"
+                                    class="mt-3 w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300">
+                                    <option value="">Voix par défaut du serveur</option>
+                                </select>
+                                <p class="mt-2 text-[11px] text-slate-400">Si aucune voix n’est choisie, le serveur utilisera <code>ELEVENLABS_VOICE_ID</code>.</p>
+                            </div>
+
+                            <div class="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xl">🎨</span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-700">Créer la mascotte visuelle</p>
+                                            <p class="text-[11px] text-slate-500">OpenAI : feuille unique (lip-sync stable, grille configurable via <code class="text-[10px] bg-slate-100 px-1 rounded">MASCOT_GRID_COLS</code>/<code class="text-[10px] bg-slate-100 px-1 rounded">MASCOT_GRID_ROWS</code>) — défaut 8×8 = 64 visèmes ; feuille en 1 appel : <code class="text-[10px] bg-slate-100 px-1 rounded">MASCOT_MONOLITH_SHEET=1</code></p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="generateMascot" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" id="generateMascotCandidatesBtn" onclick="generateMascotCandidatesUi()"
+                                        class="px-4 py-2 rounded-full bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-400 transition">
+                                        Générer 3 propositions
+                                    </button>
+                                    <button type="button" id="previewMascotBtn" onclick="generateMascotPreview()"
+                                        class="ml-2 px-4 py-2 rounded-full border border-emerald-300 text-emerald-700 text-xs font-semibold hover:bg-emerald-50 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Générer la mascotte 8×8 depuis ce portrait
+                                    </button>
+                                    <span id="mascotStateText" class="ml-3 text-xs text-slate-500">Aucune mascotte détectée.</span>
+                                </div>
+                                <div id="mascotCandidatesBlock" class="hidden mt-4 p-3 rounded-2xl border border-emerald-100 bg-emerald-50/40">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p class="text-xs font-bold text-emerald-950">Choisissez la tête de la mascotte</p>
+                                            <p class="text-[11px] text-slate-500">On génère d’abord 3 portraits neutres. Cliquez sur celui que vous voulez utiliser comme référence pour les 64 visèmes.</p>
+                                        </div>
+                                        <span id="mascotCandidateStatus" class="text-[11px] font-semibold text-emerald-700"></span>
+                                    </div>
+                                    <div id="mascotCandidatesGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3"></div>
+                                </div>
+                                <div id="existingMascotCard" class="hidden mt-3 p-3 border border-slate-200 rounded-xl bg-slate-50">
+                                    <p class="text-xs font-semibold text-slate-600 mb-2">Mascotte actuelle</p>
+                                    <img id="existingMascotImage" src="" alt="Mascotte actuelle" class="w-28 h-28 object-cover rounded-lg border border-slate-200 bg-white" />
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" id="saveMascotBtn" onclick="saveGeneratedMascot()"
+                                        class="hidden px-4 py-2 rounded-full bg-[#023b2b] text-white text-xs font-bold shadow hover:bg-black transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Enregistrer la mascot
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="mascotSummaryBlock">
+                                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mt-6">Résumé final</h3>
+                                <div id="mascotFinalSummaryCard" class="mt-3 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-slate-500">Expert :</span>
+                                        <span id="finalName" class="font-bold text-emerald-950">—</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-slate-500">Docs / BD :</span>
+                                        <span id="finalFiles" class="font-medium text-slate-700">0 / 0</span>
+                                    </div>
+                                    <div id="wizardFeedback" class="text-sm min-h-[1.25rem] pt-2"></div>
+                                </div>
+                                <div id="mascotProgressContainer" class="hidden mt-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span class="font-bold text-slate-700">Génération des images...</span>
+                                        <span id="mascotProgressText" class="text-emerald-600 font-semibold">0%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 mb-4 overflow-hidden">
+                                        <div id="mascotProgressBar" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                    <div id="mascotImagesGrid" class="grid grid-cols-5 items-start gap-3 sm:gap-4 mt-4 w-full max-w-3xl mx-auto">
+                                        <!-- Images will be injected here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <button type="button" onclick="prevStep()"
+                                    class="wizard-prev px-6 py-2 rounded-full border border-slate-200 text-sm text-slate-600 hover:border-slate-300 transition">
+                                    Retour
+                                </button>
+                                <button type="button" id="wizardSubmitBtn" onclick="submitWizard()"
+                                    class="px-8 py-2 rounded-full bg-[#023b2b] text-white text-sm font-bold shadow-xl shadow-emerald-900/20 hover:bg-black transition">
+                                    Créer l'Expert
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id');
+        const sessionParam = String(urlParams.get('session') || '').trim();
+        const pageMode = String(urlParams.get('mode') || '').trim().toLowerCase();
+        const isMascotOnlyMode = pageMode === 'mascot';
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        if (user) {
+            document.title = (editId ? 'Modifier un agent' : 'Ajouter un agent') + ' — Voxeleon';
+        }
+
+        const ragFiles = [];
+        const dbFiles = [];
+        const maxStep = 5;
+        let currentStep = 1;
+        let mascotPreviewAlreadyGenerated = false;
+        let existingMascotUrl = null;
+        let mascotDirty = false;
+        let mascotPreviewNonce = Date.now();
+        let elevenLabsVoicesLoaded = false;
+        let mascotCandidateContext = {
+            avatarId: null,
+            previewId: null,
+            candidates: [],
+            selectedIndex: null,
+            mode: null,
+        };
+        const SITE_LANG_KEY = 'site_lang';
+        const agentTranslations = {
+            FR: {
+                backButton: '← Retour au dashboard',
+                backToDiscussion: '← Retour à la discussion',
+                pageLabel: 'Nouvel agent',
+                stepTemplate: 'Étape {current} sur {total}',
+                nameLabel: "Nom de l'expert",
+                emojiLabel: 'Emoji',
+                categoryLabel: 'Catégorie',
+                categoryPlaceholder: 'Ex : Logistique',
+                promptLabel: 'Prompt système',
+                ragHeading: 'Documents RAG (PDF, Docx...)',
+                dbHeading: 'Base de données Excel (BD)',
+                optionalLabel: 'Optionnel',
+                ragDropHint: 'Cliquez ou déposez vos fichiers PDF, DOCX...',
+                dbDropHint: 'Cliquez ou déposez vos fichiers Excel (BD)',
+                emptyFiles: 'Aucun fichier sélectionné.',
+                summaryTitle: 'Résumé du profil',
+                nextButton: 'Suivant',
+                prevButton: 'Retour',
+                submitButton: "Créer l'Expert"
+            },
+            EN: {
+                backButton: '← Back to dashboard',
+                backToDiscussion: '← Back to conversation',
+                pageLabel: 'New agent',
+                stepTemplate: 'Step {current} of {total}',
+                nameLabel: "Agent's name",
+                emojiLabel: 'Emoji',
+                categoryLabel: 'Category',
+                categoryPlaceholder: 'Ex: Logistics',
+                promptLabel: 'System prompt',
+                ragHeading: 'RAG Documents (PDF, Docx...)',
+                dbHeading: 'Excel Database (DB)',
+                optionalLabel: 'Optional',
+                ragDropHint: 'Click or drop your PDF, DOCX files...',
+                dbDropHint: 'Click or drop your Excel files (DB)',
+                emptyFiles: 'No files selected.',
+                summaryTitle: 'Profile summary',
+                nextButton: 'Next',
+                prevButton: 'Back',
+                submitButton: 'Create Expert'
+            },
+            DE: {
+                backButton: '← Zurück zum Dashboard',
+                backToDiscussion: '← Zurück zum Gespräch',
+                pageLabel: 'Neuer Agent',
+                stepTemplate: 'Schritt {current} von {total}',
+                nameLabel: 'Name des Experten',
+                emojiLabel: 'Emoji',
+                categoryLabel: 'Kategorie',
+                categoryPlaceholder: 'z. B. Logistik',
+                promptLabel: 'Systemprompt',
+                ragHeading: 'RAG-Dokumente (PDF, Docx...)',
+                dbHeading: 'Excel-Datenbank (BD)',
+                optionalLabel: 'Optional',
+                ragDropHint: 'Klicken oder ziehen Sie Ihre PDF-, DOCX-Dateien...',
+                dbDropHint: 'Klicken oder ziehen Sie Ihre Excel-Dateien (BD)...',
+                emptyFiles: 'Keine Dateien ausgewählt.',
+                summaryTitle: 'Profilzusammenfassungen',
+                nextButton: 'Weiter',
+                prevButton: 'Zurück',
+                submitButton: 'Experten erstellen'
+            },
+            IT: {
+                backButton: '← Torna alla dashboard',
+                backToDiscussion: '← Torna alla conversazione',
+                pageLabel: 'Nuovo agente',
+                stepTemplate: 'Passo {current} di {total}',
+                nameLabel: "Nome dell'esperto",
+                emojiLabel: 'Emoji',
+                categoryLabel: 'Categoria',
+                categoryPlaceholder: 'Es: Logistica',
+                promptLabel: 'Prompt di sistema',
+                ragHeading: 'Documenti RAG (PDF, Docx...)',
+                dbHeading: 'Database Excel (BD)',
+                optionalLabel: 'Facoltativo',
+                ragDropHint: 'Clicca o trascina i tuoi file PDF, DOCX...',
+                dbDropHint: 'Clicca o trascina i tuoi file Excel (BD)...',
+                emptyFiles: 'Nessun file selezionato.',
+                summaryTitle: 'Riepilogo profilo',
+                nextButton: 'Avanti',
+                prevButton: 'Indietro',
+                submitButton: 'Crea esperto'
+            },
+            ES: {
+                backButton: '← Volver al panel',
+                backToDiscussion: '← Volver a la conversación',
+                pageLabel: 'Nuevo agente',
+                stepTemplate: 'Paso {current} de {total}',
+                nameLabel: 'Nombre del experto',
+                emojiLabel: 'Emoji',
+                categoryLabel: 'Categoría',
+                categoryPlaceholder: 'Ej: Logística',
+                promptLabel: 'Prompt del sistema',
+                ragHeading: 'Documentos RAG (PDF, Docx...)',
+                dbHeading: 'Base de datos Excel (BD)',
+                optionalLabel: 'Opcional',
+                ragDropHint: 'Haz clic o arrastra tus archivos PDF, DOCX...',
+                dbDropHint: 'Haz clic o arrastra tus archivos Excel (BD)...',
+                emptyFiles: 'Ningún archivo seleccionado.',
+                summaryTitle: 'Resumen del perfil',
+                nextButton: 'Siguiente',
+                prevButton: 'Atrás',
+                submitButton: 'Crear experto'
+            },
+            JP: {
+                backButton: '← ダッシュボードに戻る',
+                backToDiscussion: '← 会話に戻る',
+                pageLabel: '新しいエージェント',
+                stepTemplate: 'ステップ {current}/{total}',
+                nameLabel: 'エキスパート名',
+                emojiLabel: '絵文字',
+                categoryLabel: 'カテゴリ',
+                categoryPlaceholder: '例：ロジスティクス',
+                promptLabel: 'システムプロンプト',
+                ragHeading: 'RAGドキュメント (PDF, Docx...)',
+                dbHeading: 'Excelデータベース (BD)',
+                optionalLabel: '任意',
+                ragDropHint: 'PDF、DOCXファイルをクリックまたは追加する...',
+                dbDropHint: 'Excelファイル（BD）をクリックまたは追加する...',
+                emptyFiles: 'ファイルが選択されていません。',
+                summaryTitle: 'プロフィール概要',
+                nextButton: '次へ',
+                prevButton: '戻る',
+                submitButton: 'エキスパートを作成'
+            }
+        };
+        let currentLang = localStorage.getItem(SITE_LANG_KEY) || 'FR';
+        const SITE_THEME_KEY = 'site_theme';
+        let currentTheme = localStorage.getItem(SITE_THEME_KEY) || 'dark';
+        const translateAgent = (key, fallback = '') => agentTranslations[currentLang]?.[key] || fallback;
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        async function loadElevenLabsVoices(selectedVoiceId = '') {
+            const select = document.getElementById('agentVoiceId');
+            const status = document.getElementById('voiceLoadStatus');
+            if (!select || !status) return;
+
+            const currentValue = String(selectedVoiceId || select.value || '').trim();
+            status.textContent = 'Chargement...';
+            select.disabled = true;
+
+            try {
+                const res = await fetchWithToken('/api/tts/voices');
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Voix indisponibles');
+
+                const voices = Array.isArray(data.voices) ? data.voices : [];
+                const options = voices.map((voice) => {
+                    const id = String(voice.voice_id || '').trim();
+                    if (!id) return '';
+                    const labelBits = [
+                        voice.name || id,
+                        voice.labels?.accent,
+                        voice.labels?.gender,
+                        voice.category,
+                    ].filter(Boolean);
+                    return `<option value="${escapeHtml(id)}">${escapeHtml(labelBits.join(' · '))}</option>`;
+                }).join('');
+
+                select.innerHTML = '<option value="">Voix par défaut du serveur</option>' + options;
+                select.value = currentValue;
+                select.disabled = false;
+                status.textContent = voices.length ? `${voices.length} voix` : 'Aucune voix';
+                status.className = 'text-[11px] font-semibold text-emerald-600';
+                elevenLabsVoicesLoaded = true;
+            } catch (err) {
+                select.innerHTML = '<option value="">Voix par défaut du serveur</option>';
+                select.value = currentValue;
+                select.disabled = true;
+                status.textContent = err.message || 'Non configuré';
+                status.className = 'text-[11px] font-semibold text-amber-600';
+                elevenLabsVoicesLoaded = false;
+            }
+        }
+
+        const refreshThemeLabel = () => {
+            const btn = document.getElementById('themeToggleBtn');
+            if (!btn) return;
+            btn.textContent = currentTheme === 'dark' ? 'Mode clair' : 'Mode sombre';
+        };
+
+        const applyTheme = (theme) => {
+            currentTheme = theme === 'dark' ? 'dark' : 'light';
+            document.body.classList.toggle('dark-theme', currentTheme === 'dark');
+            localStorage.setItem(SITE_THEME_KEY, currentTheme);
+            refreshThemeLabel();
+        };
+
+        function toggleTheme() {
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }
+
+        const updateStepLabel = () => {
+            const template = translateAgent('stepTemplate', 'Étape {current} sur {total}');
+            document.getElementById('wizardStepLabel').textContent = template.replace('{current}', currentStep).replace('{total}', maxStep);
+        };
+
+        const enableSinglePageEditMode = () => {
+            for (let i = 1; i <= maxStep; i++) {
+                const stepEl = document.getElementById('step' + i);
+                if (stepEl) stepEl.classList.remove('hidden');
+            }
+
+            const wizardHeader = document.getElementById('wizardStepLabel')?.closest('.flex.items-center.justify-between');
+            if (wizardHeader) wizardHeader.classList.add('hidden');
+
+            document.querySelectorAll('.wizard-next, .wizard-prev').forEach((btn) => {
+                btn.classList.add('hidden');
+            });
+
+            const submitBtn = document.getElementById('wizardSubmitBtn');
+            if (submitBtn) submitBtn.textContent = 'Enregistrer';
+
+            updateFinalSummary();
+        };
+
+        const enableMascotOnlyMode = () => {
+            for (let i = 1; i <= maxStep; i++) {
+                const stepEl = document.getElementById('step' + i);
+                if (stepEl) stepEl.classList.toggle('hidden', i !== 5);
+            }
+            const wizardHeader = document.getElementById('wizardStepLabel')?.closest('.flex.items-center.justify-between');
+            if (wizardHeader) wizardHeader.classList.add('hidden');
+            document.querySelectorAll('.wizard-next, .wizard-prev').forEach((btn) => {
+                btn.classList.add('hidden');
+            });
+            const submitBtn = document.getElementById('wizardSubmitBtn');
+            if (submitBtn) submitBtn.classList.add('hidden');
+            const mascotToggle = document.getElementById('generateMascot')?.closest('label');
+            if (mascotToggle) mascotToggle.classList.add('hidden');
+        };
+
+        const refreshMascotUi = () => {
+            const card = document.getElementById('existingMascotCard');
+            const img = document.getElementById('existingMascotImage');
+            const text = document.getElementById('mascotStateText');
+            const btn = document.getElementById('previewMascotBtn');
+            const saveBtn = document.getElementById('saveMascotBtn');
+            const hasMascot = Boolean(existingMascotUrl);
+            if (card) card.classList.toggle('hidden', !hasMascot);
+            if (img && hasMascot) {
+                const sep = String(existingMascotUrl).includes('?') ? '&' : '?';
+                img.src = `${existingMascotUrl}${sep}_ts=${mascotPreviewNonce}`;
+            }
+            if (text) text.textContent = hasMascot ? 'Mascotte existante détectée.' : 'Aucune mascotte détectée.';
+            if (btn && isMascotOnlyMode && editId) {
+                btn.textContent = hasMascot ? 'Changer la mascot' : 'Créer la mascot';
+            }
+            if (btn) {
+                btn.disabled = !mascotCandidateContext.selectedIndex;
+            }
+            if (saveBtn) {
+                const showSave = Boolean(isMascotOnlyMode && editId);
+                saveBtn.classList.toggle('hidden', !showSave);
+                saveBtn.disabled = !mascotDirty;
+            }
+        };
+
+        /**
+         * Construit un libellé "AxB (génération unique → N poses)" à partir du spriteSheet du manifest,
+         * avec valeurs par défaut alignées sur la grille serveur courante (MASCOT_GRID_COLS/ROWS, défaut 7×7).
+         */
+        function mascotGridLabel(spriteSheet, fallbackImagesLength) {
+            const cols = Number(spriteSheet?.cols) || 7;
+            const rows = Number(spriteSheet?.rows) || 7;
+            const frames =
+                Number(spriteSheet?.frameCount) ||
+                Number(fallbackImagesLength) ||
+                cols * rows;
+            return { cols, rows, frames, text: `${cols}×${rows} (génération unique → ${frames} poses)` };
+        }
+
+        /**
+         * Affiche la feuille sprite (une seule image source) quand disponible ; sinon la grille des poses découpées.
+         * La grille s'adapte automatiquement aux dimensions retournées par le serveur (7×7 par défaut).
+         */
+        function renderMascotSummarySpriteGrid(imagesGrid, data, tsGrid = Date.now()) {
+            if (!imagesGrid) return;
+            const imageList = Array.isArray(data?.images) ? data.images : [];
+            const spriteRaw = data?.spriteSheet?.url ? String(data.spriteSheet.url) : '';
+            const spriteUrl = spriteRaw
+                ? `${spriteRaw}${spriteRaw.includes('?') ? '&' : '?'}_ts=${tsGrid}`
+                : '';
+
+            if (spriteUrl) {
+                const meta = mascotGridLabel(data?.spriteSheet, imageList.length);
+                imagesGrid.innerHTML = `
+                    <div class="col-span-5 rounded-xl bg-white border border-slate-200 p-3 sm:p-4 shadow-sm">
+                        <p class="text-xs font-semibold text-emerald-800 mb-2 text-center">Sprite sheet ${meta.text}</p>
+                        <div class="rounded-lg overflow-hidden mx-auto flex justify-center bg-slate-50 p-1">
+                            <img src="${spriteUrl}" alt="Feuille sprite mascotte ${meta.cols}×${meta.rows}" class="w-full max-h-[min(72vh,560px)] object-contain" decoding="async" />
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            if (!imageList.length) return;
+            imagesGrid.innerHTML = imageList
+                .slice()
+                .sort((a, b) => Number(a?.index || 0) - Number(b?.index || 0))
+                .map((entry) => {
+                    const u = String(entry.url || '');
+                    const src = u ? `${u}${u.includes('?') ? '&' : '?'}_ts=${tsGrid}` : '';
+                    return `
+                        <div class="mascot-pose-cell aspect-square rounded-lg overflow-hidden border border-slate-100">
+                            <img src="${src}" alt="${entry.label || 'Mascotte'}" decoding="async" fetchpriority="low" />
+                        </div>`;
+                })
+                .join('');
+        }
+
+        async function loadExistingMascotGallery(avatarId) {
+            const imagesGrid = document.getElementById('mascotImagesGrid');
+            const progressContainer = document.getElementById('mascotProgressContainer');
+            const progressBar = document.getElementById('mascotProgressBar');
+            const progressText = document.getElementById('mascotProgressText');
+            if (!imagesGrid) return;
+
+            const safeAvatarId = Number(avatarId);
+            if (!Number.isFinite(safeAvatarId) || safeAvatarId <= 0) return;
+
+            try {
+                const res = await fetch(`/assets/avatars/generated/avatar-${safeAvatarId}/manifest.json?_ts=${Date.now()}`);
+                if (!res.ok) return;
+                const manifest = await res.json();
+                const images = Array.isArray(manifest?.images) ? manifest.images : [];
+                if (!images.length && !manifest?.spriteSheet?.url) return;
+
+                const ts = Date.now();
+                renderMascotSummarySpriteGrid(imagesGrid, { images, spriteSheet: manifest.spriteSheet });
+
+                if (progressContainer) progressContainer.classList.remove('hidden');
+                if (progressBar) progressBar.style.width = '100%';
+                if (progressText) {
+                    if (manifest?.spriteSheet?.url) {
+                        const meta = mascotGridLabel(manifest.spriteSheet, images.length);
+                        progressText.textContent = `Feuille ${meta.cols}×${meta.rows} + ${meta.frames} poses prêtes`;
+                    } else {
+                        progressText.textContent = `${images.length} pose(s) chargée(s)`;
+                    }
+                }
+            } catch (_) {
+                // no-op: keep current fallback single image
+            }
+        }
+
+        function saveGeneratedMascot() {
+            if (!isMascotOnlyMode || !editId) return;
+            if (!mascotDirty) {
+                setFeedback('ℹ️ Aucune nouvelle mascot à enregistrer.', 'warning');
+                return;
+            }
+            // Mascot is already persisted server-side during generation; this button validates the change in UI flow.
+            mascotDirty = false;
+            refreshMascotUi();
+            setFeedback('✅ Nouvelle mascot enregistrée.', 'success');
+        }
+
+        const applyAgentLanguage = (lang) => {
+            const translation = agentTranslations[lang] || agentTranslations.FR;
+            currentLang = lang;
+            localStorage.setItem(SITE_LANG_KEY, lang);
+            document.getElementById('selectedLang').textContent = lang;
+            document.getElementById('backButton').textContent = sessionParam
+                ? (translation.backToDiscussion || translation.backButton)
+                : translation.backButton;
+            document.getElementById('agentPageLabel').textContent = translation.pageLabel;
+            document.getElementById('labelAgentName').textContent = translation.nameLabel;
+            document.getElementById('labelAgentEmoji').textContent = translation.emojiLabel;
+            document.getElementById('labelAgentCategory').textContent = translation.categoryLabel;
+            document.getElementById('labelAgentPrompt').textContent = translation.promptLabel;
+            document.getElementById('agentCategory').placeholder = translation.categoryPlaceholder;
+            document.getElementById('ragHeading').textContent = translation.ragHeading;
+            document.getElementById('dbHeading').textContent = translation.dbHeading;
+            document.querySelectorAll('[data-i18n=\"optionalLabel\"]').forEach(el => {
+                el.textContent = translation.optionalLabel;
+            });
+            document.getElementById('ragDropHint').textContent = translation.ragDropHint;
+            document.getElementById('dbDropHint').textContent = translation.dbDropHint;
+            document.querySelectorAll('.wizard-next').forEach(btn => {
+                btn.textContent = translation.nextButton;
+            });
+            document.querySelectorAll('.wizard-prev').forEach(btn => {
+                btn.textContent = translation.prevButton;
+            });
+            document.getElementById('wizardSubmitBtn').textContent = translation.submitButton;
+            updateStepLabel();
+        };
+
+        const showStep = (step) => {
+            currentStep = Math.min(maxStep, Math.max(1, step));
+            for (let i = 1; i <= maxStep; i++) {
+                const el = document.getElementById('step' + i);
+                if (el) el.classList.toggle('hidden', currentStep !== i);
+            }
+            if (currentStep === 4) {
+                updateFinalSummary();
+            }
+            updateStepLabel();
+        };
+
+        const nextStep = () => {
+            if (currentStep === 1) {
+                const form = document.getElementById('agentWizardForm');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+            }
+            showStep(currentStep + 1);
+        };
+
+        const prevStep = () => {
+            showStep(currentStep - 1);
+        };
+
+        const renderFileList = (containerId, files) => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (!files.length) {
+                container.innerHTML = `<p class="text-xs text-slate-400">${translateAgent('emptyFiles', 'Aucun fichier sélectionné.')}</p>`;
+                return;
+            }
+            container.innerHTML = files.map(f => `<p class="truncate font-medium text-emerald-800">✅ ${f.name}</p>`).join('');
+        };
+
+        const handleFileInput = (fileList, targetArray, containerId) => {
+            const files = Array.from(fileList || []);
+            targetArray.length = 0;
+            targetArray.push(...files);
+            renderFileList(containerId, targetArray);
+        };
+
+        document.getElementById('ragFiles').addEventListener('change', function () {
+            handleFileInput(this.files, ragFiles, 'ragFileList');
+        });
+
+        document.getElementById('dbFiles').addEventListener('change', function () {
+            handleFileInput(this.files, dbFiles, 'dbFileList');
+            if (dbFiles.length > 0) {
+                const useDbToggle = document.getElementById('useDb');
+                if (useDbToggle && !useDbToggle.checked) {
+                    useDbToggle.checked = true;
+                    setFeedback('✅ Base de données SQL activée automatiquement (fichiers Excel détectés).', 'success');
+                }
+                syncRankingListWithActiveResources();
+            }
+            updateFinalSummary();
+        });
+
+        function toggleManualRanking(isManual) {
+            document.getElementById('rankingListContainer').classList.toggle('hidden', !isManual);
+            if (isManual) syncRankingListWithActiveResources();
+        }
+
+        function getResourceToggleMap() {
+            return {
+                rag: document.getElementById('useRag'),
+                db: document.getElementById('useDb'),
+                knowledge: document.getElementById('useKnowledge'),
+            };
+        }
+
+        function isResourceActive(source) {
+            const toggle = getResourceToggleMap()[source];
+            return Boolean(toggle?.checked);
+        }
+
+        function syncRankingListWithActiveResources() {
+            const list = document.getElementById('rankingList');
+            if (!list) return;
+
+            [...list.querySelectorAll('[data-source]')].forEach((el) => {
+                const source = el.dataset.source;
+                const active = isResourceActive(source);
+                const wasHidden = el.classList.contains('hidden');
+                el.classList.toggle('hidden', !active);
+                el.setAttribute('draggable', active ? 'true' : 'false');
+                el.setAttribute('aria-disabled', active ? 'false' : 'true');
+                if (active && wasHidden) {
+                    // Ressource réactivée : on l'ajoute en bas sans casser le classement existant.
+                    list.appendChild(el);
+                }
+            });
+        }
+
+        function getActiveResourceRankingOrder() {
+            syncRankingListWithActiveResources();
+            return [...document.querySelectorAll('#rankingList [data-source]')]
+                .filter((el) => !el.classList.contains('hidden') && isResourceActive(el.dataset.source))
+                .map((el) => el.dataset.source)
+                .join(',');
+        }
+
+        ['useRag', 'useDb', 'useKnowledge'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('change', function () {
+                if (id === 'useDb' && dbFiles.length > 0 && !this.checked) {
+                    this.checked = true;
+                    setFeedback('✅ Base de données SQL reste active car des fichiers Excel sont importés.', 'success');
+                }
+                syncRankingListWithActiveResources();
+            });
+        });
+
+        // Drag & Drop pour le classement
+        const rankingList = document.getElementById('rankingList');
+        let dragElem = null;
+
+        rankingList.addEventListener('dragstart', (e) => {
+            const item = e.target.closest('[data-source]');
+            if (!item || item.classList.contains('hidden') || item.getAttribute('draggable') === 'false') return;
+            dragElem = item;
+            item.classList.add('opacity-50');
+        });
+
+        rankingList.addEventListener('dragend', (e) => {
+            const item = e.target.closest('[data-source]') || dragElem;
+            if (item) item.classList.remove('opacity-50');
+            dragElem = null;
+        });
+
+        rankingList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!dragElem) return;
+            const afterElement = getDragAfterElement(rankingList, e.clientY);
+            if (afterElement == null) {
+                rankingList.appendChild(dragElem);
+            } else {
+                rankingList.insertBefore(dragElem, afterElement);
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('[draggable=\"true\"]:not(.opacity-50):not(.hidden)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        const updateFinalSummary = () => {
+            document.getElementById('finalName').textContent = document.getElementById('agentName').value || '—';
+            document.getElementById('finalFiles').textContent = `${ragFiles.length} docs / ${dbFiles.length} BD`;
+        };
+
+        const fetchWithToken = async (url, options = {}) => {
+            const headers = { Authorization: 'Bearer ' + token, ...options.headers };
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401 || res.status === 403) {
+                console.error('Session expirée ou accès refusé');
+                localStorage.clear();
+                navigateInApp('login.html');
+            }
+            return res;
+        };
+
+        function toAppRoute(target) {
+            const value = String(target || '').trim();
+            if (!value) return '/';
+            if (value.startsWith('/')) return value;
+            const [pathWithHash, query = ''] = value.split('?');
+            const [path, hash = ''] = pathWithHash.split('#');
+            const mappedPath = path.endsWith('.html') ? `/${path.slice(0, -5)}` : `/${path}`;
+            const queryPart = query ? `?${query}` : '';
+            const hashPart = hash ? `#${hash}` : '';
+            return `${mappedPath}${queryPart}${hashPart}`;
+        }
+
+        function navigateInApp(target) {
+            const route = toAppRoute(target);
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = route;
+            } catch (_) {
+                window.location.href = target;
+            }
+        }
+
+        window.navigateInApp = navigateInApp;
+
+        const logout = () => {
+            localStorage.clear();
+            navigateInApp('login.html');
+        };
+
+        const goBack = () => {
+            if (sessionParam) {
+                const q = new URLSearchParams();
+                q.set('session', sessionParam);
+                if (editId) q.set('avatar_id', String(editId));
+                navigateInApp(`session.html?${q.toString()}`);
+                return;
+            }
+            navigateInApp('dashboard.html');
+        };
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function summarizeSessionTitle(rawTitle) {
+            const normalized = String(rawTitle || '').replace(/\s+/g, ' ').trim();
+            if (!normalized) return '';
+            if (normalized.length <= 72) return normalized;
+            return `${normalized.slice(0, 69).trim()}...`;
+        }
+
+        function getSessionDisplayTitle(session) {
+            const userFirstMessage = summarizeSessionTitle(session?.session_title);
+            if (userFirstMessage) return userFirstMessage;
+            return session?.persona || session?.nom_avatar || session?.medicament_nom || 'Discussion';
+        }
+
+        function formatSessionDate(dateValue) {
+            if (!dateValue) return 'Date inconnue';
+            const parsed = new Date(dateValue);
+            if (Number.isNaN(parsed.getTime())) return 'Date inconnue';
+            return parsed.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function renderSidebarSessions(sessions) {
+            const list = document.getElementById('sessionsList');
+            if (!list) return;
+            if (!Array.isArray(sessions) || !sessions.length) {
+                list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Aucune discussion.</div>';
+                return;
+            }
+            list.innerHTML = sessions.map((session) => {
+                const idStr = session?.id != null ? String(session.id).trim() : '';
+                const safeId = idStr ? encodeURIComponent(idStr) : '';
+                const title = escapeHtml(getSessionDisplayTitle(session));
+                const dateLabel = escapeHtml(formatSessionDate(session?.date_debut || session?.created_at));
+                return `
+                    <button type="button" class="sidebar-session-item" ${safeId ? `onclick="window.navigateInApp('session.html?session=${safeId}')"` : 'disabled'}>
+                        <div class="min-w-0 flex-1 text-left">
+                            <div class="session-title truncate">${title}</div>
+                            <div class="session-meta truncate">${dateLabel}</div>
+                        </div>
+                        <span class="session-chevron" aria-hidden="true">&rsaquo;</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        async function loadSidebarSessions() {
+            const list = document.getElementById('sessionsList');
+            if (!list) return;
+            list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Chargement...</div>';
+            try {
+                const params = new URLSearchParams();
+                if (editId) params.set('avatar_id', String(editId));
+                const q = params.toString();
+                const res = await fetchWithToken('/api/sessions' + (q ? '?' + q : ''));
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const payload = await res.json();
+                const sessions = Array.isArray(payload) ? payload : [];
+                renderSidebarSessions(sessions.slice(0, 8));
+            } catch (_) {
+                list.innerHTML = '<div class="text-center py-8 text-red-400 text-xs">Erreur de chargement.</div>';
+            }
+        }
+
+        function goToSessionWithAction(action) {
+            const params = new URLSearchParams();
+            if (sessionParam) params.set('session', sessionParam);
+            if (editId) params.set('avatar_id', String(editId));
+            if (action) params.set('sidebar_action', action);
+            const qs = params.toString();
+            navigateInApp(`session.html${qs ? '?' + qs : ''}`);
+        }
+
+        function setupSidebarNavigation() {
+            const topNav = document.getElementById('topNav');
+            const sidebar = document.getElementById('chatSidebar');
+            const htmlEl = document.documentElement;
+            if (!editId) {
+                document.body.classList.remove('agent-edit-mode');
+                document.body.classList.remove('mascot-sidebar-locked');
+                if (htmlEl) htmlEl.style.zoom = '0.8';
+                if (sidebar) {
+                    sidebar.classList.add('hidden');
+                    sidebar.style.display = 'none';
+                }
+                if (topNav) topNav.classList.remove('hidden');
+                return;
+            }
+            document.body.classList.add('agent-edit-mode');
+            document.body.classList.toggle('mascot-sidebar-locked', Boolean(isMascotOnlyMode));
+            if (htmlEl) htmlEl.style.zoom = '1';
+            if (topNav) topNav.classList.add('hidden');
+            if (sidebar) {
+                sidebar.classList.remove('hidden');
+                sidebar.style.display = '';
+            }
+
+            const toggleBtn = document.getElementById('chatSidebarToggle');
+            const userInitial = document.getElementById('railUserInitial');
+            if (userInitial) {
+                const first = ((user?.prenom || '').trim()[0] || (user?.nom || '').trim()[0] || (user?.email || 'U')[0] || 'U');
+                userInitial.textContent = String(first).toUpperCase();
+            }
+            if (sidebar && toggleBtn) {
+                // Keep sidebar expanded in edit flows to avoid accidental collapse.
+                sidebar.classList.remove('collapsed');
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (isMascotOnlyMode) return;
+                    sidebar.classList.toggle('collapsed');
+                });
+                if (isMascotOnlyMode) {
+                    toggleBtn.classList.add('opacity-40', 'cursor-not-allowed');
+                    toggleBtn.title = 'Sidebar fixe en mode mascotte';
+                }
+            }
+            loadSidebarSessions();
+
+            const setSidebarActive = (target) => {
+                const map = {
+                    params: document.getElementById('railParamsBtn'),
+                    mascot: document.getElementById('railMascotBtn'),
+                };
+                Object.values(map).forEach((el) => el && el.classList.remove('active'));
+                if (map[target]) map[target].classList.add('active');
+            };
+            setSidebarActive(isMascotOnlyMode ? 'mascot' : 'params');
+
+            document.getElementById('railBackBtn')?.addEventListener('click', () => goBack());
+            document.getElementById('railNewBtn')?.addEventListener('click', () => goToSessionWithAction('new'));
+            document.getElementById('railSearchBtn')?.addEventListener('click', () => goToSessionWithAction('search'));
+            document.getElementById('railDiscussionsBtn')?.addEventListener('click', () => goToSessionWithAction(''));
+            document.getElementById('railFoldersBtn')?.addEventListener('click', () => {
+                const params = new URLSearchParams();
+                if (sessionParam) params.set('session', sessionParam);
+                if (editId) params.set('avatar_id', String(editId));
+                navigateInApp(`agent-knowledge.html${params.toString() ? '?' + params.toString() : ''}`);
+            });
+            document.getElementById('railPersonalizeBtn')?.addEventListener('click', () => {
+                const params = new URLSearchParams();
+                if (sessionParam) params.set('session', sessionParam);
+                if (editId) params.set('avatar_id', String(editId));
+                navigateInApp(`personalize.html${params.toString() ? '?' + params.toString() : ''}`);
+            });
+            document.getElementById('railParamsBtn')?.addEventListener('click', () => {
+                if (!editId) return;
+                const params = new URLSearchParams();
+                params.set('id', String(editId));
+                if (sessionParam) params.set('session', sessionParam);
+                setSidebarActive('params');
+                navigateInApp(`create-agent.html?${params.toString()}`);
+            });
+            document.getElementById('railMascotBtn')?.addEventListener('click', () => {
+                if (!editId) return;
+                const params = new URLSearchParams();
+                params.set('id', String(editId));
+                params.set('mode', 'mascot');
+                if (sessionParam) params.set('session', sessionParam);
+                setSidebarActive('mascot');
+                navigateInApp(`create-agent.html?${params.toString()}#step5`);
+            });
+        }
+
+        const uploadFilesAction = async (files, avatarId, isExcel) => {
+            for (const file of files) {
+                const form = new FormData();
+                form.append('file', file);
+                form.append('avatar_id', avatarId);
+                const url = isExcel ? '/api/admin/excel/upload' : '/api/admin/rag/upload';
+                await fetchWithToken(url, { method: 'POST', body: form });
+            }
+        };
+
+        const setFeedback = (message, tone = 'success') => {
+            const feedback = document.getElementById('wizardFeedback');
+            feedback.textContent = message;
+            const toneClass = tone === 'error'
+                ? 'text-red-600 bg-red-50'
+                : tone === 'warning'
+                    ? 'text-amber-700 bg-amber-50'
+                    : 'text-emerald-600 bg-emerald-50';
+            feedback.className = `text-sm font-bold p-2 rounded-xl ${toneClass}`;
+        };
+
+        function selectedMascotCandidatePayload() {
+            if (!mascotCandidateContext?.selectedIndex) return {};
+            const payload = {
+                selectedCandidateIndex: mascotCandidateContext.selectedIndex,
+                previewCandidateAvatarId: mascotCandidateContext.previewId || null,
+            };
+            if (mascotPreviewAlreadyGenerated && mascotCandidateContext.previewId) {
+                payload.reusePreviewId = mascotCandidateContext.previewId;
+            }
+            return payload;
+        }
+
+        function renderMascotCandidates(candidates = []) {
+            const block = document.getElementById('mascotCandidatesBlock');
+            const grid = document.getElementById('mascotCandidatesGrid');
+            const status = document.getElementById('mascotCandidateStatus');
+            const finalBtn = document.getElementById('previewMascotBtn');
+            if (!block || !grid) return;
+            block.classList.remove('hidden');
+            grid.innerHTML = '';
+            const list = Array.isArray(candidates) ? candidates : [];
+            list.forEach((candidate) => {
+                const idx = Number(candidate.index);
+                const selected = mascotCandidateContext.selectedIndex === idx;
+                const src = candidate.url ? `${candidate.url}${String(candidate.url).includes('?') ? '&' : '?'}_ts=${Date.now()}` : '';
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = [
+                    'rounded-2xl border p-2 bg-white text-left transition shadow-sm',
+                    selected ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200 hover:border-emerald-300'
+                ].join(' ');
+                card.innerHTML = `
+                    <div class="aspect-square rounded-xl overflow-hidden bg-slate-100">
+                        <img src="${src}" alt="${candidate.label || 'Proposition'}" class="w-full h-full object-cover" decoding="async" />
+                    </div>
+                    <div class="mt-2 flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-700">${candidate.label || `Proposition ${idx}`}</span>
+                        <span class="text-[11px] font-semibold ${selected ? 'text-emerald-600' : 'text-slate-400'}">${selected ? 'Choisie' : 'Choisir'}</span>
+                    </div>`;
+                card.addEventListener('click', () => {
+                    mascotCandidateContext.selectedIndex = idx;
+                    renderMascotCandidates(mascotCandidateContext.candidates);
+                });
+                grid.appendChild(card);
+            });
+            if (status) {
+                status.textContent = mascotCandidateContext.selectedIndex
+                    ? `Proposition ${mascotCandidateContext.selectedIndex} sélectionnée`
+                    : 'Sélectionnez un portrait';
+            }
+            if (finalBtn) {
+                finalBtn.disabled = !mascotCandidateContext.selectedIndex;
+            }
+        }
+
+        async function pollMascotCandidateJob({ statusUrl, progressText, progressBar }) {
+            return new Promise((resolve, reject) => {
+                let pollCount = 0;
+                const maxPolls = 180;
+                const interval = setInterval(async () => {
+                    try {
+                        pollCount += 1;
+                        if (pollCount > maxPolls) {
+                            clearInterval(interval);
+                            reject(new Error('Délai dépassé pour les propositions mascotte.'));
+                            return;
+                        }
+                        const res = await fetchWithToken(statusUrl);
+                        const data = await res.json();
+                        if (data.error) {
+                            clearInterval(interval);
+                            reject(new Error(data.error));
+                            return;
+                        }
+                        if (data.not_found) {
+                            clearInterval(interval);
+                            reject(new Error('Statut propositions perdu. Relancez la génération.'));
+                            return;
+                        }
+                        const total = Number(data.total) || 3;
+                        const idx = Number(data.index) || 0;
+                        if (data.generating) {
+                            if (progressBar) progressBar.style.width = `${Math.max(0, Math.min(100, Math.round((idx / total) * 100)))}%`;
+                            if (progressText) progressText.textContent = `Génération des 3 portraits : ${data.label || '...'} (${idx}/${total})`;
+                        }
+                        if (Array.isArray(data.candidates) && data.candidates.length) {
+                            mascotCandidateContext.candidates = data.candidates;
+                            renderMascotCandidates(data.candidates);
+                        }
+                        if (data.done) {
+                            clearInterval(interval);
+                            if (progressBar) progressBar.style.width = '100%';
+                            if (progressText) progressText.textContent = '3 portraits prêts';
+                            mascotCandidateContext.candidates = data.candidates || [];
+                            mascotCandidateContext.selectedIndex = mascotCandidateContext.candidates[0]?.index || null;
+                            renderMascotCandidates(mascotCandidateContext.candidates);
+                            resolve(data);
+                        }
+                    } catch (_) {
+                        // keep polling on transient errors
+                    }
+                }, 1200);
+            });
+        }
+
+        async function generateMascotCandidatesUi() {
+            const btn = document.getElementById('generateMascotCandidatesBtn');
+            const progressContainer = document.getElementById('mascotProgressContainer');
+            const progressBar = document.getElementById('mascotProgressBar');
+            const progressText = document.getElementById('mascotProgressText');
+            const finalBtn = document.getElementById('previewMascotBtn');
+            if (!btn || !progressContainer || !progressBar || !progressText) return;
+
+            btn.disabled = true;
+            if (finalBtn) finalBtn.disabled = true;
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Préparation des 3 portraits...';
+            mascotCandidateContext = { avatarId: editId || null, previewId: null, candidates: [], selectedIndex: null, mode: editId ? 'avatar' : 'preview' };
+            renderMascotCandidates([]);
+
+            try {
+                let startUrl;
+                let statusUrl;
+                let body = null;
+                if (editId) {
+                    startUrl = `/api/admin/avatars/${encodeURIComponent(String(editId))}/mascot/candidates?async=1`;
+                    statusUrl = `/api/admin/avatars/${encodeURIComponent(String(editId))}/mascot/candidates/status`;
+                } else {
+                    startUrl = '/api/admin/mascot/preview/candidates';
+                    body = {
+                        nom_avatar: document.getElementById('agentName').value || 'Nouvel Expert',
+                        icone: document.getElementById('agentEmoji').value || '🤖',
+                    };
+                }
+                const startRes = await fetchWithToken(startUrl, {
+                    method: 'POST',
+                    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                    body: body ? JSON.stringify(body) : undefined,
+                });
+                const startData = await startRes.json().catch(() => ({}));
+                if (!startRes.ok) throw new Error(startData?.error || 'Impossible de lancer les propositions.');
+                if (!editId) {
+                    mascotCandidateContext.previewId = startData.preview_id;
+                    statusUrl = `/api/admin/mascot/preview/candidates/${encodeURIComponent(String(startData.preview_id))}/status`;
+                }
+                await pollMascotCandidateJob({ statusUrl, progressText, progressBar });
+                setFeedback('Choisissez un portrait, puis lancez la génération 8×8.', 'success');
+            } catch (err) {
+                setFeedback(`Erreur propositions mascotte: ${err.message}`, 'warning');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Regénérer 3 propositions';
+            }
+        }
+
+        async function generateMascotPreview() {
+            if (editId && isMascotOnlyMode) {
+                await generateMascotForAvatar(editId);
+                return;
+            }
+            if (!mascotCandidateContext.selectedIndex) {
+                setFeedback('Générez d’abord 3 propositions puis choisissez un portrait.', 'warning');
+                await generateMascotCandidatesUi();
+                return;
+            }
+            const btn = document.getElementById('previewMascotBtn');
+            const progressContainer = document.getElementById('mascotProgressContainer');
+            const progressBar = document.getElementById('mascotProgressBar');
+            const progressText = document.getElementById('mascotProgressText');
+            const imagesGrid = document.getElementById('mascotImagesGrid');
+            if (!btn || !progressContainer || !progressBar || !progressText || !imagesGrid) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Génération en cours...';
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Initialisation...';
+            imagesGrid.innerHTML = '';
+            for (let i = 1; i <= 64; i += 1) {
+                const slot = document.createElement('div');
+                slot.className = 'mascot-pose-cell aspect-square rounded-lg overflow-hidden relative';
+                slot.setAttribute('data-index', String(i));
+                slot.innerHTML = `<div class="absolute inset-0 bg-gradient-to-br from-pink-100 via-sky-100 to-violet-100 animate-pulse"></div><div class="absolute bottom-0 inset-x-0 bg-white/95 text-slate-500 text-[10px] text-center py-0.5 font-medium">Pose ${i}</div>`;
+                imagesGrid.appendChild(slot);
+            }
+
+            try {
+                const startRes = await fetchWithToken('/api/admin/mascot/preview/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nom_avatar: document.getElementById('agentName').value || 'Nouvel Expert',
+                        icone: document.getElementById('agentEmoji').value || '🤖',
+                        preview_id: mascotCandidateContext.previewId,
+                        selectedCandidateIndex: mascotCandidateContext.selectedIndex,
+                    })
+                });
+                const startData = await startRes.json();
+                if (!startRes.ok || !startData?.preview_id) throw new Error(startData?.error || 'Impossible de lancer la preview.');
+                const previewId = startData.preview_id;
+
+                await new Promise((resolve, reject) => {
+                    const interval = setInterval(async () => {
+                        try {
+                            const statusRes = await fetchWithToken(`/api/admin/mascot/preview/${previewId}/status`);
+                            const data = await statusRes.json();
+                            if (data.error) {
+                                clearInterval(interval);
+                                reject(new Error(data.error));
+                                return;
+                            }
+                            if (data.generating) {
+                                const fallbackTotal = 64;
+                                const totalCells = Number(data.total) || fallbackTotal;
+                                const pct = Math.round(((Number(data.index) || 0) / totalCells) * 100);
+                                progressBar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+                                progressText.textContent = `Génération de la feuille mascotte : ${data.label || '…'} (${data.index || 0}/${totalCells})…`;
+                            }
+                            if (data.done) {
+                                progressBar.style.width = '100%';
+                                progressText.textContent = '100% complété';
+                                clearInterval(interval);
+                                if (data.warning) {
+                                    setFeedback(`⚠️ ${data.warning}`, 'warning');
+                                }
+                                renderMascotSummarySpriteGrid(imagesGrid, data);
+                                resolve();
+                            }
+                        } catch (e) {
+                            // keep polling on transient errors
+                        }
+                    }, 1200);
+                });
+                setFeedback('🎨 Aperçu mascotte généré. Vous pouvez maintenant créer l’expert.', 'success');
+                mascotPreviewAlreadyGenerated = true;
+            } catch (err) {
+                setFeedback(`⚠️ Erreur aperçu mascotte: ${err.message}`, 'warning');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Créer mascotte (aperçu)';
+            }
+        }
+
+        async function generateMascotForAvatar(avatarId) {
+            if (!mascotCandidateContext.selectedIndex || String(mascotCandidateContext.avatarId || '') !== String(avatarId)) {
+                setFeedback('Générez d’abord 3 propositions puis choisissez un portrait.', 'warning');
+                await generateMascotCandidatesUi();
+                return;
+            }
+            const btn = document.getElementById('previewMascotBtn');
+            const progressContainer = document.getElementById('mascotProgressContainer');
+            const progressBar = document.getElementById('mascotProgressBar');
+            const progressText = document.getElementById('mascotProgressText');
+            const imagesGrid = document.getElementById('mascotImagesGrid');
+            if (!btn || !progressContainer || !progressBar || !progressText || !imagesGrid) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Génération en cours...';
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Initialisation...';
+            imagesGrid.innerHTML = '';
+
+            try {
+                const mascotRes = await fetchWithToken(`/api/admin/avatars/${encodeURIComponent(String(avatarId))}/mascot/generate?async=1`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(selectedMascotCandidatePayload()),
+                });
+                if (!mascotRes.ok) {
+                    const errPayload = await mascotRes.json().catch(() => ({}));
+                    throw new Error(errPayload?.error || 'Impossible de lancer la génération.');
+                }
+
+                await new Promise((resolve, reject) => {
+                    let pollCount = 0;
+                    const maxPolls = 900;
+                    const interval = setInterval(async () => {
+                        try {
+                            pollCount += 1;
+                            if (pollCount > maxPolls) {
+                                clearInterval(interval);
+                                progressText.textContent = 'Délai dépassé';
+                                reject(new Error('Délai dépassé pour la génération. Vérifiez les clés API et les quotas, puis réessayez.'));
+                                return;
+                            }
+                            const statusRes = await fetchWithToken(`/api/admin/avatars/${encodeURIComponent(String(avatarId))}/mascot/status`);
+                            if (!statusRes.ok) throw new Error('Erreur statut mascotte');
+                            const data = await statusRes.json();
+                            if (data.error) {
+                                clearInterval(interval);
+                                progressText.textContent = 'Erreur: ' + data.error;
+                                progressBar.style.width = '0%';
+                                reject(new Error(data.error));
+                                return;
+                            }
+                            if (data.not_found) {
+                                clearInterval(interval);
+                                const msg = 'Statut de génération perdu. Relancez la génération.';
+                                progressText.textContent = msg;
+                                reject(new Error(msg));
+                                return;
+                            }
+                            if (data.generating) {
+                                const fallbackTotal = 64;
+                                const totalCells = Number(data.total) || fallbackTotal;
+                                const pct = Math.round(((Number(data.index) || 0) / totalCells) * 100);
+                                progressBar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+                                progressText.textContent = `Génération de la feuille mascotte: ${data.label || '...'} (${data.index || 0}/${totalCells})`;
+                            }
+                            if (data.done) {
+                                clearInterval(interval);
+                                progressBar.style.width = '100%';
+                                progressText.textContent = '100% complété';
+                                if (Array.isArray(data.images) && data.images.length) {
+                                    existingMascotUrl = data.images[0].url;
+                                    mascotPreviewNonce = Date.now();
+                                    mascotDirty = true;
+                                    refreshMascotUi();
+                                }
+                                resolve();
+                            }
+                        } catch (_) {
+                            // ignore transient polling errors
+                        }
+                    }, 1400);
+                });
+
+                setFeedback('✅ Mascotte générée avec succès.', 'success');
+            } catch (err) {
+                setFeedback(`⚠️ Erreur mascotte: ${err.message}`, 'warning');
+            } finally {
+                btn.disabled = false;
+                refreshMascotUi();
+            }
+        }
+
+        const submitWizard = async () => {
+            const form = document.getElementById('agentWizardForm');
+            if (form && !form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const finishBtn = document.getElementById('wizardSubmitBtn');
+            finishBtn.disabled = true;
+            finishBtn.textContent = 'Enregistrement...';
+            setFeedback(editId ? '⌛ Mise à jour de l\'expert...' : '⌛ Création de l\'expert...', 'success');
+
+            const resourceRankingOrder = getActiveResourceRankingOrder();
+
+            const payload = {
+                nom_avatar: document.getElementById('agentName').value,
+                prompt_systeme: document.getElementById('agentPrompt').value,
+                icone: document.getElementById('agentEmoji').value || '🤖',
+                use_rag: document.getElementById('useRag').checked ? 1 : 0,
+                // Si un Excel est uploadé, on active toujours SQL côté agent.
+                use_db: (document.getElementById('useDb').checked || dbFiles.length > 0) ? 1 : 0,
+                use_knowledge: document.getElementById('useKnowledge').checked ? 1 : 0,
+                manual_ranking: document.getElementById('manualRanking').checked ? 1 : 0,
+                resource_ranking: resourceRankingOrder,
+                vocal_id: String(document.getElementById('agentVoiceId')?.value || '').trim() || null
+            };
+
+            try {
+                const method = editId ? 'PUT' : 'POST';
+                const url = editId ? `/api/admin/avatars/${editId}` : '/api/admin/avatars';
+                let finalTone = 'success';
+                let finalMessage = editId ? '✨ Expert mis à jour avec succès !' : '✨ Expert crée avec succès ! Redirection...';
+                
+                const res = await fetchWithToken(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(editId ? 'Impossible de mettre à jour l\'expert' : 'Impossible de créer l\'expert');
+                const data = await res.json();
+                const avatarId = editId || data.id || data.avatar?.id;
+                
+                if (ragFiles.length > 0) {
+                    setFeedback('📤 Upload des documents RAG...', 'success');
+                    await uploadFilesAction(ragFiles, avatarId, false);
+                }
+                if (dbFiles.length > 0) {
+                    setFeedback('📤 Import de la base Excel...', 'success');
+                    await uploadFilesAction(dbFiles, avatarId, true);
+                }
+
+                const shouldGenerateMascotOnSubmit = !editId
+                    && document.getElementById('generateMascot').checked
+                    && Boolean(mascotCandidateContext.selectedIndex);
+
+                if (!editId && document.getElementById('generateMascot').checked && !mascotCandidateContext.selectedIndex) {
+                    finalTone = 'warning';
+                    finalMessage = 'Expert créé, mais mascotte non générée : choisissez d’abord un des 3 portraits.';
+                }
+
+                if (shouldGenerateMascotOnSubmit) {
+                    setFeedback('🎨 Génération de la mascotte (feuille unique, grille 8×8 = 64 visèmes par défaut)...', 'success');
+                    try {
+                        const progressContainer = document.getElementById('mascotProgressContainer');
+                        const progressBar = document.getElementById('mascotProgressBar');
+                        const progressText = document.getElementById('mascotProgressText');
+                        const imagesGrid = document.getElementById('mascotImagesGrid');
+                        
+                        progressContainer.classList.remove('hidden');
+                        progressBar.style.width = '0%';
+                        progressText.textContent = 'Initialisation...';
+                        imagesGrid.innerHTML = '';
+
+                        const renderMascotPlaceholders = (total = 10) => {
+                            imagesGrid.innerHTML = '';
+                            for (let i = 1; i <= total; i += 1) {
+                                const slot = document.createElement('div');
+                                slot.className = 'mascot-pose-cell aspect-square rounded-lg overflow-hidden relative';
+                                slot.setAttribute('data-index', String(i));
+                                slot.innerHTML = `
+                                    <div class="absolute inset-0 bg-gradient-to-br from-pink-100 via-sky-100 to-violet-100 animate-pulse"></div>
+                                    <div class="absolute bottom-0 inset-x-0 bg-white/95 text-slate-500 text-[10px] text-center py-0.5 font-medium">Pose ${i}</div>
+                                `;
+                                imagesGrid.appendChild(slot);
+                            }
+                        };
+
+                        renderMascotPlaceholders(64);
+
+                        // Launch in async mode
+                        const mascotRes = await fetchWithToken(`/api/admin/avatars/${avatarId}/mascot/generate?async=1`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(selectedMascotCandidatePayload()),
+                        });
+
+                        if (!mascotRes.ok) {
+                            let mascotError = 'Impossible de lancer la génération.';
+                            try {
+                                const errPayload = await mascotRes.json();
+                                mascotError = errPayload?.error || mascotError;
+                            } catch (_) { }
+                            throw new Error(mascotError);
+                        }
+
+                        // Polling function
+                        const pollProgress = () => {
+                            return new Promise((resolve, reject) => {
+                                let pollCount = 0;
+                                const maxPolls = 900;
+                                const interval = setInterval(async () => {
+                                    try {
+                                        pollCount += 1;
+                                        if (pollCount > maxPolls) {
+                                            clearInterval(interval);
+                                            reject(new Error('Délai dépassé pour la mascotte. Vérifiez OPENAI_API_KEY / OPENROUTER_API_KEY, les quotas API, puis réessayez.'));
+                                            return;
+                                        }
+                                        const statusRes = await fetchWithToken(`/api/admin/avatars/${avatarId}/mascot/status`);
+                                        if (!statusRes.ok) throw new Error("Erreur réseau HTTP " + statusRes.status);
+                                        const text = await statusRes.text();
+                                        if (!text) throw new Error("Réponse vide");
+                                        let data;
+                                        try {
+                                            data = JSON.parse(text);
+                                        } catch (parseErr) {
+                                            console.warn("Invalid JSON received from status endpoint. First 100 chars:", text.substring(0, 100));
+                                            throw new Error("Format de réponse invalide");
+                                        }
+                                        
+                                        if (data.error) {
+                                            clearInterval(interval);
+                                            reject(new Error(data.error));
+                                            return;
+                                        }
+
+                                        if (data.not_found) {
+                                            clearInterval(interval);
+                                            reject(new Error('Statut de génération perdu (serveur redémarré ou session expirée). Relancez la génération.'));
+                                            return;
+                                        }
+                                        
+                                        if (data.done) {
+                                            clearInterval(interval);
+                                            progressBar.style.width = '100%';
+                                            progressText.textContent = '100% complété';
+                                            renderMascotSummarySpriteGrid(imagesGrid, data);
+                                            const successCount =
+                                                data.videos?.length ||
+                                                data.images?.length ||
+                                                Number(data.spriteSheet?.frameCount) ||
+                                                64;
+                                            setFeedback(`🎬 Mascotte créée avec ${successCount} situations.`, 'success');
+                                            resolve();
+                                            return;
+                                        }
+
+                                        const currentIndex = Number(data.index) || 0;
+                                        const fallbackTotal = 64;
+                                        const totalCells = Number(data.total) || fallbackTotal;
+                                        if (data.generating) {
+                                            progressText.textContent = `Génération de la feuille mascotte: ${data.label || '…'} (${data.index || 0}/${totalCells})…`;
+                                        }
+
+                                        const pct = Math.round((currentIndex / totalCells) * 100);
+                                        progressBar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+                                    } catch (err) {
+                                        console.warn("Erreur de polling, nouvelle tentative...", err);
+                                    }
+                                }, 1500); // Check every 1.5 seconds
+                            });
+                        };
+
+                        await pollProgress();
+                        
+                    } catch (mascotErr) {
+                        console.error('Mascot generation failed:', mascotErr);
+                        finalTone = 'warning';
+                        finalMessage = `⚠️ Expert créé, mais mascotte non générée: ${mascotErr.message}`;
+                    }
+                }
+
+                setFeedback(finalMessage, finalTone);
+                
+                // Allow some time for the user to see the images before redirecting
+                if (shouldGenerateMascotOnSubmit && finalTone !== 'warning') {
+                    setTimeout(() => goBack(), 5000);
+                } else if (finalTone !== 'warning') {
+                    setTimeout(() => goBack(), 2500);
+                }
+            } catch (err) {
+                console.error(err);
+                setFeedback('❌ Erreur : ' + (err.message || 'Impossible d\'enregistrer'), 'error');
+                finishBtn.disabled = false;
+                finishBtn.textContent = editId ? "Enregistrer" : "Créer l'Expert";
+            }
+        };
+
+        async function loadEditData() {
+            if (!editId) return;
+            try {
+                document.getElementById('agentPageLabel').textContent = 'Modifier l\'agent';
+                document.getElementById('wizardSubmitBtn').textContent = 'Enregistrer';
+                
+                const res = await fetchWithToken(`/api/admin/avatars`, { headers: { Authorization: 'Bearer ' + token } });
+                const experts = await res.json();
+                const expert = experts.find(e => String(e.id) === String(editId));
+                
+                if (expert) {
+                    document.getElementById('agentName').value = expert.nom_avatar;
+                    document.getElementById('agentEmoji').value = expert.icone || '🤖';
+                    document.getElementById('agentCategory').value = expert.categorie || '';
+                    document.getElementById('agentPrompt').value = expert.prompt_systeme;
+                    document.getElementById('useRag').checked = expert.use_rag === 1;
+                    document.getElementById('useDb').checked = expert.use_db === 1;
+                    document.getElementById('useKnowledge').checked = expert.use_knowledge === 1;
+                    document.getElementById('manualRanking').checked = expert.manual_ranking === 1;
+                    toggleManualRanking(expert.manual_ranking === 1);
+                    await loadElevenLabsVoices(expert.vocal_id || '');
+                    
+                    if (expert.resource_ranking) {
+                        const order = expert.resource_ranking.split(',');
+                        const list = document.getElementById('rankingList');
+                        order.forEach(source => {
+                            const el = list.querySelector(`[data-source="${source}"]`);
+                            if (el) list.appendChild(el);
+                        });
+                    }
+                    syncRankingListWithActiveResources();
+                    existingMascotUrl = expert.image_url ? String(expert.image_url).trim() : null;
+                    mascotPreviewNonce = Date.now();
+                    mascotDirty = false;
+                    refreshMascotUi();
+                    if (isMascotOnlyMode) {
+                        loadExistingMascotGallery(editId);
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading edit data:', err);
+            }
+        }
+
+        loadEditData();
+        if (!editId) {
+            loadElevenLabsVoices();
+        }
+
+        if (editId && isMascotOnlyMode) {
+            enableMascotOnlyMode();
+        } else if (editId) {
+            enableSinglePageEditMode();
+        } else {
+            showStep(1);
+        }
+        setupSidebarNavigation();
+
+        document.querySelectorAll('.suggestion-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('agentEmoji').value = btn.dataset.emoji;
+            });
+        });
+
+        function toggleLanguageMenu() {
+            document.getElementById('languageMenu').classList.toggle('hidden');
+        }
+
+        document.getElementById('languageMenu').addEventListener('click', (e) => {
+            const item = e.target.closest('li[data-lang]');
+            if (!item) return;
+            const code = item.dataset.lang;
+            toggleLanguageMenu();
+            applyAgentLanguage(code);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!document.getElementById('languagePicker').contains(event.target)) {
+                document.getElementById('languageMenu').classList.add('hidden');
+            }
+        });
+
+        applyAgentLanguage(currentLang);
+        // En mode édition (clic "Paramètres de l'agent"), on force le libellé.
+        // Sinon applyAgentLanguage() remettra le texte de création ("Créer ...").
+        if (editId) {
+            const btn = document.getElementById('wizardSubmitBtn');
+            if (btn) btn.textContent = 'Enregistrer';
+        }
+        refreshMascotUi();
+        applyTheme(currentTheme);
+    </script>
+    <script src="theme-toggle.js"></script>
+</body>
+
+</html>

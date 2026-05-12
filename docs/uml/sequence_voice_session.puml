@@ -1,0 +1,66 @@
+@startuml
+autonumber
+actor Delegue
+participant "Frontend Web\n(session.html)" as UI
+participant "SessionController" as SessionCtrl
+participant "SessionService" as SessionSvc
+database "SessionRepository\n(SESSIONS_ASSISTANCE)" as SessionRepo
+participant "SttController" as SttCtrl
+participant "OpenAISttAdapter\n(ISttProvider)" as SttProvider
+participant "ChatController" as ChatCtrl
+participant "ChatService" as ChatSvc
+database "MessageAssistanceRepository\n(MESSAGES)" as MsgRepo
+participant "VectorStoreService" as VectorStore
+participant "OpenAI Chat Model" as OpenAI
+participant "TtsController" as TtsCtrl
+participant "OpenAITtsAdapter\n(ITtsProvider)" as TtsProvider
+
+== Demarrage ==
+Delegue -> UI : Choisir expert et lancer session
+UI -> SessionCtrl : POST /api/sessions
+SessionCtrl -> SessionSvc : createSession(dto)
+SessionSvc -> SessionRepo : getOrCreateAvatarByPersona()
+SessionSvc -> SessionRepo : create(session)
+SessionRepo --> SessionSvc : sessionId
+SessionSvc --> SessionCtrl : sessionId
+SessionCtrl --> UI : 201 {session_id}
+
+== Capture message ==
+alt Message vocal
+  Delegue -> UI : Envoi audio
+  UI -> SttCtrl : POST /api/stt (audio)
+  SttCtrl -> SttProvider : transcribe(stream, lang)
+  SttProvider --> SttCtrl : texte
+  SttCtrl --> UI : {text}
+else Message texte
+  Delegue -> UI : Saisie texte directe
+end
+
+== Reponse IA stream ==
+UI -> ChatCtrl : POST /api/chat {session_id, message}
+ChatCtrl -> ChatSvc : processMessageStream(dto)
+ChatSvc -> MsgRepo : saveMessage(utilisateur)
+ChatSvc -> SessionRepo : findById(sessionId)
+opt Ressource RAG active
+  ChatSvc -> VectorStore : search(question, avatarId)
+  VectorStore --> ChatSvc : documents
+end
+ChatSvc -> OpenAI : stream(prompt + history)
+loop Tokens SSE
+  OpenAI --> ChatSvc : token
+  ChatSvc --> ChatCtrl : chunk
+  ChatCtrl --> UI : data:{token}
+end
+ChatSvc -> MsgRepo : saveMessage(assistant)
+ChatCtrl --> UI : data:[DONE]
+
+== Synthese vocale ==
+UI -> TtsCtrl : GET /api/tts?text=...
+TtsCtrl -> TtsProvider : streamSpeech(text, lang)
+loop Chunks audio
+  TtsProvider --> TtsCtrl : mp3 chunk
+  TtsCtrl --> UI : audio/mpeg chunk
+end
+UI --> Delegue : Lecture vocale de la reponse
+@enduml
+

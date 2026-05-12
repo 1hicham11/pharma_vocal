@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démo — feuille sprite 7×7 (lip-sync)</title>
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --frame-scale: min(72vmin, 420px);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(ellipse 80% 60% at 50% 45%, #151520 0%, var(--bg) 72%);
+            color: #c8c8d0;
+            font-family: system-ui, Segoe UI, sans-serif;
+            overflow: hidden;
+        }
+        .stage { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        #sprite-animation {
+            width: var(--natural-frame-w, 250px);
+            height: var(--natural-frame-h, 250px);
+            max-width: var(--frame-scale);
+            max-height: var(--frame-scale);
+            background-repeat: no-repeat;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .hint { font-size: 0.8rem; opacity: 0.55; letter-spacing: 0.02em; max-width: 36rem; text-align: center; line-height: 1.45; }
+        code { font-size: 0.75em; }
+    </style>
+</head>
+<body>
+    <div class="stage">
+        <div id="sprite-animation" role="img" aria-label="Mascotte animée"></div>
+        <p class="hint">
+            Même logique que <code>session.html</code> pour une mascotte générée : grille <strong>5×5</strong> (25 cases), ordre ligne par ligne.
+            URL feuille : paramètre <code>?url=</code> vers <code>sprite-sheet.png</code> du manifest.
+            API JS : <code>setMascotFrame(0–24)</code> pour tests lip-sync.
+        </p>
+    </div>
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const SPRITE_URL = params.get('url') || '/assets/avatars/generated/avatar-1/sprite-sheet.png';
+            const COLS = 7;
+            const ROWS = 7;
+            const TOTAL_FRAMES = COLS * ROWS;
+            const DEMO_FPS = 12;
+
+            const el = document.getElementById('sprite-animation');
+            el.style.backgroundImage = 'url("' + SPRITE_URL.replace(/"/g, '\\"') + '")';
+
+            let sheetW = 0;
+            let sheetH = 0;
+            let frameW = 0;
+            let frameH = 0;
+            let currentFrame = 0;
+            let demoTimer = null;
+
+            function applyBackgroundPosition(frameIndex) {
+                const row = Math.floor(frameIndex / COLS);
+                const col = frameIndex % COLS;
+                const posX = -(col * frameW);
+                const posY = -(row * frameH);
+                el.style.backgroundPosition = posX + 'px ' + posY + 'px';
+            }
+
+            function syncViewportToFrameSize() {
+                el.style.width = frameW + 'px';
+                el.style.height = frameH + 'px';
+                el.style.setProperty('--natural-frame-w', frameW + 'px');
+                el.style.setProperty('--natural-frame-h', frameH + 'px');
+                el.style.backgroundSize = sheetW + 'px ' + sheetH + 'px';
+            }
+
+            window.setMascotFrame = function (index) {
+                const i = Math.max(0, Math.min(TOTAL_FRAMES - 1, index | 0));
+                currentFrame = i;
+                applyBackgroundPosition(i);
+            };
+
+            window.getMascotFrameCount = function () {
+                return TOTAL_FRAMES;
+            };
+
+            function tickDemo() {
+                currentFrame = (currentFrame + 1) % TOTAL_FRAMES;
+                applyBackgroundPosition(currentFrame);
+            }
+
+            const img = new Image();
+            img.onload = function () {
+                sheetW = img.naturalWidth;
+                sheetH = img.naturalHeight;
+                frameW = Math.floor(sheetW / COLS);
+                frameH = Math.floor(sheetH / ROWS);
+                syncViewportToFrameSize();
+                setMascotFrame(0);
+                demoTimer = setInterval(tickDemo, 1000 / DEMO_FPS);
+            };
+            img.onerror = function () {
+                el.style.background = '#222';
+                el.textContent = 'Image introuvable : ' + SPRITE_URL;
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'center';
+                el.style.fontSize = '12px';
+                el.style.padding = '8px';
+            };
+            img.src = SPRITE_URL;
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+@startuml
+hide empty members
+skinparam classAttributeIconSize 0
+
+package "Controllers" {
+  class SessionController {
+    +createSession(req, res)
+    +getSession(req, res)
+    +getSessions(req, res)
+    +getMessages(req, res)
+    +endSession(req, res)
+    +getSessionEvaluation(req, res)
+  }
+
+  class ChatController {
+    +handleChat(req, res)
+  }
+
+  class EvaluateController {
+    +handleEvaluation(req, res)
+  }
+
+  class SttController {
+    +transcribe(req, res)
+  }
+
+  class TtsController {
+    +generateStream(req, res)
+  }
+
+  class AgentController {
+    +initSession(req, res)
+    +getSession(req, res)
+    +sendMessage(req, res)
+    +endSession(req, res)
+  }
+
+  class AdminController {
+    +getDashboardStats(req, res)
+    +getAvatars(req, res)
+    +createAvatar(req, res)
+    +uploadRagDocument(req, res)
+    +uploadExcelFile(req, res)
+  }
+}
+
+package "Services" {
+  class SessionService {
+    +createSession(dto)
+    +getUserSessions(userId, persona)
+    +finishSession(sessionId)
+  }
+
+  class ChatService {
+    +processMessageStream(dto)
+    +getRagContext(question, avatarId)
+  }
+
+  class EvaluateService {
+    +analyzeConversation(sessionId)
+  }
+
+  class AgentInitService {
+    +initSession(params)
+    +resumeSession(sessionId)
+  }
+
+  class AgentOrchestrator {
+    +processMessage(params)
+  }
+
+  class SyntheseService {
+    +clotureSession(params)
+  }
+
+  class AdminService {
+    +getDashboardStats()
+  }
+
+  class DocumentProcessor {
+    +processPDF(filePath, metadata, avatarId)
+  }
+
+  class VectorStoreService {
+    +addDocuments(docs, avatarId)
+    +search(query, k, filter, avatarId)
+    +deleteDocumentsByUuid(uuid, avatarId)
+  }
+
+  class ExcelService {
+    +processExcelFile(filePath, originalFilename, avatarId)
+  }
+}
+
+package "DTO / Interfaces / Factory" {
+  class StartSessionDTO {
+    +delegueId: string
+    +persona: string
+    +medicamentId: number
+  }
+
+  class ChatMessageDTO {
+    +sessionId: string
+    +message: string
+    +audioFile: object
+    +persona: string
+  }
+
+  class LoginDTO {
+    +email: string
+    +password: string
+  }
+
+  abstract class EvaluationStrategy {
+    +calculateScore(data)
+  }
+
+  class IAEvaluationStrategy {
+    +calculateScore(data)
+  }
+
+  abstract class ISttProvider {
+    +transcribe(audioStream, language, originalName)
+  }
+
+  class OpenAISttAdapter {
+    +transcribe(audioStream, language, originalName)
+  }
+
+  abstract class ITtsProvider {
+    +generateSpeech(text, lang)
+    +streamSpeech(text, lang)
+  }
+
+  class OpenAITtsAdapter {
+    +generateSpeech(text, lang)
+    +streamSpeech(text, lang)
+  }
+
+  class AppFactory {
+    +getSttProvider()
+    +getTtsProvider()
+    +getIAStrategy()
+    +buildChatService()
+    +buildEvaluateService()
+  }
+}
+
+package "Repositories" {
+  abstract class BaseRepository {
+    +create(data)
+    +findById(id)
+  }
+
+  class UserRepository {
+    +create(userData)
+    +findByEmail(email)
+  }
+
+  class SessionRepository {
+    +create(data)
+    +findById(id)
+    +findByDelegueId(userId, persona)
+    +getOrCreateAvatarByPersona(personaName)
+    +finalize(id)
+  }
+
+  class AssistanceSessionRepository {
+    +create(data)
+    +findById(sessionId)
+    +findByUserId(userId)
+    +finalize(sessionId)
+  }
+
+  class MessageAssistanceRepository {
+    +saveMessage(data)
+    +getHistory(sessionId)
+    +countBySession(sessionId)
+  }
+
+  class ChatRepository {
+    +create(data)
+    +getHistory(sessionId)
+  }
+
+  class EvaluationRepository {
+    +save(sessionId, result)
+    +findBySessionId(sessionId)
+  }
+
+  class MedicamentRepository {
+    +getAll()
+    +getAllActive()
+    +create(data)
+    +update(id, data)
+  }
+
+  class MedConnuesRepository {
+    +saveLink(sessionId, medicamentId, score)
+  }
+
+  class MedInconnuesRepository {
+    +saveUnknown(sessionId, nomMedicament)
+  }
+
+  class AvatarRepository {
+    +findById(avatarId)
+    +findAll()
+  }
+
+  class RagDocumentRepository {
+    +create(data)
+    +findAll()
+    +findByUuid(uuid)
+    +deleteByUuid(uuid)
+  }
+
+  class RechercheRepository {
+    +saveAction(data)
+    +findBySessionId(sessionId)
+  }
+
+  class SyntheseRepository {
+    +create(data)
+    +findBySessionId(sessionId)
+  }
+}
+
+package "Domain Models" {
+  class Utilisateur {
+    +id: string
+    +nom: string
+    +prenom: string
+    +email: string
+    +role: string
+  }
+
+  class AvatarAssistant {
+    +id: int
+    +nom_avatar: string
+    +prompt_systeme: text
+    +use_rag: bool
+    +use_db: bool
+    +use_knowledge: bool
+  }
+
+  class SessionAssistance {
+    +id: string
+    +user_id: string
+    +avatar_id: int
+    +statut: string
+    +date_debut: datetime
+  }
+
+  class Message {
+    +id: bigint
+    +session_id: string
+    +auteur: enum
+    +transcription_texte: text
+    +date_envoi: datetime
+  }
+
+  class ActionRecherche {
+    +id: bigint
+    +message_id: bigint
+    +requete_rag: text
+    +sources_utilisees: json
+  }
+
+  class SyntheseAssistance {
+    +id: string
+    +session_id: string
+    +resume_intervention: text
+    +succes_aide: bool
+    +donnees_metier_json: json
+  }
+
+  class Medicament {
+    +id: int
+    +nom_commercial: string
+    +dci: string
+    +indication: text
+    +actif: bool
+  }
+
+  class Evaluation {
+    +session_id: string
+    +score_global: number
+    +points_forts: text
+    +points_amelioration: text
+  }
+
+  class RagDocument {
+    +uuid: string
+    +filename: string
+    +chunk_count: int
+    +avatar_id: int
+  }
+}
+
+package "External Systems" {
+  class OpenAIAPI <<external>>
+  class FastAPIAgent <<external>>
+  class MySQL <<database>>
+  class ChromaDB <<database>>
+}
+
+' Controller -> Service
+SessionController --> SessionService
+SessionController ..> EvaluateService : auto eval
+ChatController --> ChatService
+EvaluateController --> EvaluateService
+AgentController --> AgentInitService
+AgentController --> AgentOrchestrator
+AgentController --> SyntheseService
+AdminController --> AdminService
+AdminController ..> SessionRepository
+AdminController ..> RagDocumentRepository
+AdminController ..> DocumentProcessor
+AdminController ..> ExcelService
+AdminController ..> VectorStoreService
+SttController ..> AppFactory
+TtsController ..> AppFactory
+
+' Service -> Repository / Service
+SessionService --> SessionRepository
+SessionService ..> MessageAssistanceRepository
+SessionService ..> EvaluationRepository
+ChatService --> MessageAssistanceRepository
+ChatService --> SessionRepository
+ChatService ..> VectorStoreService
+EvaluateService --> EvaluationStrategy
+EvaluateService --> SessionRepository
+EvaluateService --> ChatRepository
+EvaluateService --> EvaluationRepository
+EvaluateService --> MedicamentRepository
+EvaluateService ..> MedConnuesRepository
+EvaluateService ..> MedInconnuesRepository
+AgentInitService --> AvatarRepository
+AgentInitService --> AssistanceSessionRepository
+AgentOrchestrator --> MessageAssistanceRepository
+AgentOrchestrator --> RechercheRepository
+SyntheseService --> MessageAssistanceRepository
+SyntheseService --> AssistanceSessionRepository
+SyntheseService --> SyntheseRepository
+DocumentProcessor --> VectorStoreService
+
+' Factory / polymorphism
+IAEvaluationStrategy --|> EvaluationStrategy
+OpenAISttAdapter --|> ISttProvider
+OpenAITtsAdapter --|> ITtsProvider
+AppFactory --> ISttProvider
+AppFactory --> ITtsProvider
+AppFactory --> EvaluationStrategy
+
+' Repository inheritance
+UserRepository --|> BaseRepository
+SessionRepository --|> BaseRepository
+AssistanceSessionRepository --|> BaseRepository
+MessageAssistanceRepository --|> BaseRepository
+ChatRepository --|> BaseRepository
+EvaluationRepository --|> BaseRepository
+MedicamentRepository --|> BaseRepository
+MedConnuesRepository --|> BaseRepository
+MedInconnuesRepository --|> BaseRepository
+AvatarRepository --|> BaseRepository
+RagDocumentRepository --|> BaseRepository
+RechercheRepository --|> BaseRepository
+SyntheseRepository --|> BaseRepository
+
+' Repository -> domain model
+UserRepository --> Utilisateur
+SessionRepository --> SessionAssistance
+AssistanceSessionRepository --> SessionAssistance
+AvatarRepository --> AvatarAssistant
+MessageAssistanceRepository --> Message
+EvaluationRepository --> Evaluation
+MedicamentRepository --> Medicament
+RagDocumentRepository --> RagDocument
+RechercheRepository --> ActionRecherche
+SyntheseRepository --> SyntheseAssistance
+
+' Domain relations
+Utilisateur "1" -- "0..*" SessionAssistance
+AvatarAssistant "1" -- "0..*" SessionAssistance
+SessionAssistance "1" -- "0..*" Message
+SessionAssistance "1" -- "0..1" SyntheseAssistance
+SessionAssistance "1" -- "0..1" Evaluation
+Message "1" -- "0..*" ActionRecherche
+SessionAssistance "0..*" -- "0..*" Medicament : medicaments_connues
+
+' External dependencies
+BaseRepository ..> MySQL
+VectorStoreService ..> ChromaDB
+VectorStoreService ..> OpenAIAPI : embeddings
+ChatService ..> OpenAIAPI
+IAEvaluationStrategy ..> OpenAIAPI
+SyntheseService ..> OpenAIAPI
+OpenAISttAdapter ..> OpenAIAPI
+OpenAITtsAdapter ..> OpenAIAPI
+AgentOrchestrator ..> FastAPIAgent
+@enduml
+

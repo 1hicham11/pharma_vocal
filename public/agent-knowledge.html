@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxeleon — Base de Connaissance Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        :root {
+            --session-zoom: 0.8;
+        }
+
+        html {
+            zoom: var(--session-zoom);
+            overflow: hidden;
+        }
+
+        body.h-screen {
+            width: calc(100vw / var(--session-zoom));
+            height: calc(100vh / var(--session-zoom));
+        }
+
+        @supports not (zoom: 1) {
+            body.h-screen {
+                transform: scale(var(--session-zoom));
+                transform-origin: top left;
+                width: calc(100% / var(--session-zoom));
+                height: calc(100% / var(--session-zoom));
+            }
+        }
+
+        .chat-sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            transition: width 0.25s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-sidebar.collapsed { width: 76px !important; }
+        .chat-sidebar-toggle {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--text-tertiary);
+            background: transparent;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .chat-sidebar-toggle:hover {
+            color: var(--text-primary);
+            border-color: var(--border-light);
+            background: var(--bg-tertiary);
+        }
+        .chat-sidebar.collapsed .sidebar-collapse-hide { display: none !important; }
+        .chat-sidebar.collapsed .chat-sidebar-menu-btn { justify-content: center; padding: 8px; }
+        .chat-sidebar-menu-btn {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: left;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .chat-sidebar-menu-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.7;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;
+        }
+        .chat-sidebar-menu-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        .chat-sidebar-menu-btn.active {
+            background: var(--accent-subtle);
+            color: var(--accent-hover);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+        .chat-sidebar-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .sidebar-session-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            min-height: 36px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: transparent;
+            border: 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 600;
+            text-align: left;
+        }
+        .sidebar-session-item:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .sidebar-session-item.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #047857;
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.18);
+        }
+        .sidebar-session-item .session-title {
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+        .sidebar-session-item .session-meta {
+            margin-top: 2px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .sidebar-session-item .session-chevron {
+            color: #cbd5e1;
+            transition: color 0.2s ease;
+        }
+        .sidebar-session-item:hover .session-chevron {
+            color: #94a3b8;
+        }
+        /* AGENT WORKSPACE DARK MODE */
+        body.dark-theme.agent-workspace-page {
+            background:
+                radial-gradient(circle at 18% 12%, rgba(16, 185, 129, 0.12), transparent 30%),
+                linear-gradient(180deg, #08101d 0%, #0b1220 58%, #101827 100%) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page > .flex-1,
+        body.dark-theme.agent-workspace-page main,
+        body.dark-theme.agent-workspace-page .min-h-screen.flex-1,
+        body.dark-theme.agent-workspace-page .flex-1.flex.flex-col {
+            background: transparent !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar {
+            background: #0b1220 !important;
+            border-right-color: #243247 !important;
+            box-shadow: 16px 0 42px rgba(2, 6, 23, 0.45) !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar [class*="border-slate-"] {
+            border-color: #243247 !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn {
+            color: #d5deea !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn:hover,
+        body.dark-theme.agent-workspace-page .chat-sidebar-card:hover,
+        body.dark-theme.agent-workspace-page .sidebar-session-item:hover {
+            background: rgba(148, 163, 184, 0.14) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-menu-btn.active,
+        body.dark-theme.agent-workspace-page .sidebar-session-item.active {
+            background: linear-gradient(135deg, #059669, #10b981) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 14px 30px rgba(16, 185, 129, 0.28) !important;
+        }
+        body.dark-theme.agent-workspace-page .chat-sidebar-card,
+        body.dark-theme.agent-workspace-page .bg-white,
+        body.dark-theme.agent-workspace-page section.bg-white,
+        body.dark-theme.agent-workspace-page #searchModalContent,
+        body.dark-theme.agent-workspace-page #drivePickerContent {
+            background: rgba(15, 23, 42, 0.82) !important;
+            border-color: #334155 !important;
+            box-shadow: 0 18px 42px rgba(2, 6, 23, 0.42) !important;
+        }
+        body.dark-theme.agent-workspace-page .bg-slate-50,
+        body.dark-theme.agent-workspace-page .bg-slate-100 {
+            background: rgba(30, 41, 59, 0.72) !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-900,
+        body.dark-theme.agent-workspace-page .text-slate-800,
+        body.dark-theme.agent-workspace-page h1,
+        body.dark-theme.agent-workspace-page h2,
+        body.dark-theme.agent-workspace-page h3 {
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-700,
+        body.dark-theme.agent-workspace-page .text-slate-600 {
+            color: #d5deea !important;
+        }
+        body.dark-theme.agent-workspace-page .text-slate-500,
+        body.dark-theme.agent-workspace-page .text-slate-400 {
+            color: #9db0c8 !important;
+        }
+        body.dark-theme.agent-workspace-page .border-slate-100,
+        body.dark-theme.agent-workspace-page .border-slate-200,
+        body.dark-theme.agent-workspace-page .border-slate-300 {
+            border-color: #334155 !important;
+        }
+        body.dark-theme.agent-workspace-page input,
+        body.dark-theme.agent-workspace-page select,
+        body.dark-theme.agent-workspace-page textarea {
+            background: rgba(15, 23, 42, 0.68) !important;
+            border-color: #475569 !important;
+            color: #f8fafc !important;
+        }
+        body.dark-theme.agent-workspace-page input::placeholder,
+        body.dark-theme.agent-workspace-page textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+    </style>
+</head>
+<body class="agent-workspace-page dark-theme min-h-screen antialiased selection:bg-emerald-500 selection:text-white h-screen flex flex-col relative w-full overflow-hidden">
+    <div id="searchModal" class="hidden fixed inset-0 z-[260] flex items-start justify-center pt-[12vh] bg-slate-900/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleSearchModal(event)">
+        <div id="searchModalContent" class="bg-white w-full max-w-2xl rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200 overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" onclick="event.stopPropagation()">
+            <div class="flex items-center px-5 py-4 border-b border-slate-100 bg-white">
+                <svg class="w-6 h-6 text-emerald-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35"></path></svg>
+                <input type="text" id="sidebarSearch" class="flex-1 bg-transparent border-0 ring-0 outline-none focus:ring-0 focus:outline-none text-slate-800 text-lg placeholder-slate-400 font-medium w-full" placeholder="Rechercher une discussion..." autocomplete="off">
+                <button type="button" class="text-[0.65rem] font-bold tracking-wider text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-600 px-2 py-1.5 rounded-md ml-3 border border-slate-200 transition-colors" onclick="toggleSearchModal()">ECHAP</button>
+            </div>
+            <div id="modalSearchResults" class="max-h-[50vh] overflow-y-auto custom-scrollbar flex flex-col">
+                <div class="text-center py-12 text-slate-400 text-sm">Tapez pour rechercher...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex overflow-hidden">
+            <aside id="chatSidebar" class="chat-sidebar w-[280px] flex flex-col shrink-0 hidden md:flex shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                        <button type="button" id="railBackBtn" class="flex items-center gap-2 text-slate-900 hover:text-emerald-700 transition-colors tracking-tight">
+                            <img src="assets/branding/voxeleon-logo.png" alt="Voxeleon" class="sidebar-collapse-hide h-8 w-auto object-contain" />
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                id="themeToggleBtn"
+                                class="chat-sidebar-toggle"
+                                aria-label="Basculer le thème"
+                                title="Basculer le thème"
+                            >
+                                <span id="themeToggleIcon"></span>
+                            </button>
+                            <button type="button" id="chatSidebarToggle" class="chat-sidebar-toggle" title="Ouvrir/Fermer le menu">◧</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col pt-2">
+                    <div class="px-3 pb-2">
+                        <button type="button" id="railNewBtn" class="chat-sidebar-menu-btn text-slate-800">
+                            <svg class="group-hover:scale-110 transition-transform" stroke="currentColor" viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Nouvelle conversation</span>
+                        </button>
+                    </div>
+                    <div class="px-3 mb-4">
+                        <button type="button" id="railSearchBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Rechercher</span>
+                        </button>
+                    </div>
+                    <nav class="px-3 mb-4 space-y-1">
+                        <button type="button" id="railPersonalizeBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <rect x="3" y="7" width="18" height="13" rx="2"></rect>
+                                <path d="M8 7V4M16 7V4"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Personnaliser</span>
+                        </button>
+                        <div class="h-px bg-slate-200 my-2 sidebar-collapse-hide"></div>
+                        <button type="button" id="railDiscussionsBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 11.5a8.5 8.5 0 0 1-8.5-8.5c-1.4 0-2.7-.32-3.86-.9L3 20.5l1.43-5.23A8.47 8.47 0 0 1 4 11.5 8.5 8.5 0 0 1 8.5-8.5c1.4 0 2.7.32 3.86.9l7.07 5.23-1.43 5.23z"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Discussions</span>
+                        </button>
+                        <button type="button" id="railFoldersBtn" class="chat-sidebar-menu-btn active">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Base de Connaissance</span>
+                        </button>
+                        <button type="button" id="railNotifBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="2.5"></circle>
+                                <path d="M4.5 7.5h3v3h-3zM16.5 7.5h3v3h-3zM4.5 16.5h3v3h-3zM16.5 16.5h3v3h-3z"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Paramètres de l'agent</span>
+                        </button>
+                        <button type="button" id="railMascotBtn" class="chat-sidebar-menu-btn">
+                            <svg stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="8" r="3"></circle>
+                                <path d="M7 20a5 5 0 0 1 10 0"></path>
+                                <path d="M4 4l3 3M20 4l-3 3"></path>
+                            </svg>
+                            <span class="sidebar-collapse-hide">Créer/Changer Mascot</span>
+                        </button>
+                    </nav>
+                    <div class="border-b border-slate-200 my-2"></div>
+                    <div class="px-3 py-2 sidebar-collapse-hide">
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-[0.35em] mb-3 shrink-0">Récents</div>
+                        <div id="sessionsList" class="space-y-1">
+                            <div class="text-center py-8 text-slate-400 text-xs">Chargement...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-slate-200 mt-auto"></div>
+                <div class="p-3 group relative">
+                    <div class="chat-sidebar-card flex items-center gap-3 p-2">
+                        <div id="railUserInitial" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg font-bold shadow-inner transition-shadow">
+                            U
+                        </div>
+                        <div class="flex-1 min-w-0 sidebar-collapse-hide">
+                            <div id="railUserName" class="text-[0.95rem] tracking-tight font-medium text-slate-800 truncate transition-colors">Profil</div>
+                            <div id="railUserMeta" class="text-[0.75rem] text-slate-500 truncate transition-colors">Voxeleon</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+    
+            <div class="min-h-screen flex-1">
+        <div class="flex-1 flex flex-col" style="overflow-y: auto; min-width: 0;">
+            <header class="dashboard-header px-6 lg:px-10 py-6 flex flex-col gap-4">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="m3 8.5 8.2 6.1a1.4 1.4 0 0 0 1.6 0L21 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div>
+                            <p class="text-[0.65rem] uppercase tracking-[0.5em] font-semibold text-slate-500">Agent</p>
+                            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">Base de Connaissance</h1>
+                            <p id="agentSubtitle" class="text-sm text-slate-500 mt-1">Documents de l'agent courant</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto px-6 lg:px-10 pb-10 space-y-6">
+                <section class="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <h2 class="text-lg font-bold">Documents RAG de cet agent</h2>
+                        <div class="flex items-center gap-2">
+                            <div class="relative">
+                                <button id="addDocumentBtn" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">
+                                    + Ajouter un document
+                                </button>
+                                <div id="addDocumentMenu" class="hidden absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg p-1 z-10">
+                                    <button id="uploadFromMachineBtn" class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-slate-100">
+                                        Depuis la machine
+                                    </button>
+                                    <button id="uploadFromDriveBtn" class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-slate-100">
+                                        Depuis Google Drive
+                                    </button>
+                                </div>
+                            </div>
+                            <span id="docCountBadge" class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">0 document</span>
+                        </div>
+                    </div>
+                    <p id="uploadStatus" class="text-xs font-medium mb-3"></p>
+                    <input type="file" id="machineFileInput" class="hidden" multiple accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls">
+                    <div id="docsList" class="space-y-3">
+                        <p class="text-slate-400 italic">Chargement...</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+            </div>
+    </div>
+
+    <div id="drivePickerModal" class="hidden fixed inset-0 z-[260] flex items-start justify-center pt-[8vh] bg-slate-900/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" onclick="closeDrivePicker(event)">
+        <div id="drivePickerContent" class="bg-white w-full max-w-3xl rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200 overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col max-h-[84vh]" onclick="event.stopPropagation()">
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+                <svg class="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 12H2"/><path d="m15 5 7 7-7 7"/><path d="M9 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/></svg>
+                <h3 class="text-base font-semibold text-slate-900">Importer depuis Google Drive</h3>
+                <button type="button" class="ml-auto text-slate-500 hover:text-slate-800" onclick="closeDrivePicker()">✕</button>
+            </div>
+            <div class="px-5 pt-3 border-b border-slate-100">
+                <div class="flex items-center gap-2 mb-3">
+                    <button type="button" id="driveTabRecent" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white">Récents</button>
+                    <button type="button" id="driveTabMyDrive" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-700">Mon Drive</button>
+                    <button type="button" id="driveUpBtn" class="hidden px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-700">Dossier parent</button>
+                </div>
+                <div id="driveBreadcrumb" class="hidden mb-3 text-xs text-slate-500 flex items-center flex-wrap gap-1"></div>
+                <div class="flex items-center gap-2 pb-3">
+                <input type="search" id="driveSearchInput" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" placeholder="Rechercher un fichier..." />
+                <button type="button" id="driveSearchBtn" class="px-3 py-2 rounded-lg border border-slate-300 text-sm font-semibold">Rechercher</button>
+                </div>
+            </div>
+            <div id="drivePickerStatus" class="px-5 pt-3 text-xs text-slate-500"></div>
+            <div id="driveFilesList" class="p-4 space-y-2 overflow-y-auto custom-scrollbar flex-1">
+                <div class="text-center py-10 text-slate-400 text-sm">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+        const params = new URLSearchParams(window.location.search);
+        const avatarId = String(params.get('avatar_id') || '').trim();
+        const sessionId = String(params.get('session') || '').trim();
+        const addDocumentBtn = document.getElementById('addDocumentBtn');
+        const addDocumentMenu = document.getElementById('addDocumentMenu');
+        const uploadFromMachineBtn = document.getElementById('uploadFromMachineBtn');
+        const uploadFromDriveBtn = document.getElementById('uploadFromDriveBtn');
+        const machineFileInput = document.getElementById('machineFileInput');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const drivePickerModal = document.getElementById('drivePickerModal');
+        const drivePickerContent = document.getElementById('drivePickerContent');
+        const driveFilesList = document.getElementById('driveFilesList');
+        const drivePickerStatus = document.getElementById('drivePickerStatus');
+        const driveSearchInput = document.getElementById('driveSearchInput');
+        const driveSearchBtn = document.getElementById('driveSearchBtn');
+        const driveTabRecent = document.getElementById('driveTabRecent');
+        const driveTabMyDrive = document.getElementById('driveTabMyDrive');
+        const driveUpBtn = document.getElementById('driveUpBtn');
+        const driveBreadcrumb = document.getElementById('driveBreadcrumb');
+        let driveViewMode = 'recent';
+        const drivePath = [{ id: '', name: 'Mon Drive' }];
+
+        function goBackToSessionOrDashboard() {
+            if (sessionId) {
+                const target = `/session?session=${encodeURIComponent(sessionId)}`;
+                try {
+                    const topWindow = window.top || window;
+                    topWindow.location.href = target;
+                } catch (_) {
+                    window.location.href = target;
+                }
+                return;
+            }
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = '/dashboard';
+            } catch (_) {
+                window.location.href = '/dashboard';
+            }
+        }
+
+        const railUserInitial = document.getElementById('railUserInitial');
+        const railUserName = document.getElementById('railUserName');
+        const railUserMeta = document.getElementById('railUserMeta');
+        if (railUserInitial) {
+            const first = ((user?.prenom || '').trim()[0] || (user?.nom || '').trim()[0] || (user?.email || 'U')[0] || 'U');
+            railUserInitial.textContent = String(first).toUpperCase();
+        }
+        if (railUserName) {
+            railUserName.textContent = `${user?.prenom || ''} ${user?.nom || ''}`.trim() || user?.email || 'Profil';
+        }
+        if (railUserMeta) {
+            railUserMeta.textContent = user?.role || user?.email || 'Voxeleon';
+        }
+
+        function goToSessionWithAction(action) {
+            const params = new URLSearchParams();
+            if (sessionId) params.set('session', sessionId);
+            if (avatarId) params.set('avatar_id', avatarId);
+            if (action) params.set('sidebar_action', action);
+            const q = params.toString();
+            const target = `/session${q ? '?' + q : ''}`;
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = target;
+            } catch (_) {
+                window.location.href = target;
+            }
+        }
+
+        document.getElementById('railBackBtn')?.addEventListener('click', () => goBackToSessionOrDashboard());
+        document.getElementById('railNewBtn')?.addEventListener('click', () => goToSessionWithAction('new'));
+        document.getElementById('railSearchBtn')?.addEventListener('click', () => toggleSearchModal());
+        document.getElementById('railNotifBtn')?.addEventListener('click', () => goToSessionWithAction('agent_parameters'));
+        document.getElementById('railMascotBtn')?.addEventListener('click', () => goToSessionWithAction('mascot'));
+        document.getElementById('railFoldersBtn')?.addEventListener('click', () => goToSessionWithAction('knowledge'));
+        document.getElementById('railPersonalizeBtn')?.addEventListener('click', () => {
+            const params = new URLSearchParams();
+            if (sessionId) params.set('session', sessionId);
+            if (avatarId) params.set('avatar_id', avatarId);
+            const target = `/personalize${params.toString() ? '?' + params.toString() : ''}`;
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = target;
+            } catch (_) {
+                window.location.href = target;
+            }
+        });
+        document.getElementById('railDiscussionsBtn')?.addEventListener('click', () => goToSessionWithAction(''));
+
+        let cachedSidebarSessions = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('chatSidebar');
+            const toggleBtn = document.getElementById('chatSidebarToggle');
+            if (sidebar && toggleBtn) {
+                toggleBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('collapsed');
+                });
+            }
+            const searchInput = document.getElementById('sidebarSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => renderSearchResults(e.target.value));
+            }
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('searchModal');
+                    if (modal && !modal.classList.contains('hidden')) toggleSearchModal();
+                }
+            });
+            loadSidebarSessions();
+        });
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function summarizeSessionTitle(title) {
+            const normalized = String(title || '').replace(/\s+/g, ' ').trim();
+            if (!normalized) return '';
+            if (normalized.length <= 72) return normalized;
+            return `${normalized.slice(0, 69).trim()}...`;
+        }
+
+        function getSessionDisplayTitle(session) {
+            const firstMessage = summarizeSessionTitle(session?.session_title);
+            if (firstMessage) return firstMessage;
+            return session?.persona || session?.nom_avatar || session?.medicament_nom || 'Discussion';
+        }
+
+        function formatSessionDate(rawDate) {
+            if (!rawDate) return 'Date inconnue';
+            const parsed = new Date(rawDate);
+            if (Number.isNaN(parsed.getTime())) return 'Date inconnue';
+            return parsed.toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        }
+
+        function renderSidebarSessions(sessions) {
+            const list = document.getElementById('sessionsList');
+            if (!list) return;
+            if (!sessions.length) {
+                list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Aucune discussion.</div>';
+                return;
+            }
+
+            list.innerHTML = sessions.map((session) => {
+                const idStr = session?.id != null ? String(session.id).trim() : '';
+                const safeId = idStr ? encodeURIComponent(idStr) : '';
+                const title = escapeHtml(getSessionDisplayTitle(session));
+                const dateLabel = escapeHtml(formatSessionDate(session?.date_debut || session?.created_at));
+                return `
+                    <button type="button" class="sidebar-session-item" ${safeId ? `onclick="window.location.href='session.html?session=${safeId}'"` : 'disabled'}>
+                        <div class="min-w-0 flex-1 text-left">
+                            <div class="session-title truncate">${title}</div>
+                            <div class="session-meta truncate">${dateLabel}</div>
+                        </div>
+                        <span class="session-chevron" aria-hidden="true">&rsaquo;</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        async function loadSidebarSessions() {
+            const list = document.getElementById('sessionsList');
+            if (!list) return;
+            list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Chargement...</div>';
+
+            try {
+                const res = await fetch('/api/sessions', {
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const payload = await res.json();
+                const sessions = Array.isArray(payload) ? payload : [];
+                cachedSidebarSessions = sessions;
+                renderSidebarSessions(sessions.slice(0, 8));
+            } catch (_) {
+                list.innerHTML = '<div class="text-center py-8 text-red-400 text-xs">Erreur de chargement.</div>';
+            }
+        }
+
+        function renderSearchResults(query) {
+            const out = document.getElementById('modalSearchResults');
+            if (!out) return;
+            const q = String(query || '').trim().toLowerCase();
+            if (!q) {
+                out.innerHTML = '<div class="text-center py-12 text-slate-400 text-sm">Tapez pour rechercher...</div>';
+                return;
+            }
+            const results = cachedSidebarSessions.filter((s) => {
+                const hay = `${getSessionDisplayTitle(s)} ${s?.persona || ''} ${s?.nom_avatar || ''}`.toLowerCase();
+                return hay.includes(q);
+            }).slice(0, 20);
+            if (!results.length) {
+                out.innerHTML = '<div class="text-center py-12 text-slate-400 text-sm">Aucun résultat.</div>';
+                return;
+            }
+            out.innerHTML = results.map((session) => {
+                const idStr = session?.id != null ? String(session.id).trim() : '';
+                const safeId = idStr ? encodeURIComponent(idStr) : '';
+                const title = escapeHtml(getSessionDisplayTitle(session));
+                const dateLabel = escapeHtml(formatSessionDate(session?.date_debut || session?.created_at));
+                return `
+                    <button type="button" class="sidebar-session-item mx-3 my-1" ${safeId ? `onclick="window.location.href='session.html?session=${safeId}'"` : 'disabled'}>
+                        <div class="min-w-0 flex-1 text-left">
+                            <div class="session-title truncate">${title}</div>
+                            <div class="session-meta truncate">${dateLabel}</div>
+                        </div>
+                        <span class="session-chevron" aria-hidden="true">&rsaquo;</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleSearchModal(event) {
+            const modal = document.getElementById('searchModal');
+            const content = document.getElementById('searchModalContent');
+            const input = document.getElementById('sidebarSearch');
+            if (!modal || !content) return;
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    if (input) {
+                        input.value = '';
+                        input.focus();
+                    }
+                    renderSearchResults('');
+                }, 10);
+                return;
+            }
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function setDocCount(count) {
+            const badge = document.getElementById('docCountBadge');
+            if (!badge) return;
+            badge.textContent = `${count} document${count > 1 ? 's' : ''}`;
+        }
+
+        function setUploadStatus(message, tone = 'muted') {
+            if (!uploadStatus) return;
+            uploadStatus.textContent = message || '';
+            if (!message) {
+                uploadStatus.className = 'text-xs font-medium mb-3';
+                return;
+            }
+            if (tone === 'success') {
+                uploadStatus.className = 'text-xs font-medium text-emerald-600 mb-3';
+                return;
+            }
+            if (tone === 'error') {
+                uploadStatus.className = 'text-xs font-medium text-red-500 mb-3';
+                return;
+            }
+            uploadStatus.className = 'text-xs font-medium text-slate-500 mb-3';
+        }
+
+        function renderDocs(docs) {
+            const list = document.getElementById('docsList');
+            if (!list) return;
+            if (!avatarId) {
+                setDocCount(0);
+                list.innerHTML = '<p class="text-slate-400 italic">Aucun agent sélectionné depuis la session.</p>';
+                return;
+            }
+            if (!docs.length) {
+                setDocCount(0);
+                list.innerHTML = '<p class="text-slate-400 italic">Aucun document RAG pour cet agent.</p>';
+                return;
+            }
+            setDocCount(docs.length);
+            list.innerHTML = docs.map((d) => `
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 flex items-start justify-between gap-4 min-w-0">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-slate-800 break-all leading-snug">${d.name || d.filename || 'Document'}</p>
+                        <p class="text-xs text-slate-500 mt-1 break-words">Chunks: ${Number(d.chunk_count || 0)}</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-400">RAG</span>
+                        <button type="button" class="inline-flex items-center rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 transition" onclick="deleteDoc('${String((d.uuid || d.id || '')).replace(/'/g, "\\'")}')">
+                            Supprimer
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function deleteDoc(docId) {
+            const id = String(docId || '').trim();
+            if (!id) return;
+            if (!confirm('Supprimer ce document ?')) return;
+            try {
+                const res = await fetch('/api/admin/rag/documents/' + encodeURIComponent(id), {
+                    method: 'DELETE',
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                if (!res.ok) {
+                    const payload = await res.json().catch(() => ({}));
+                    throw new Error(payload?.error || 'Suppression impossible.');
+                }
+                setUploadStatus('Document supprimé.', 'success');
+                await loadDocs();
+            } catch (err) {
+                setUploadStatus(err?.message || 'Erreur lors de la suppression.', 'error');
+            }
+        }
+
+        async function loadAgentName() {
+            if (!avatarId) return;
+            try {
+                const res = await fetch('/api/admin/avatars', {
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                const avatars = await res.json();
+                const agent = (Array.isArray(avatars) ? avatars : []).find(a => String(a.id) === avatarId);
+                if (!agent) return;
+                const subtitle = document.getElementById('agentSubtitle');
+                if (subtitle) {
+                    subtitle.textContent = `${agent.icone || '🧠'} ${agent.nom_avatar} — documents liés`;
+                }
+            } catch (_) { }
+        }
+
+        async function loadDocs() {
+            try {
+                const res = await fetch('/api/admin/rag/documents', {
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                const payload = await res.json();
+                const docs = Array.isArray(payload?.documents) ? payload.documents : [];
+                const filtered = avatarId ? docs.filter(d => String(d.avatar_id) === avatarId) : [];
+                renderDocs(filtered);
+            } catch (e) {
+                const list = document.getElementById('docsList');
+                if (list) list.innerHTML = '<p class="text-red-500">Erreur de chargement des documents.</p>';
+            }
+        }
+
+        async function startGoogleDriveOAuth() {
+            try {
+                setUploadStatus('Connexion à Google Drive...', 'muted');
+                const returnTo = `${window.location.pathname}${window.location.search || ''}`;
+                const res = await fetch(`/api/oauth/connectors/start/google_documents?return_to=${encodeURIComponent(returnTo)}`, {
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (!res.ok || !data?.url) {
+                    const message = data?.error || 'Impossible de lancer Google Drive.';
+                    throw new Error(message);
+                }
+                (window.top || window).location.href = data.url;
+            } catch (err) {
+                setUploadStatus(err?.message || 'Erreur Google Drive.', 'error');
+            }
+        }
+
+        function closeDrivePicker() {
+            if (!drivePickerModal || !drivePickerContent) return;
+            drivePickerModal.classList.add('opacity-0', 'pointer-events-none');
+            drivePickerContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => drivePickerModal.classList.add('hidden'), 250);
+        }
+
+        function openDrivePicker() {
+            if (!drivePickerModal || !drivePickerContent) return;
+            drivePickerModal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                drivePickerModal.classList.remove('opacity-0', 'pointer-events-none');
+                drivePickerContent.classList.remove('scale-95', 'opacity-0');
+                loadDriveFiles('');
+            });
+        }
+
+        async function loadDriveFiles(query) {
+            if (!driveFilesList) return;
+            driveFilesList.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">Chargement...</div>';
+            if (drivePickerStatus) drivePickerStatus.textContent = '';
+            try {
+                const params = new URLSearchParams();
+                if (query) params.set('q', query);
+                params.set('mode', driveViewMode);
+                const currentFolderId = drivePath[drivePath.length - 1]?.id || '';
+                if (driveViewMode === 'drive' && currentFolderId) params.set('parent_id', currentFolderId);
+                const res = await fetch(`/api/oauth/connectors/google-documents/files?${params.toString()}`, {
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                const payload = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = payload?.detail ? `${payload?.error || 'Erreur Drive'}: ${payload.detail}` : (payload?.error || 'Impossible de charger Drive.');
+                    throw new Error(msg);
+                }
+                const files = Array.isArray(payload.files) ? payload.files : [];
+                const folders = files.filter((f) => String(f.mimeType || '') === 'application/vnd.google-apps.folder');
+                const regularFiles = files.filter((f) => String(f.mimeType || '') !== 'application/vnd.google-apps.folder');
+                if (!files.length) {
+                    driveFilesList.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">Aucun fichier trouvé.</div>';
+                    return;
+                }
+                const folderHtml = folders.map((f) => {
+                    const id = String(f.id || '');
+                    const name = String(f.name || 'Dossier');
+                    return `
+                        <button type="button" class="w-full text-left rounded-xl border border-slate-200 hover:border-slate-300 px-4 py-3 flex items-center justify-between gap-3" onclick="openDriveFolder('${id.replace(/'/g, "\\'")}', '${name.replace(/'/g, "\\'")}')">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-800 truncate">📁 ${name}</p>
+                                <p class="text-xs text-slate-500 truncate">Dossier</p>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-600">Ouvrir</span>
+                        </button>
+                    `;
+                }).join('');
+                const fileHtml = regularFiles.map((f) => {
+                    const id = String(f.id || '');
+                    const name = String(f.name || 'Fichier');
+                    const mime = String(f.mimeType || '');
+                    const isGoogleWorkspace = mime.startsWith('application/vnd.google-apps.');
+                    const blockedByPermissions = !isGoogleWorkspace && f?.capabilities?.canDownload === false;
+                    const importAction = blockedByPermissions
+                        ? ''
+                        : `onclick="importDriveFile('${id.replace(/'/g, "\\'")}', '${name.replace(/'/g, "\\'")}')"`;
+                    const importLabel = blockedByPermissions ? 'Bloqué' : 'Importer';
+                    const importClass = blockedByPermissions
+                        ? 'text-xs font-semibold text-slate-400'
+                        : 'text-xs font-semibold text-emerald-700';
+                    const disabledAttr = blockedByPermissions ? 'disabled title="Fichier non téléchargeable avec ce compte"' : '';
+                    const note = blockedByPermissions
+                        ? '<p class="text-[11px] text-amber-600 truncate">Droits insuffisants pour ce fichier</p>'
+                        : '';
+                    return `
+                        <button type="button" class="w-full text-left rounded-xl border border-slate-200 hover:border-slate-300 px-4 py-3 flex items-center justify-between gap-3 ${blockedByPermissions ? 'opacity-70 cursor-not-allowed' : ''}" ${importAction} ${disabledAttr}>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-800 truncate">${name}</p>
+                                <p class="text-xs text-slate-500 truncate">${mime}</p>
+                                ${note}
+                            </div>
+                            <span class="${importClass}">${importLabel}</span>
+                        </button>
+                    `;
+                }).join('');
+                driveFilesList.innerHTML = folderHtml + fileHtml;
+                if (drivePickerStatus) {
+                    const pathLabel = drivePath.map((x) => x.name).join(' / ');
+                    drivePickerStatus.textContent = driveViewMode === 'drive'
+                        ? pathLabel
+                        : 'Récents';
+                }
+                if (driveUpBtn) {
+                    const canGoUp = driveViewMode === 'drive' && drivePath.length > 1;
+                    driveUpBtn.classList.toggle('hidden', !canGoUp);
+                }
+                renderDriveBreadcrumb();
+            } catch (err) {
+                driveFilesList.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">Erreur de chargement Google Drive.</div>';
+                if (drivePickerStatus) drivePickerStatus.textContent = err?.message || 'Erreur Drive.';
+            }
+        }
+
+        function renderDriveBreadcrumb() {
+            if (!driveBreadcrumb) return;
+            if (driveViewMode !== 'drive') {
+                driveBreadcrumb.classList.add('hidden');
+                driveBreadcrumb.innerHTML = '';
+                return;
+            }
+            driveBreadcrumb.classList.remove('hidden');
+            driveBreadcrumb.innerHTML = drivePath.map((node, idx) => {
+                const isLast = idx === drivePath.length - 1;
+                const safeName = escapeHtml(node.name || 'Dossier');
+                if (isLast) return `<span class="font-semibold text-slate-700">${safeName}</span>`;
+                return `<button type="button" class="hover:underline text-slate-600" onclick="jumpToDriveLevel(${idx})">${safeName}</button><span class="text-slate-300">/</span>`;
+            }).join('');
+        }
+
+        function activateDriveTabs() {
+            if (driveTabRecent) {
+                const isRecent = driveViewMode === 'recent';
+                driveTabRecent.className = isRecent
+                    ? 'px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white'
+                    : 'px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-700';
+            }
+            if (driveTabMyDrive) {
+                const isDrive = driveViewMode === 'drive';
+                driveTabMyDrive.className = isDrive
+                    ? 'px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white'
+                    : 'px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-700';
+            }
+        }
+
+        function openDriveFolder(folderId, folderName) {
+            if (!folderId) return;
+            drivePath.push({ id: folderId, name: folderName || 'Dossier' });
+            driveViewMode = 'drive';
+            activateDriveTabs();
+            loadDriveFiles(String(driveSearchInput?.value || '').trim());
+        }
+
+        function goDriveParent() {
+            if (drivePath.length > 1) drivePath.pop();
+            driveViewMode = 'drive';
+            activateDriveTabs();
+            loadDriveFiles(String(driveSearchInput?.value || '').trim());
+        }
+
+        function jumpToDriveLevel(levelIndex) {
+            const idx = Number(levelIndex);
+            if (!Number.isFinite(idx)) return;
+            if (idx < 0 || idx >= drivePath.length) return;
+            drivePath.splice(idx + 1);
+            driveViewMode = 'drive';
+            activateDriveTabs();
+            loadDriveFiles(String(driveSearchInput?.value || '').trim());
+        }
+
+        async function ensureGoogleDriveConnected() {
+            try {
+                const res = await fetch('/api/oauth/connectors/status', {
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                const payload = await res.json().catch(() => ({}));
+                const connected = Array.isArray(payload?.connections)
+                    ? payload.connections.some((c) => c.provider === 'google_documents')
+                    : false;
+                if (connected) return true;
+            } catch (_) {}
+            return false;
+        }
+
+        async function importDriveFile(fileId, fileName) {
+            try {
+                setUploadStatus(`Import depuis Drive: ${fileName}...`, 'muted');
+                const res = await fetch('/api/oauth/connectors/google-documents/import', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Bearer ' + token,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        avatar_id: avatarId ? Number(avatarId) : null,
+                        session_id: sessionId || null,
+                        file_id: fileId,
+                        file_name: fileName,
+                    }),
+                });
+                const payload = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = payload?.detail ? `${payload?.error || 'Import Google Drive échoué'}: ${payload.detail}` : (payload?.error || 'Import Google Drive échoué.');
+                    throw new Error(msg);
+                }
+                setUploadStatus('Fichier Drive importé avec succès.', 'success');
+                closeDrivePicker();
+                await loadDocs();
+            } catch (err) {
+                setUploadStatus(err?.message || 'Erreur import Drive.', 'error');
+            }
+        }
+
+        async function uploadLocalFiles(files) {
+            if (!avatarId) {
+                setUploadStatus('Agent introuvable dans cette session.', 'error');
+                return;
+            }
+            if (!files?.length) return;
+
+            setUploadStatus('Téléchargement et vectorisation en cours...', 'muted');
+            try {
+                for (const file of files) {
+                    const form = new FormData();
+                    form.append('file', file);
+                    form.append('avatar_id', avatarId);
+                    const ext = String(file.name || '').split('.').pop().toLowerCase();
+                    const url = (ext === 'xlsx' || ext === 'xls') ? '/api/admin/excel/upload' : '/api/admin/rag/upload';
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { Authorization: 'Bearer ' + token },
+                        body: form,
+                    });
+                    if (!res.ok) {
+                        const payload = await res.json().catch(() => null);
+                        throw new Error(payload?.error || `Échec upload: ${file.name}`);
+                    }
+                }
+                setUploadStatus('Documents ajoutés avec succès.', 'success');
+                await loadDocs();
+            } catch (err) {
+                setUploadStatus(err?.message || 'Erreur pendant l’ajout.', 'error');
+            } finally {
+                machineFileInput.value = '';
+            }
+        }
+
+        addDocumentBtn?.addEventListener('click', () => {
+            addDocumentMenu?.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!addDocumentMenu || !addDocumentBtn) return;
+            const insideMenu = addDocumentMenu.contains(event.target);
+            const onButton = addDocumentBtn.contains(event.target);
+            if (!insideMenu && !onButton) addDocumentMenu.classList.add('hidden');
+        });
+
+        uploadFromMachineBtn?.addEventListener('click', () => {
+            addDocumentMenu?.classList.add('hidden');
+            machineFileInput?.click();
+        });
+
+        uploadFromDriveBtn?.addEventListener('click', () => {
+            addDocumentMenu?.classList.add('hidden');
+            ensureGoogleDriveConnected().then((connected) => {
+                if (connected) {
+                    driveViewMode = 'recent';
+                    drivePath.splice(1);
+                    activateDriveTabs();
+                    openDrivePicker();
+                    return;
+                }
+                startGoogleDriveOAuth();
+            });
+        });
+        driveSearchBtn?.addEventListener('click', () => loadDriveFiles(String(driveSearchInput?.value || '').trim()));
+        driveSearchInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') loadDriveFiles(String(driveSearchInput?.value || '').trim());
+        });
+        driveTabRecent?.addEventListener('click', () => {
+            driveViewMode = 'recent';
+            drivePath.splice(1);
+            activateDriveTabs();
+            loadDriveFiles(String(driveSearchInput?.value || '').trim());
+        });
+        driveTabMyDrive?.addEventListener('click', () => {
+            driveViewMode = 'drive';
+            drivePath.splice(1);
+            activateDriveTabs();
+            loadDriveFiles(String(driveSearchInput?.value || '').trim());
+        });
+        driveUpBtn?.addEventListener('click', goDriveParent);
+
+        machineFileInput?.addEventListener('change', () => {
+            const files = Array.from(machineFileInput.files || []);
+            uploadLocalFiles(files);
+        });
+
+        loadAgentName();
+        loadDocs();
+
+        (function handleOauthReturnForDrive() {
+            const p = new URLSearchParams(window.location.search);
+            const ok = p.get('oauth_ok') === '1';
+            const provider = (p.get('oauth_provider') || '').toLowerCase();
+            const drivePick = p.get('drive_pick') === '1';
+            if (ok && provider === 'google_documents') {
+                setUploadStatus('Connexion Google Drive enregistrée.', 'success');
+            }
+            if (ok && provider === 'google_documents' && drivePick) {
+                driveViewMode = 'recent';
+                drivePath.splice(1);
+                activateDriveTabs();
+                openDrivePicker();
+            }
+            if (p.get('oauth_ok') || p.get('oauth_error') || p.get('oauth_provider') || p.get('drive_pick')) {
+                p.delete('oauth_ok');
+                p.delete('oauth_error');
+                p.delete('oauth_provider');
+                p.delete('drive_pick');
+                const next = p.toString();
+                history.replaceState(null, '', `agent-knowledge.html${next ? '?' + next : ''}`);
+            }
+        })();
+    </script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

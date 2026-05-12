@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased selection:bg-emerald-500 selection:text-white flex items-center justify-center p-4 relative overflow-hidden">
+    <div class="absolute inset-0 bg-grid z-0 opacity-50"></div>
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-700"></div>
+
+    <div class="w-full max-w-md relative z-10 fade-in">
+        <!-- Logo area -->
+        <div class="text-center mb-10">
+            <div
+                class="w-20 h-20 rounded-[2rem] mx-auto mb-6 bg-emerald-950 flex items-center justify-center text-4xl shadow-2xl shadow-emerald-950/20 rotate-3 transition-transform hover:rotate-0">
+                🔐
+            </div>
+            <h1 class="text-3xl font-extrabold text-emerald-950 mb-2 tracking-tight">Espace Gestionnaire</h1>
+            <p class="text-slate-500 font-medium">Administration & Statistiques Laprophan</p>
+        </div>
+
+        <!-- Card -->
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white mb-8">
+            <h2 class="text-xl font-bold text-emerald-950 mb-2">Authentification</h2>
+            <p class="text-sm text-slate-400 mb-8 leading-relaxed">Veuillez vous identifier pour accéder au panneau
+                d'administration.</p>
+
+            <form id="loginForm">
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                        for="email">Email Professionnel</label>
+                    <input
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium"
+                        type="email" id="email" placeholder="admin@laprophan.com" required />
+                </div>
+                <div class="mb-8">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2"
+                        for="password">Mot de passe</label>
+                    <input
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium"
+                        type="password" id="password" placeholder="••••••••" required />
+                </div>
+
+                <div id="errorMsg"
+                    class="mb-6 p-4 rounded-2xl bg-red-50 text-red-600 text-sm hidden font-medium flex items-center gap-3">
+                    <span>⚠️</span> <span id="errorText">Email ou mot de passe incorrect</span>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-emerald-950 hover:bg-black text-white px-6 py-4 rounded-2xl font-bold shadow-xl shadow-emerald-950/20 transition-all hover:shadow-2xl hover:-translate-y-1 flex justify-center items-center gap-3 group"
+                    id="loginBtn">
+                    <span id="loginText">Accéder au Panneau</span>
+                    <svg id="arrowIcon" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                    <div class="spinner hidden" id="loginSpinner"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center">
+            <a href="index.html"
+                class="text-slate-400 hover:text-emerald-900 text-sm font-semibold transition-colors flex items-center justify-center gap-2 group">
+                <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour au portail public
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Rediriger vers l'admin dashboard si déjà connecté en tant qu'admin
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (localStorage.getItem('token') && user.role === 'admin') {
+            window.location.href = 'admin.html';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const spinner = document.getElementById('loginSpinner');
+            const text = document.getElementById('loginText');
+            const arrowIcon = document.getElementById('arrowIcon');
+            const errorMsg = document.getElementById('errorMsg');
+            const errorText = document.getElementById('errorText');
+
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            text.classList.add('hidden');
+            arrowIcon.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/auth/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        mot_de_passe: document.getElementById('password').value
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    if (data.user.role !== 'admin') {
+                        throw new Error('Accès réservé aux administrateurs.');
+                    }
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = 'admin.html';
+                } else {
+                    throw new Error(data.error || 'Identifiants invalides.');
+                }
+            } catch (err) {
+                errorText.textContent = err.message;
+                errorMsg.classList.remove('hidden');
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                text.classList.remove('hidden');
+                arrowIcon.classList.remove('hidden');
+            }
+        });
+    </script>
+    <script src="theme-toggle.js"></script>
+</body>
+
+</html>

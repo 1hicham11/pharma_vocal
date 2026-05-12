@@ -1,0 +1,191 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify({ session_id: $json.session_id, status: $json.status }) }}",
+                "options": {}
+            },
+            "id": "43f095a5-757c-4b32-9156-a5901c4220b4",
+            "name": "Respond to Webhook",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                1648,
+                128
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const row = $input.item.json;\nconst session_id = row.id;\n\nif (!session_id) throw new Error('session_id introuvable dans la DB');\n\nreturn [{ json: { session_id, status: 'en_cours' } }];"
+            },
+            "id": "25dcca70-7993-4ef1-be5e-5660192641eb",
+            "name": "Extract Session ID",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1392,
+                128
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "select",
+                "table": {
+                    "__rl": true,
+                    "value": "sessions",
+                    "mode": "list"
+                },
+                "limit": 1,
+                "where": {
+                    "values": [
+                        {
+                            "column": "delegue_id",
+                            "value": "={{ $('Validate Input').item.json.delegue_id }}"
+                        }
+                    ]
+                },
+                "sort": {
+                    "values": [
+                        {
+                            "column": "date_debut",
+                            "direction": "DESC"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "c4f76a31-9dea-4411-9bcc-0c98a08390a6",
+            "name": "MySQL - Get Session ID",
+            "type": "n8n-nodes-base.mySql",
+            "typeVersion": 2.4,
+            "position": [
+                1136,
+                128
+            ],
+            "credentials": {
+                "mySql": {
+                    "id": "o4rGamfaWxwGp3Ic",
+                    "name": "MySQL account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "table": {
+                    "__rl": true,
+                    "value": "sessions",
+                    "mode": "list",
+                    "cachedResultName": "sessions"
+                },
+                "options": {}
+            },
+            "id": "3eb45d5a-f998-409b-b43d-f5ebcbddedab",
+            "name": "MySQL - Insert Session",
+            "type": "n8n-nodes-base.mySql",
+            "typeVersion": 2.4,
+            "position": [
+                896,
+                128
+            ],
+            "credentials": {
+                "mySql": {
+                    "id": "o4rGamfaWxwGp3Ic",
+                    "name": "MySQL account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const raw = $input.item.json;\nconst body = raw.body || raw;\n\nconst delegue_id = body.delegue_id;\nconst medicament_id = parseInt(body.medicament_id) || 1; // défaut: 1\n\nif (!delegue_id) throw new Error('delegue_id manquant');\n\nreturn [{ json: { delegue_id, medicament_id } }];"
+            },
+            "id": "2d1a9bd7-9177-45e1-ab07-40575e5a0b54",
+            "name": "Validate Input",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                640,
+                128
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "pharma-start",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "95ec0e5b-dc23-41f9-9d31-78a387852979",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                384,
+                128
+            ],
+            "webhookId": "pharma-start-webhook"
+        }
+    ],
+    "connections": {
+        "Extract Session ID": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MySQL - Get Session ID": {
+            "main": [
+                [
+                    {
+                        "node": "Extract Session ID",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MySQL - Insert Session": {
+            "main": [
+                [
+                    {
+                        "node": "MySQL - Get Session ID",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validate Input": {
+            "main": [
+                [
+                    {
+                        "node": "MySQL - Insert Session",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Validate Input",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "8dd90e28b968cb9417d43efbf2693d65496ca2bfacdb8326f9833b9ee9c1d5eb"
+    }
+}

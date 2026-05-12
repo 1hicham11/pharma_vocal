@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Tableau de bord</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    </head>
+
+    <body class="min-h-screen antialiased selection:bg-emerald-500 selection:text-white">
+    <div class="min-h-screen">
+        <div class="flex-1 flex flex-col" style="overflow-y: auto; min-width: 0;">
+            <header class="dashboard-header px-6 lg:px-10 py-6 flex flex-col gap-4">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <div>
+                            <p data-i18n="sectionAdmin" class="text-[0.65rem] uppercase tracking-[0.5em] font-semibold text-slate-500">Administration</p>
+                            <h1 data-i18n="dashboardTitle" class="text-2xl lg:text-3xl font-bold text-slate-900">Tableau de bord administrateur</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div id="adminLink" style="display:none"
+                            class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition">Panel Admin
+                        </div>
+                        <div
+                            class="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm">
+                            <div id="avatarInitials"
+                                class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-inner">
+                                ?</div>
+                            <div id="userName" class="text-sm text-slate-700 font-medium">Chargement...</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button id="themeToggleBtn" type="button" onclick="toggleTheme()" class="theme-toggle-btn w-10 h-10 flex items-center justify-center" aria-label="Mode sombre" title="Mode sombre">
+                                <span id="themeToggleIcon">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</span>
+                            </button>
+                            <div class="relative" id="languagePicker">
+                                <button type="button" onclick="toggleLanguageMenu()"
+                                    class="flex items-center gap-1 px-3 py-1 border border-slate-200 rounded-full text-sm text-slate-600 hover:border-slate-300 transition">
+                                    <span class="inline-flex items-center justify-center">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+</span>
+                                    <span id="selectedLang">FR</span>
+                                    <span class="text-xs" aria-hidden>▼</span>
+                                </button>
+                                <ul id="languageMenu"
+                                    class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-xl shadow-lg text-left text-sm">
+                                    <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="EN">EN – English
+                                    </li>
+                                    <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="DE">DE – Deutsch
+                                    </li>
+                                    <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="FR">FR – Français
+                                    </li>
+                                    <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="IT">IT – Italiano
+                                    </li>
+                                    <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="ES">ES – Español
+                                    </li>
+                                    <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer" data-lang="JP">JP – 日本語</li>
+                                </ul>
+                            </div>
+                            <button onclick="logout()" data-i18n="logout"
+                                class="text-sm text-slate-500 hover:text-red-500 transition">Déconnexion</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-y-auto px-6 lg:px-10 pb-10 space-y-6">
+                <section
+                    class="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)] space-y-6">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <div>
+                            <p data-i18n="statsLabel" class="text-[0.6rem] uppercase tracking-[0.5em] text-slate-400">
+                                Statuts</p>
+                            <h2 data-i18n="overviewTitle" class="text-xl font-bold text-slate-900">Vue d'ensemble</h2>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                            <div id="lastUpdateLabel" data-i18n="lastUpdate"
+                                class="bg-slate-50 px-4 py-2 rounded-2xl text-xs text-slate-600">Mise à jour...</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="rounded-2xl border border-slate-100 bg-white/70 p-5 shadow-sm">
+                            <p data-i18n="statsSessionsTitle" class="text-xs uppercase tracking-[0.4em] text-slate-400">Sessions</p>
+                            <p class="text-3xl font-bold text-emerald-600 mt-2" id="statSessions">—</p>
+                            <p data-i18n="statsSinceWeek" class="text-xs text-slate-500 mt-1">Depuis le début de la
+                                semaine</p>
+                        </div>
+                    </div>
+                </section>
+                <section
+                    class="bg-emerald-950 rounded-[2rem] p-6 sm:p-10 text-white relative overflow-hidden shadow-[0_20px_40px_rgba(15,23,42,0.35)]">
+                    <div
+                        class="absolute inset-0 bg-[radial-gradient(circle_at_top,#1b5c3a,transparent_60%)] opacity-60">
+                    </div>
+                    <div class="relative space-y-6">
+                        <div>
+                            <p data-i18n="heroLabel" class="text-sm uppercase tracking-[0.4em] text-emerald-100">
+                                Démarrer une session</p>
+                            <h2 data-i18n="heroTitle" class="text-3xl font-bold text-white">Choisissez un expert et lancez une
+                                session</h2>
+                            <p data-i18n="heroSubtitle" class="text-sm text-emerald-100/80 mt-1">L'IA s'adapte à votre
+                                domaine d'expertise et vous évalue à la fin.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-3 items-center">
+                            <button onclick="window.location.href='create-agent.html'"
+                                class="flex items-center gap-2 px-4 py-2 bg-white/20 border border-white/40 rounded-full text-sm font-semibold hover:bg-white/30 transition">
+                                <span class="text-lg">+</span>
+                                <span data-i18n="addAgent">Ajouter un agent</span>
+                            </button>
+                            <button id="btnStart" onclick="startSession()"
+                                class="ml-auto bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-8 py-3 rounded-full font-bold shadow-lg shadow-emerald-500/40 transition">
+                                <span class="text-xl">
+  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+</span> <span data-i18n="heroButton">Commencer</span>
+                            </button>
+                        </div>
+                        <div id="personasContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="text-emerald-100/70 text-sm italic">Chargement des profils d'experts...</div>
+                        </div>
+                    </div>
+                </section>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div
+                        class="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p data-i18n="activityLabel"
+                                    class="text-xs uppercase tracking-[0.4em] text-slate-400">Sessions</p>
+                                <h3 data-i18n="activityTitle" class="text-xl font-bold text-slate-900">Activité des
+                                    7 derniers jours</h3>
+                            </div>
+                            <span data-i18n="activitySessionsLabel" class="text-xs text-slate-400">Sessions</span>
+                        </div>
+                        <div id="activityChart7d" class="relative">
+                            <div class="text-xs text-slate-400">Chargement...</div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p data-i18n="analyticsLabel"
+                                    class="text-xs uppercase tracking-[0.4em] text-slate-400">Analytics</p>
+                                <h3 data-i18n="analyticsTitle" class="text-xl font-bold text-slate-900">Project
+                                    Analytics</h3>
+                            </div>
+                            <span data-i18n="analyticsSubtitle" class="text-xs text-slate-400">Vue générale</span>
+                        </div>
+                        <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)] items-start gap-4">
+                            <div id="analyticsRing"
+                                class="min-w-0 h-auto min-h-40 rounded-2xl flex-shrink-0 border border-emerald-100 bg-emerald-50/50 p-4"></div>
+                            <div id="analyticsLegend" class="min-w-0 flex flex-col gap-3 text-sm text-slate-500">
+                                <div class="text-xs text-slate-400">Chargement...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="space-y-6">
+                    <div class="grid lg:grid-cols-2 gap-6">
+                        <div class="card card-body shadow-sm">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <h3 data-i18n="personasTitle" class="text-lg font-semibold">Experts (Personas)</h3>
+                                    <p data-i18n="personasDescription" class="text-sm text-muted">Créez ou modifiez les agents IA directement depuis votre espace.</p>
+                                </div>
+                                <button onclick="window.location.href='create-agent.html'" data-i18n="personasButton" class="btn-primary btn-sm">
+                                    + Nouvel Expert
+                                </button>
+                            </div>
+                            <div id="clientAvatarsList" class="mt-6 space-y-3 text-sm text-muted">
+                                <p class="text-center py-6 text-muted">Chargement des experts...</p>
+                            </div>
+                        </div>
+
+                        <div class="card card-body shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 data-i18n="ragTitle" class="text-lg font-semibold">Base RAG</h3>
+                                    <p data-i18n="ragDescription" class="text-sm text-muted">Ajoutez vos documents pour enrichir les agents.</p>
+                                </div>
+                                <button id="clientRagFileBtn" data-i18n="ragSelectFile" class="btn btn-secondary btn-sm">
+                                    Sélectionner un fichier
+                                </button>
+                            </div>
+                            <div class="mt-4">
+                                <label data-i18n="ragAssign" class="form-label">Affecter à un expert</label>
+                                <select id="clientRagAvatarSelect" class="form-input form-select">
+                                    <option value="" data-i18n="ragChooseExpert">Choisissez un expert...</option>
+                                </select>
+                            </div>
+                            <div id="clientRagUploadZone"
+                                class="border-2 border-dashed border border-slate-200 rounded-xl p-8 mt-5 text-center text-slate-500 cursor-pointer bg-slate-50 transition hover:border-accent-light hover:bg-white"
+                                role="button">
+                                <div class="mb-3">
+  <svg class="w-16 h-16 mx-auto text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+</div>
+                                <p data-i18n="ragDropHint" class="font-semibold text-slate-700 text-sm">Glissez-déposez vos fichiers ici</p>
+                                <p data-i18n="ragFileTypes" class="text-xs text-muted mt-1">PDF, DOCX, TXT, MD, XLSX, PPTX · Max 50 MB</p>
+                            </div>
+                            <input type="file" id="clientRagFileInput" class="hidden" accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.pptx" multiple>
+                            <div id="clientRagProgressWrap" class="hidden mt-4">
+                                <div class="flex items-center justify-between text-xs text-muted mb-2">
+                                    <span>Upload en cours...</span>
+                                    <span id="clientRagProgressPct" class="font-semibold text-accent">0%</span>
+                                </div>
+                                <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div id="clientRagProgressBar" class="h-full bg-gradient-to-r from-accent to-emerald-400" style="width:0%"></div>
+                                </div>
+                            </div>
+                            <p id="clientRagFeedback" class="text-xs text-muted mt-3 min-h-[1.25rem]"></p>
+                            <div class="mt-6">
+                                <h4 data-i18n="ragDocsTitle" class="text-sm font-semibold mb-3">Documents vectorisés</h4>
+                                <div id="clientRagDocsList" class="space-y-3 text-sm text-muted">
+                                    <p data-i18n="ragDocsLoading" class="text-center py-6 text-muted">Chargement des documents...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Avatar -->
+    <div id="avatarModal" class="modal-overlay hidden z-40">
+        <div class="modal" id="avatarModalContent">
+            <div class="modal-header">
+                <h3 class="text-xl font-bold" id="avatarModalTitle">Nouvel Expert</h3>
+                <button onclick="closeAvatarModal()" class="btn-icon text-slate-400 hover:text-red-500">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="avatarForm" class="space-y-6">
+                    <input type="hidden" id="avatarId">
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="form-label">Nom de l'expert</label>
+                            <input type="text" id="avatar_nom" required class="form-input">
+                        </div>
+                        <div class="w-24">
+                            <label class="form-label">Emoji</label>
+                            <input type="text" id="avatar_icone" required maxlength="2"
+                                class="form-input text-center text-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Prompt système</label>
+                        <textarea id="avatar_prompt" rows="4" required
+                            class="form-textarea resize-none"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeAvatarModal()" class="btn btn-ghost">Annuler</button>
+                <button type="submit" form="avatarForm" class="btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // AUTH GUARD
+        var user = JSON.parse(localStorage.getItem('user') || 'null');
+        var token = localStorage.getItem('token');
+        if (!user || !token) window.location.href = 'login.html';
+
+        if (user) {
+            var fullName = (user.prenom || '') + ' ' + (user.nom || '');
+            document.getElementById('userName').textContent = fullName.trim() || 'Utilisateur';
+            function firstInitial(value) {
+                if (!value) return '';
+                var s = String(value).trim();
+                return s.length ? s[0] : '';
+            }
+            var initials = (firstInitial(user.prenom) + firstInitial(user.nom)).toUpperCase();
+            document.getElementById('avatarInitials').textContent = initials || 'U';
+            if (user.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
+        }
+
+        // GLOBALS
+        var ICONS = ['💊', '🧪', '🔬', '💉', '🩺'];
+        var currentPersona = localStorage.getItem('selectedPersona') || '';
+        const clientCachedAvatars = [];
+        let currentLang = localStorage.getItem('site_lang') || 'FR';
+        let currentTheme = localStorage.getItem('site_theme') || 'dark';
+
+        // TRANSLATIONS
+        const translations = {
+            "FR": {
+                "sectionAdmin": "Gestion",
+                "dashboardTitle": "Tableau de bord",
+                "statsLabel": "Statuts",
+                "statsSessionsTitle": "Sessions",
+                "statsAverageTitle": "Score moyen",
+                "overviewTitle": "Vue d'ensemble",
+                "lastUpdate": "Mise à jour",
+                "planMeeting": "Planifier un meeting",
+                "statsSinceWeek": "Sur les 7 derniers jours",
+                "statsSessionsCompleted": "Sessions complétées",
+                "statsExpertsAvailable": "Experts disponibles",
+                "statsRagRefs": "Référentiels RAG",
+                "navTitle": "Navigation",
+                "navOverview": "Vue d'ensemble",
+                "navProducts": "Produits & Services",
+                "navSessions": "Toutes les Sessions",
+                "navUnknownMeds": "Meds Inconnus",
+                "navExperts": "Experts (Personas)",
+                "navBaseRag": "Base RAG",
+                "navGeneral": "Général",
+                "settings": "Paramètres",
+                "help": "Aide",
+                "logout": "Déconnexion",
+                "addAgent": "Ajouter un agent",
+                "themeDark": "Mode sombre",
+                "themeLight": "Mode clair",
+                "heroLabel": "Démarrer une session",
+                "heroTitle": "Choisissez un expert et lancez une session",
+                "heroSubtitle": "L'IA s'adapte à votre domaine d'expertise et vous évalue à la fin.",
+                "heroButton": "Commencer",
+                "ragTitle": "Base RAG",
+                "ragDescription": "Ajoutez vos documents pour enrichir les agents.",
+                "ragSelectFile": "Sélectionner un fichier",
+                "ragAssign": "Affecter à un expert",
+                "ragChooseExpert": "Choisissez un expert...",
+                "ragDropHint": "Glissez-déposez vos fichiers ici",
+                "ragFileTypes": "PDF, DOCX, TXT, MD, XLSX, PPTX · Max 50 MB",
+                "ragDocsTitle": "Documents vectorisés",
+                "ragDocsLoading": "Chargement des documents...",
+                "personasTitle": "Experts (Personas)",
+                "personasDescription": "Créez ou modifiez les agents IA directement depuis votre espace.",
+                "personasButton": "+ Nouvel Expert",
+                "activityLabel": "Sessions",
+                "activityTitle": "Activité des 7 derniers jours",
+                "historyTitle": "Historique",
+                "historySessionsLabel": "Sessions",
+                "historyBadge": "Sessions",
+                "historyNoSessions": "Aucune session en cours pour ce profil.",
+                "avatarsLoading": "Chargement des experts...",
+                "avatarsEmpty": "Aucun expert disponible.",
+                "avatarsError": "Impossible de charger les experts.",
+                "avatarEdit": "Modifier",
+                "avatarDelete": "Supprimer",
+                "promptUndefined": "Prompt non défini",
+                "ragNoDocs": "Aucun document importé."
+            },
+            "EN": {
+                "sectionAdmin": "Management",
+                "dashboardTitle": "Dashboard",
+                "statsLabel": "Stats",
+                "statsSessionsTitle": "Sessions",
+                "statsAverageTitle": "Average score",
+                "overviewTitle": "Overview",
+                "lastUpdate": "Updated",
+                "planMeeting": "Plan a meeting",
+                "statsSinceWeek": "Over the last 7 days",
+                "statsSessionsCompleted": "Completed sessions",
+                "statsExpertsAvailable": "Experts available",
+                "statsRagRefs": "RAG references",
+                "navTitle": "Navigation",
+                "navOverview": "Overview",
+                "navProducts": "Products & Services",
+                "navSessions": "All Sessions",
+                "navUnknownMeds": "Unknown Meds",
+                "navExperts": "Experts (Personas)",
+                "navBaseRag": "Base RAG",
+                "navGeneral": "General",
+                "settings": "Settings",
+                "help": "Help",
+                "logout": "Sign out",
+                "addAgent": "Add an agent",
+                "themeDark": "Dark mode",
+                "themeLight": "Light mode",
+                "heroLabel": "Start a session",
+                "heroTitle": "Choose an expert and start a session",
+                "heroSubtitle": "The AI adapts to your expertise and evaluates you at the end.",
+                "heroButton": "Start",
+                "ragTitle": "Base RAG",
+                "ragDescription": "Add your documents to enrich agents.",
+                "ragSelectFile": "Select a file",
+                "ragAssign": "Assign to expert",
+                "ragChooseExpert": "Choose an expert...",
+                "ragDropHint": "Drag & drop files here",
+                "ragFileTypes": "PDF, DOCX, TXT, MD, XLSX, PPTX · Max 50 MB",
+                "ragDocsTitle": "Vectorized documents",
+                "ragDocsLoading": "Loading documents...",
+                "personasTitle": "Experts (Personas)",
+                "personasDescription": "Create or edit AI agents directly from your space.",
+                "personasButton": "+ New Expert",
+                "activityLabel": "Sessions",
+                "activityTitle": "Activity over last 7 days",
+                "historyTitle": "History",
+                "historySessionsLabel": "Sessions",
+                "historyBadge": "Sessions",
+                "historyNoSessions": "No sessions in progress for this profile.",
+                "avatarsLoading": "Loading experts...",
+                "avatarsEmpty": "No experts available.",
+                "avatarsError": "Unable to load experts.",
+                "avatarEdit": "Edit",
+                "avatarDelete": "Delete",
+                "promptUndefined": "Prompt undefined",
+                "ragNoDocs": "No documents imported."
+            }
+        };
+
+        translations.DE = {
+            ...translations.EN,
+            "sectionAdmin": "Verwaltung",
+            "dashboardTitle": "Dashboard",
+            "statsLabel": "Status",
+            "statsSessionsTitle": "Sitzungen",
+            "statsAverageTitle": "Durchschnittswert",
+            "overviewTitle": "Übersicht",
+            "lastUpdate": "Aktualisiert",
+            "planMeeting": "Meeting planen",
+            "statsSinceWeek": "In den letzten 7 Tagen",
+            "statsSessionsCompleted": "Abgeschlossene Sitzungen",
+            "statsExpertsAvailable": "Verfügbare Experten",
+            "statsRagRefs": "RAG-Referenzen",
+            "navOverview": "Übersicht",
+            "navProducts": "Produkte & Services",
+            "navSessions": "Alle Sitzungen",
+            "navUnknownMeds": "Unbekannte Medikamente",
+            "navBaseRag": "RAG-Basis",
+            "navGeneral": "Allgemein",
+            "settings": "Einstellungen",
+            "help": "Hilfe",
+            "logout": "Abmelden",
+            "addAgent": "Agent hinzufügen",
+            "themeDark": "Dunkelmodus",
+            "themeLight": "Hellmodus",
+            "heroLabel": "Sitzung starten",
+            "heroTitle": "Wählen Sie einen Experten und starten Sie eine Sitzung",
+            "heroSubtitle": "Die KI passt sich Ihrem Fachgebiet an und bewertet Sie am Ende.",
+            "heroButton": "Starten",
+            "ragDescription": "Fügen Sie Dokumente hinzu, um die Agenten zu verbessern.",
+            "ragSelectFile": "Datei auswählen",
+            "ragAssign": "Einem Experten zuweisen",
+            "ragChooseExpert": "Experten wählen...",
+            "ragDropHint": "Dateien hierher ziehen",
+            "ragDocsTitle": "Vektorisierte Dokumente",
+            "ragDocsLoading": "Dokumente werden geladen...",
+            "personasDescription": "Erstellen oder bearbeiten Sie KI-Agenten direkt in Ihrem Bereich.",
+            "personasButton": "+ Neuer Experte",
+            "activityTitle": "Aktivität der letzten 7 Tage",
+            "historyNoSessions": "Für dieses Profil laufen keine Sitzungen.",
+            "avatarsLoading": "Experten werden geladen...",
+            "avatarsEmpty": "Keine Experten verfügbar.",
+            "avatarsError": "Experten konnten nicht geladen werden.",
+            "avatarEdit": "Bearbeiten",
+            "avatarDelete": "Löschen",
+            "promptUndefined": "Prompt nicht definiert",
+            "ragNoDocs": "Keine Dokumente importiert."
+        };
+
+        translations.IT = {
+            ...translations.EN,
+            "sectionAdmin": "Gestione",
+            "dashboardTitle": "Dashboard",
+            "statsLabel": "Stato",
+            "statsSessionsTitle": "Sessioni",
+            "statsAverageTitle": "Punteggio medio",
+            "overviewTitle": "Panoramica",
+            "lastUpdate": "Aggiornato",
+            "planMeeting": "Pianifica meeting",
+            "statsSinceWeek": "Negli ultimi 7 giorni",
+            "statsSessionsCompleted": "Sessioni completate",
+            "statsExpertsAvailable": "Esperti disponibili",
+            "statsRagRefs": "Riferimenti RAG",
+            "navOverview": "Panoramica",
+            "navProducts": "Prodotti & Servizi",
+            "navSessions": "Tutte le sessioni",
+            "navUnknownMeds": "Farmaci sconosciuti",
+            "navBaseRag": "Base RAG",
+            "navGeneral": "Generale",
+            "settings": "Impostazioni",
+            "help": "Aiuto",
+            "logout": "Disconnetti",
+            "addAgent": "Aggiungi agente",
+            "themeDark": "Modalità scura",
+            "themeLight": "Modalità chiara",
+            "heroLabel": "Avvia una sessione",
+            "heroTitle": "Scegli un esperto e avvia una sessione",
+            "heroSubtitle": "L'IA si adatta al tuo dominio e ti valuta alla fine.",
+            "heroButton": "Avvia",
+            "ragDescription": "Aggiungi documenti per arricchire gli agenti.",
+            "ragSelectFile": "Seleziona file",
+            "ragAssign": "Assegna a un esperto",
+            "ragChooseExpert": "Scegli un esperto...",
+            "ragDropHint": "Trascina qui i tuoi file",
+            "ragDocsTitle": "Documenti vettorializzati",
+            "ragDocsLoading": "Caricamento documenti...",
+            "personasDescription": "Crea o modifica agenti IA direttamente dal tuo spazio.",
+            "personasButton": "+ Nuovo Esperto",
+            "activityTitle": "Attività degli ultimi 7 giorni",
+            "historyNoSessions": "Nessuna sessione in corso per questo profilo.",
+            "avatarsLoading": "Caricamento esperti...",
+            "avatarsEmpty": "Nessun esperto disponibile.",
+            "avatarsError": "Impossibile caricare gli esperti.",
+            "avatarEdit": "Modifica",
+            "avatarDelete": "Elimina",
+            "promptUndefined": "Prompt non definito",
+            "ragNoDocs": "Nessun documento importato."
+        };
+
+        translations.ES = {
+            ...translations.EN,
+            "sectionAdmin": "Gestión",
+            "dashboardTitle": "Panel",
+            "statsLabel": "Estado",
+            "statsSessionsTitle": "Sesiones",
+            "statsAverageTitle": "Puntuación media",
+            "overviewTitle": "Vista general",
+            "lastUpdate": "Actualizado",
+            "planMeeting": "Planificar reunión",
+            "statsSinceWeek": "En los ultimos 7 dias",
+            "statsSessionsCompleted": "Sesiones completadas",
+            "statsExpertsAvailable": "Expertos disponibles",
+            "statsRagRefs": "Referencias RAG",
+            "navOverview": "Vista general",
+            "navProducts": "Productos y Servicios",
+            "navSessions": "Todas las sesiones",
+            "navUnknownMeds": "Medicamentos desconocidos",
+            "navBaseRag": "Base RAG",
+            "navGeneral": "General",
+            "settings": "Configuración",
+            "help": "Ayuda",
+            "logout": "Cerrar sesión",
+            "addAgent": "Añadir agente",
+            "themeDark": "Modo oscuro",
+            "themeLight": "Modo claro",
+            "heroLabel": "Iniciar una sesión",
+            "heroTitle": "Elige un experto e inicia una sesión",
+            "heroSubtitle": "La IA se adapta a tu área y te evalúa al final.",
+            "heroButton": "Comenzar",
+            "ragDescription": "Añade documentos para enriquecer los agentes.",
+            "ragSelectFile": "Seleccionar archivo",
+            "ragAssign": "Asignar a un experto",
+            "ragChooseExpert": "Elegir un experto...",
+            "ragDropHint": "Arrastra tus archivos aquí",
+            "ragDocsTitle": "Documentos vectorizados",
+            "ragDocsLoading": "Cargando documentos...",
+            "personasDescription": "Crea o edita agentes IA directamente desde tu espacio.",
+            "personasButton": "+ Nuevo Experto",
+            "activityTitle": "Actividad de los últimos 7 días",
+            "historyNoSessions": "No hay sesiones en curso para este perfil.",
+            "avatarsLoading": "Cargando expertos...",
+            "avatarsEmpty": "No hay expertos disponibles.",
+            "avatarsError": "No se pudieron cargar los expertos.",
+            "avatarEdit": "Editar",
+            "avatarDelete": "Eliminar",
+            "promptUndefined": "Prompt no definido",
+            "ragNoDocs": "No hay documentos importados."
+        };
+
+        translations.JP = {
+            ...translations.EN,
+            "sectionAdmin": "管理",
+            "dashboardTitle": "ダッシュボード",
+            "statsLabel": "統計",
+            "statsSessionsTitle": "セッション",
+            "statsAverageTitle": "平均スコア",
+            "overviewTitle": "概要",
+            "lastUpdate": "更新",
+            "planMeeting": "ミーティングを計画",
+            "statsSinceWeek": "直近7日間",
+            "statsSessionsCompleted": "完了したセッション",
+            "statsExpertsAvailable": "利用可能なエキスパート",
+            "statsRagRefs": "RAG 参照",
+            "navTitle": "ナビゲーション",
+            "navOverview": "概要",
+            "navProducts": "製品とサービス",
+            "navSessions": "すべてのセッション",
+            "navUnknownMeds": "不明な薬",
+            "navExperts": "エキスパート（ペルソナ）",
+            "navBaseRag": "RAG ベース",
+            "navGeneral": "一般",
+            "settings": "設定",
+            "help": "ヘルプ",
+            "logout": "ログアウト",
+            "addAgent": "エージェントを追加",
+            "themeDark": "ダークモード",
+            "themeLight": "ライトモード",
+            "heroLabel": "セッションを開始",
+            "heroTitle": "エキスパートを選んでセッションを開始",
+            "heroSubtitle": "AI はあなたの分野に適応し、最後に評価します。",
+            "heroButton": "開始",
+            "ragTitle": "RAG ベース",
+            "ragDescription": "ドキュメントを追加してエージェントを強化します。",
+            "ragSelectFile": "ファイルを選択",
+            "ragAssign": "エキスパートに割り当て",
+            "ragChooseExpert": "エキスパートを選択...",
+            "ragDropHint": "ここにファイルをドラッグ＆ドロップ",
+            "ragFileTypes": "PDF, DOCX, TXT, MD, XLSX, PPTX · 最大 50 MB",
+            "ragDocsTitle": "ベクトル化されたドキュメント",
+            "ragDocsLoading": "ドキュメントを読み込み中...",
+            "personasTitle": "エキスパート（ペルソナ）",
+            "personasDescription": "この画面から AI エージェントを作成・編集できます。",
+            "personasButton": "+ 新しいエキスパート",
+            "activityLabel": "セッション",
+            "activityTitle": "直近7日間のアクティビティ",
+            "historyNoSessions": "このプロフィールで進行中のセッションはありません。",
+            "avatarsLoading": "エキスパートを読み込み中...",
+            "avatarsEmpty": "利用可能なエキスパートがありません。",
+            "avatarsError": "エキスパートを読み込めません。",
+            "avatarEdit": "編集",
+            "avatarDelete": "削除",
+            "promptUndefined": "プロンプト未定義",
+            "ragNoDocs": "インポートされたドキュメントはありません。"
+        };
+
+        function refreshThemeToggleLabel() {
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeToggleIcon');
+            if (!themeIcon) return;
+
+            const isDark = currentTheme === 'dark';
+            const sunIcon = `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg>`;
+            const moonIcon = `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+            themeIcon.innerHTML = isDark ? sunIcon : moonIcon;
+
+            if (themeBtn) {
+                const nextLabel = isDark
+                    ? getTranslation('themeLight', 'Light mode')
+                    : getTranslation('themeDark', 'Dark mode');
+                themeBtn.setAttribute('aria-label', nextLabel);
+                themeBtn.setAttribute('title', nextLabel);
+            }
+        }
+
+        function applyTheme(theme) {
+            currentTheme = theme === 'dark' ? 'dark' : 'light';
+            document.body.classList.toggle('dark-theme', currentTheme === 'dark');
+            localStorage.setItem('site_theme', currentTheme);
+            refreshThemeToggleLabel();
+        }
+
+        function toggleTheme() {
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }
+
+        function getLocaleForLang(lang) {
+            const localeMap = {
+                FR: 'fr-FR',
+                EN: 'en-US',
+                DE: 'de-DE',
+                IT: 'it-IT',
+                ES: 'es-ES',
+                JP: 'ja-JP'
+            };
+            return localeMap[lang] || 'fr-FR';
+        }
+
+        function refreshLastUpdateLabel() {
+            const lastUpdateEl = document.getElementById('lastUpdateLabel');
+            if (!lastUpdateEl) return;
+            const prefix = getTranslation('lastUpdate', 'Updated');
+            const locale = getLocaleForLang(currentLang);
+            const now = new Date();
+            const datePart = now.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+            const timePart = now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+            lastUpdateEl.textContent = `${prefix} ${datePart}, ${timePart}`;
+        }
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            const map = translations[lang] || translations.FR;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (map[key]) el.textContent = map[key];
+            });
+            const selectedLangEl = document.getElementById('selectedLang');
+            if (selectedLangEl) selectedLangEl.textContent = lang;
+            refreshLastUpdateLabel();
+            refreshThemeToggleLabel();
+
+            // Re-render dynamic lists that are not covered by [data-i18n] attributes
+            renderClientAvatarCards(clientCachedAvatars);
+            populateClientRagAvatarSelect();
+        }
+
+        function getTranslation(key, fallback = '') {
+            return translations[currentLang]?.[key] || translations.FR[key] || fallback;
+        }
+
+        function getLast7DaysFallback() {
+            const labelsByLang = {
+                FR: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                EN: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                DE: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+                IT: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+                ES: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                JP: ['月', '火', '水', '木', '金', '土', '日']
+            };
+            const labels = labelsByLang[currentLang] || labelsByLang.FR;
+            return labels.map(label => ({ day: label, count: 0 }));
+        }
+
+        function buildSevenDaySeries(rawDays) {
+            const locale = getLocaleForLang(currentLang);
+            const dayFormat = currentLang === 'JP'
+                ? { weekday: 'short' }
+                : { day: '2-digit' };
+            const labelToCount = new Map();
+
+            (Array.isArray(rawDays) ? rawDays : []).forEach(d => {
+                const key = String(d?.day || d?.date || '').trim().split(' ')[0];
+                const count = Number(d?.count) || 0;
+                if (key) labelToCount.set(key, count);
+            });
+
+            const points = [];
+            const now = new Date();
+            for (let i = 6; i >= 0; i -= 1) {
+                const day = new Date(now);
+                day.setDate(now.getDate() - i);
+                const dayKey = String(day.getDate()).padStart(2, '0');
+                points.push({
+                    dayKey,
+                    day: day.toLocaleDateString(locale, dayFormat),
+                    count: labelToCount.get(dayKey) || 0
+                });
+            }
+            return points;
+        }
+
+        function renderActivity7d(stats) {
+            const chart = document.getElementById('activityChart7d');
+            if (!chart) return;
+
+            const rawDays = Array.isArray(stats?.sessionsByDay) ? stats.sessionsByDay : [];
+            const points = rawDays.length ? buildSevenDaySeries(rawDays) : getLast7DaysFallback();
+            const maxValue = Math.max(...points.map(p => p.count), 1);
+            const total = points.reduce((sum, p) => sum + p.count, 0);
+            const byAgentRows = Array.isArray(stats?.sessionsByDayByAgent) ? stats.sessionsByDayByAgent : [];
+            const palette = ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7', '#cbd5e1'];
+
+            const dayAgentMap = new Map();
+            byAgentRows.forEach(row => {
+                const key = String(row?.day || '').trim().split(' ')[0];
+                const name = String(row?.agentName || 'Expert').trim() || 'Expert';
+                const count = Number(row?.count) || 0;
+                if (!key) return;
+                if (!dayAgentMap.has(key)) dayAgentMap.set(key, []);
+                dayAgentMap.get(key).push({ name, count });
+            });
+
+            const agentTotals = new Map();
+            byAgentRows.forEach(row => {
+                const name = String(row?.agentName || 'Expert').trim() || 'Expert';
+                agentTotals.set(name, (agentTotals.get(name) || 0) + (Number(row?.count) || 0));
+            });
+            const orderedAgents = [...agentTotals.entries()]
+                .sort((a, b) => b[1] - a[1])
+                .map(([name]) => name);
+            const colorByAgent = new Map(orderedAgents.map((name, idx) => [name, palette[idx % palette.length]]));
+
+            const barsHtml = points.map((point, index) => {
+                const ratio = Math.max(0, Math.min(1, point.count / maxValue));
+                const height = Math.max(16, Math.round(16 + ratio * 88));
+                const dayRows = dayAgentMap.get(String(point.dayKey || '').padStart(2, '0')) || [];
+                const sortedDayRows = dayRows.slice().sort((a, b) => b.count - a.count);
+                const segments = point.count > 0
+                    ? sortedDayRows.map((row, rowIdx) => {
+                        const segPct = ((row.count / point.count) * 100).toFixed(2);
+                        const color = colorByAgent.get(row.name) || palette[rowIdx % palette.length];
+                        return `<div style="height:${segPct}%; background:${color}" title="${row.name}: ${row.count}"></div>`;
+                    }).join('')
+                    : '<div style="height:100%; background:#d1fae5"></div>';
+                return `
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[10px] text-slate-400 mb-1 text-center">${point.count}</div>
+                        <div class="rounded-md mb-1 transition-all duration-300 border border-emerald-200/60 overflow-hidden flex flex-col-reverse bg-emerald-50/40" style="height:${height}px" title="${point.count}">${segments}</div>
+                        <p class="text-xs text-slate-400">${point.day}</p>
+                    </div>
+                `;
+            }).join('');
+
+            const legendHtml = orderedAgents.length
+                ? `<div class="mt-3 flex flex-wrap items-center gap-3">
+                    ${orderedAgents.map(name => {
+                        const color = colorByAgent.get(name) || '#10b981';
+                        const count = agentTotals.get(name) || 0;
+                        return `<div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+                            <span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:${color}"></span>
+                            <span class="max-w-[160px] truncate" title="${name}">${name}</span>
+                            <span class="text-slate-400">(${count})</span>
+                        </div>`;
+                    }).join('')}
+                </div>`
+                : '';
+
+            chart.innerHTML = `
+                <div class="relative">
+                    <div class="flex items-end gap-3 h-52">${barsHtml}</div>
+                    <div class="absolute top-0 right-0 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">Total: ${total}</div>
+                </div>
+                ${legendHtml}
+            `;
+            return total;
+        }
+
+        function renderAgentAnalytics(stats) {
+            const legend = document.getElementById('analyticsLegend');
+            const ring = document.getElementById('analyticsRing');
+            if (!legend || !ring) return;
+
+            const palette = ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7', '#cbd5e1'];
+            const source = Array.isArray(stats?.topMedicationsLast7Days) && stats.topMedicationsLast7Days.length
+                ? stats.topMedicationsLast7Days
+                : stats?.topMedications;
+            const topAgents = Array.isArray(source) ? source : [];
+            const withFallback = topAgents.length ? topAgents : [{ nom_commercial: 'Aucun expert', discussion_count: 0 }];
+            const total = withFallback.reduce((sum, item) => sum + (Number(item.discussion_count) || 0), 0);
+
+            legend.innerHTML = withFallback.map((agent, index) => {
+                const count = Number(agent.discussion_count) || 0;
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                const color = palette[index % palette.length];
+                const safeName = agent.nom_commercial || 'Expert';
+                return `<div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 rounded-sm" style="background:${color}"></span>
+                                <span class="truncate max-w-[170px]" title="${safeName}">${safeName}</span>
+                            </div>
+                            <span class="text-xs text-slate-400 whitespace-nowrap">${count} (${pct}%)</span>
+                        </div>`;
+            }).join('');
+
+            ring.className = 'min-w-0 h-auto min-h-40 rounded-2xl flex-shrink-0 border border-emerald-100 bg-emerald-50/50 p-4';
+            ring.style.background = '';
+            ring.innerHTML = withFallback.map((agent, idx) => {
+                const count = Number(agent.discussion_count) || 0;
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                const color = palette[idx % palette.length];
+                const safeName = agent.nom_commercial || 'Expert';
+                return `
+                    <div class="mb-2">
+                        <div class="flex items-center justify-between text-[11px] text-slate-600 mb-1">
+                            <span class="truncate pr-2 min-w-0" title="${safeName}">${safeName}</span>
+                            <span class="font-semibold">${count}</span>
+                        </div>
+                        <div class="h-2 bg-white border border-emerald-100 rounded-sm overflow-hidden">
+                            <div class="h-full" style="width:${pct}%; background:${color}"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('') + `<div class="pt-1 text-[11px] font-semibold text-emerald-700">Total: ${total} sessions</div>`;
+        }
+
+        async function loadDashboardStats() {
+            try {
+                const res = await fetchWithToken(`/api/dashboard/stats?_ts=${Date.now()}`);
+                const data = await res.json();
+                const activityTotal = renderActivity7d(data);
+                const sessions = Number.isFinite(activityTotal) ? activityTotal : Number(data?.sessionsLast7Days);
+                const statSessionsEl = document.getElementById('statSessions');
+                if (statSessionsEl) statSessionsEl.textContent = Number.isFinite(sessions) ? sessions : 0;
+                renderAgentAnalytics(data);
+            } catch (e) {
+                console.error('Error loading dashboard stats:', e);
+                const statSessionsEl = document.getElementById('statSessions');
+                if (statSessionsEl) statSessionsEl.textContent = '0';
+                renderActivity7d(null);
+                renderAgentAnalytics(null);
+            }
+        }
+
+        // HELPERS
+        function logout() {
+            try {
+                const isDark = (localStorage.getItem('site_theme') || 'dark') !== 'light';
+                const bg = isDark ? '#08101d' : '#ffffff';
+                document.documentElement.style.backgroundColor = bg;
+                if (document.body) document.body.style.backgroundColor = bg;
+            } catch (_) {}
+            const keepTheme = (() => { try { return localStorage.getItem('site_theme'); } catch (_) { return null; } })();
+            const keepLang = (() => { try { return localStorage.getItem('site_lang'); } catch (_) { return null; } })();
+            localStorage.clear();
+            try {
+                if (keepTheme) localStorage.setItem('site_theme', keepTheme);
+                if (keepLang) localStorage.setItem('site_lang', keepLang);
+            } catch (_) {}
+            try {
+                const topWindow = window.top || window;
+                topWindow.location.href = '/login';
+            } catch (_) {
+                window.location.href = '/login';
+            }
+        }
+
+        function fetchWithToken(url, options = {}) {
+            const headers = {
+                Authorization: 'Bearer ' + token,
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                Pragma: 'no-cache',
+                Expires: '0',
+                ...options.headers
+            };
+            return fetch(url, { ...options, headers, cache: 'no-store' });
+        }
+
+        // NAVIGATION & PERSONA SELECTION
+        function selectPersona(persona, el) {
+            currentPersona = persona;
+            localStorage.setItem('selectedPersona', persona);
+            document.querySelectorAll('.persona-card').forEach(card => {
+                card.classList.remove('ring-4', 'ring-green-400', 'bg-white/20');
+                card.classList.add('bg-white/10');
+            });
+            if (el) {
+                el.classList.remove('bg-white/10');
+                el.classList.add('ring-4', 'ring-green-400', 'bg-white/20');
+            }
+        }
+
+        // DATA LOADING
+        async function loadPersonas() {
+            try {
+                const res = await fetchWithToken('/api/admin/avatars');
+                const personas = await res.json();
+                const container = document.getElementById('personasContainer');
+                if (!container) return;
+
+                if (personas.length === 0) {
+                    container.innerHTML = '<div class="col-span-full py-4 text-emerald-100/50">Aucun expert disponible.</div>';
+                    return;
+                }
+
+                container.innerHTML = personas.map((p, idx) => {
+                    const isSelected = currentPersona === p.nom_avatar || (!currentPersona && idx === 0);
+                    if (isSelected && !currentPersona) {
+                        currentPersona = p.nom_avatar;
+                        localStorage.setItem('selectedPersona', currentPersona);
+                    }
+                    
+                    let visualContent = '';
+                    if (p.image_url) {
+                        visualContent = `<img src="${p.image_url}" alt="${p.nom_avatar}" class="w-full h-full object-cover object-center" />`;
+                    } else {
+                        const icon = p.icone || '<svg class="w-12 h-12 mx-auto text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+                        visualContent = `<div class="text-5xl mt-2 drop-shadow-md">${icon}</div>`;
+                    }
+
+                    return `
+                        <div onclick="selectPersona('${p.nom_avatar}', this)"
+                            class="persona-card bg-white/10 border-white/20 hover:bg-white/20 border rounded-2xl p-6 text-center cursor-pointer transition-all hover:-translate-y-1 flex flex-col items-center justify-center ${isSelected ? 'ring-4 ring-green-400 bg-white/20' : ''}">
+                            <div class="w-20 h-20 mb-4 rounded-full overflow-hidden bg-white/5 flex items-center justify-center shadow-inner">
+                                ${visualContent}
+                            </div>
+                            <h3 class="font-bold text-lg mb-1 text-white">${p.nom_avatar}</h3>
+                            <p class="text-emerald-100/70 text-xs text-center">${getTranslation('statsExpertsAvailable', 'Expert')} ${p.nom_avatar}</p>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Error loading personas:', e);
+            }
+        }
+
+        async function startSession() {
+            var btn = document.getElementById('btnStart');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="text-lg">⏳</span> Démarrage...';
+            btn.classList.add('opacity-80', 'cursor-not-allowed', 'scale-95');
+
+            try {
+                var res = await fetch('/api/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ persona: currentPersona })
+                });
+                var data = await res.json();
+
+                if (data.session_id) {
+                    // Anti-flash during navigation to session page in dark mode.
+                    try {
+                        if ((localStorage.getItem('site_theme') || 'dark') !== 'light') {
+                            document.documentElement.style.backgroundColor = '#08101d';
+                            if (document.body) document.body.style.backgroundColor = '#08101d';
+                        }
+                    } catch (_) {}
+                    var target = '/session?session=' + encodeURIComponent(String(data.session_id));
+                    try {
+                        // Prefer navigating the top app route (React shell) to avoid iframe-document white flash.
+                        var topWindow = window.top || window;
+                        topWindow.location.href = target;
+                    } catch (_) {
+                        window.location.href = target;
+                    }
+                } else {
+                    throw new Error('No session ID returned');
+                }
+            } catch (e) {
+                console.error('Erreur démarrage session:', e);
+                alert('Erreur lors du démarrage de la session. Veuillez réessayer.');
+                btn.disabled = false;
+                btn.innerHTML = `<span class="text-xl">
+  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+</span> <span data-i18n="heroButton">${getTranslation('heroButton', 'Commencer')}</span>`;
+                btn.classList.remove('opacity-80', 'cursor-not-allowed', 'scale-95');
+            }
+        }
+
+        async function loadClientAvatars() {
+            const container = document.getElementById('clientAvatarsList');
+            if (!container) return;
+            container.innerHTML = `<p class="text-center py-6 text-slate-400">${getTranslation('avatarsLoading', 'Chargement des experts...')}</p>`;
+            try {
+                const res = await fetchWithToken('/api/admin/avatars');
+                const avatars = await res.json();
+                clientCachedAvatars.length = 0;
+                clientCachedAvatars.push(...avatars);
+                populateClientRagAvatarSelect();
+                renderClientAvatarCards(avatars);
+            } catch (e) {
+                console.error('Erreur avatars:', e);
+                container.innerHTML = `<p class="text-center py-6 text-red-500">${getTranslation('avatarsError', 'Impossible de charger les experts.')}</p>`;
+            }
+        }
+
+        function renderClientAvatarCards(avatars) {
+            const container = document.getElementById('clientAvatarsList');
+            if (!container) return;
+            if (!avatars.length) {
+                container.innerHTML = `<p class="text-center py-6 text-slate-400">${getTranslation('avatarsEmpty', 'Aucun expert disponible.')}</p>`;
+                return;
+            }
+            container.innerHTML = avatars.map(a => {
+                const escapedName = (a.nom_avatar || 'Expert').replace(/'/g, "\\'");
+                
+                let visualContent = '';
+                if (a.image_url) {
+                    visualContent = `<img src="${a.image_url}" alt="${a.nom_avatar}" class="w-10 h-10 rounded-full object-cover">`;
+                } else {
+                    const icon = a.icone || '💊';
+                    visualContent = `<span class="text-2xl">${icon}</span>`;
+                }
+                
+                return `
+                    <div class="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-colors">
+                        <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                            ${visualContent}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-semibold text-sm text-slate-800 truncate">${a.nom_avatar}</div>
+                            <div class="text-xs text-slate-500">${a.prompt_system ? 'Prompt défini' : getTranslation('promptUndefined', 'Prompt non défini')}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editAvatar('${a.id}')" class="text-xs text-emerald-600 hover:underline">${getTranslation('avatarEdit', 'Modifier')}</button>
+                            <button onclick="deleteAvatar('${a.id}', '${escapedName}')" class="text-xs text-red-500 hover:underline">${getTranslation('avatarDelete', 'Supprimer')}</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateClientRagAvatarSelect() {
+            const select = document.getElementById('clientRagAvatarSelect');
+            if (!select) return;
+            select.innerHTML = `<option value="" data-i18n="ragChooseExpert">${getTranslation('ragChooseExpert', 'Choisissez un expert...')}</option>`;
+            clientCachedAvatars.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a.id;
+                opt.textContent = a.nom_avatar;
+                select.appendChild(opt);
+            });
+        }
+
+        // RAG Functions
+        async function loadClientRagDocuments() {
+            const list = document.getElementById('clientRagDocsList');
+            if (!list) return;
+            const selectedAvatarId = String(document.getElementById('clientRagAvatarSelect')?.value || '').trim();
+            if (!selectedAvatarId) {
+                list.innerHTML = `<p class="text-center py-6 text-muted">Choisissez un expert pour voir ses documents.</p>`;
+                return;
+            }
+            list.innerHTML = `<p class="text-center py-6 text-muted">${getTranslation('ragDocsLoading', 'Chargement des documents...')}</p>`;
+            try {
+                const res = await fetchWithToken('/api/admin/rag/documents');
+                const payload = await res.json();
+                const allDocs = Array.isArray(payload?.documents) ? payload.documents : [];
+                const docs = allDocs.filter((d) => String(d.avatar_id || '') === selectedAvatarId);
+                if (!docs.length) {
+                    list.innerHTML = `<p class="text-center py-6 text-muted">${getTranslation('ragNoDocs', 'Aucun document importé.')}</p>`;
+                    return;
+                }
+                list.innerHTML = docs.map(doc => {
+                    const filename = doc.filename || doc.name || 'Document';
+                    const chunkCount = Number(doc.chunk_count || 0);
+                    const docId = doc.uuid || doc.id;
+                    return `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-semibold text-slate-800 truncate">${filename}</div>
+                                    <p class="text-xs text-slate-500">${doc.nom_avatar || '—'} • ${chunkCount} chunks</p>
+                                </div>
+                            </div>
+                            <button onclick="deleteRagDocument('${docId}', '${(filename||'').replace(/'/g, "\\'")}')"
+                                class="text-xs text-red-500 hover:underline">Supprimer</button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Erreur documents RAG', e);
+                list.innerHTML = '<p class="text-center py-6 text-red-500">Impossible de charger.</p>';
+            }
+        }
+
+        function setRagFeedback(message, tone = 'muted') {
+            const el = document.getElementById('clientRagFeedback');
+            if (!el) return;
+            const color = tone === 'error' ? 'text-red-500' : tone === 'success' ? 'text-emerald-600' : 'text-slate-500';
+            el.className = `text-xs mt-3 min-h-[1.25rem] ${color}`;
+            el.textContent = message || '';
+        }
+
+        function setRagProgress(percent, show = true) {
+            const wrap = document.getElementById('clientRagProgressWrap');
+            const bar = document.getElementById('clientRagProgressBar');
+            const pct = document.getElementById('clientRagProgressPct');
+            if (!wrap || !bar || !pct) return;
+            wrap.classList.toggle('hidden', !show);
+            const safe = Math.max(0, Math.min(100, Number(percent) || 0));
+            bar.style.width = `${safe}%`;
+            pct.textContent = `${Math.round(safe)}%`;
+        }
+
+        async function uploadRagFiles(files) {
+            const avatarId = String(document.getElementById('clientRagAvatarSelect')?.value || '').trim();
+            if (!avatarId) {
+                setRagFeedback('Veuillez choisir un expert avant upload.', 'error');
+                return;
+            }
+            const selected = Array.from(files || []);
+            if (!selected.length) return;
+
+            setRagFeedback('');
+            setRagProgress(0, true);
+            let okCount = 0;
+
+            for (let i = 0; i < selected.length; i++) {
+                const file = selected[i];
+                const form = new FormData();
+                form.append('file', file);
+                form.append('avatar_id', avatarId);
+                try {
+                    const res = await fetchWithToken('/api/admin/rag/upload', { method: 'POST', body: form });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.error || `Erreur upload ${file.name}`);
+                    okCount += 1;
+                } catch (e) {
+                    console.error('RAG upload error:', e);
+                    setRagFeedback(`Erreur sur "${file.name}": ${e.message}`, 'error');
+                }
+                setRagProgress(((i + 1) / selected.length) * 100, true);
+            }
+
+            if (okCount > 0) {
+                setRagFeedback(`${okCount} fichier(s) importé(s) avec succès.`, 'success');
+            }
+            await loadClientRagDocuments();
+            setTimeout(() => setRagProgress(0, false), 700);
+        }
+
+        function bindClientRagUi() {
+            const btn = document.getElementById('clientRagFileBtn');
+            const input = document.getElementById('clientRagFileInput');
+            const zone = document.getElementById('clientRagUploadZone');
+            const avatarSelect = document.getElementById('clientRagAvatarSelect');
+            if (!btn || !input || !zone) return;
+
+            btn.addEventListener('click', () => input.click());
+            zone.addEventListener('click', () => input.click());
+            input.addEventListener('change', async () => {
+                await uploadRagFiles(input.files);
+                input.value = '';
+            });
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('border-emerald-300', 'bg-white');
+            });
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('border-emerald-300', 'bg-white');
+            });
+            zone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                zone.classList.remove('border-emerald-300', 'bg-white');
+                await uploadRagFiles(e.dataTransfer?.files || []);
+            });
+
+            avatarSelect?.addEventListener('change', () => {
+                loadClientRagDocuments();
+            });
+        }
+
+        function openAvatarModal() {
+            document.getElementById('avatarForm')?.reset();
+            document.getElementById('avatarId').value = '';
+            document.getElementById('avatarModal').classList.remove('hidden');
+        }
+
+        function closeAvatarModal() {
+            document.getElementById('avatarModal').classList.add('hidden');
+        }
+
+        function editAvatar(id) {
+            const avatar = clientCachedAvatars.find(a => String(a.id) === String(id));
+            if (!avatar) return;
+            document.getElementById('avatarId').value = avatar.id;
+            document.getElementById('avatar_nom').value = avatar.nom_avatar;
+            document.getElementById('avatar_icone').value = avatar.icone;
+            document.getElementById('avatar_prompt').value = avatar.prompt_system || '';
+            document.getElementById('avatarModal').classList.remove('hidden');
+        }
+
+        document.getElementById('avatarForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('avatarId').value;
+            
+            // On récupère l'avatar existant pour ne pas écraser ses paramètres de ressources
+            const avatar = clientCachedAvatars.find(a => String(a.id) === String(id));
+            
+            const data = {
+                nom_avatar: document.getElementById('avatar_nom').value,
+                prompt_system: document.getElementById('avatar_prompt').value,
+                icone: document.getElementById('avatar_icone').value,
+                use_rag: avatar ? avatar.use_rag : 1,
+                use_db: avatar ? avatar.use_db : 1,
+                use_knowledge: avatar ? avatar.use_knowledge : 1,
+                manual_ranking: avatar ? avatar.manual_ranking : 0,
+                resource_ranking: avatar ? avatar.resource_ranking : null
+            };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/admin/avatars/${id}` : '/api/admin/avatars';
+            try {
+                const res = await fetchWithToken(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    closeAvatarModal();
+                    loadClientAvatars();
+                    loadPersonas();
+                } else {
+                    const err = await res.json();
+                    alert('Erreur: ' + (err.error || 'Impossible d\'enregistrer'));
+                }
+            } catch (e) {
+                console.error('Save expert error:', e);
+            }
+        };
+
+        async function deleteRagDocument(id, name) {
+            if (!confirm(`Supprimer le document "${name}" ?`)) return;
+            try {
+                await fetchWithToken(`/api/admin/rag/documents/${id}`, { method: 'DELETE' });
+                loadClientRagDocuments();
+            } catch (e) {
+                console.error('Erreur suppression doc', e);
+                alert('Erreur lors de la suppression.');
+            }
+        }
+
+        function toggleLanguageMenu() {
+            document.getElementById('languageMenu')?.classList.toggle('hidden');
+        }
+
+        document.getElementById('languageMenu')?.addEventListener('click', (e) => {
+            const item = e.target.closest('li[data-lang]');
+            if (!item) return;
+            const code = item.dataset.lang;
+            applyLanguage(code);
+            toggleLanguageMenu();
+            localStorage.setItem('site_lang', code);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('#languagePicker')) {
+                document.getElementById('languageMenu')?.classList.add('hidden');
+            }
+        });
+
+        // INITIALIZATION
+        loadPersonas();
+        loadClientAvatars();
+        loadClientRagDocuments();
+        bindClientRagUi();
+        loadDashboardStats();
+        applyLanguage(currentLang);
+        applyTheme(currentTheme);
+        setInterval(refreshLastUpdateLabel, 60000);
+    </script>
+    <script src="js/app-sidebar.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

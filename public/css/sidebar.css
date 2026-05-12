@@ -1,0 +1,50 @@
+/* Styles extracted from public/js/app-sidebar.js */
+.app-sidebar-shell {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 280px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  transition: width .25s ease;
+  overflow: hidden;
+}
+.app-sidebar-shell.collapsed { width: 72px; }
+.app-sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 20px 16px; }
+.app-sidebar-toggle {
+  width: 40px; height: 40px; border: 0; border-radius: 12px;
+  background: #10b981; color: #fff; cursor: pointer; font-size: 18px;
+}
+.app-sidebar-title { font-weight: 700; font-size: 22px; color: #111827; white-space: nowrap; }
+.app-sidebar-shell.collapsed .app-sidebar-title { display: none; }
+.app-sidebar-nav, .app-sidebar-bottom { display: flex; flex-direction: column; gap: 8px; padding: 0 12px; }
+.app-sidebar-nav { flex: 1; overflow: auto; }
+.app-sidebar-bottom { padding-top: 12px; padding-bottom: 16px; border-top: 1px solid #f1f5f9; }
+.app-sidebar-item {
+  height: 44px; border: 0; border-radius: 12px; background: transparent;
+  display: flex; align-items: center; gap: 12px; color: #6b7280;
+  font-weight: 600; cursor: pointer; width: 100%; padding: 0 12px; text-align: left;
+}
+.app-sidebar-item:hover { background: #f3f4f6; color: #111827; }
+.app-sidebar-item.active { background: #10b981; color: #fff; box-shadow: 0 8px 20px rgba(16,185,129,.28); }
+.app-sidebar-icon { width: 20px; height: 20px; text-align: center; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+.app-sidebar-icon svg { width: 18px; height: 18px; }
+.app-sidebar-label { white-space: nowrap; }
+.app-sidebar-shell.collapsed .app-sidebar-label { display: none; }
+.app-main-offset { padding-left: 280px !important; transition: padding-left .25s ease; }
+.app-main-offset.collapsed { padding-left: 72px !important; }
+html.dark-theme .app-sidebar-shell,
+body.dark-theme .app-sidebar-shell { background: #18181b; border-right-color: #27272a; }
+html.dark-theme .app-sidebar-title,
+body.dark-theme .app-sidebar-title { color: #fff; }
+html.dark-theme .app-sidebar-item,
+body.dark-theme .app-sidebar-item { color: #a1a1aa; }
+html.dark-theme .app-sidebar-item:hover,
+body.dark-theme .app-sidebar-item:hover { background: #27272a; color: #fff; }
+html.dark-theme .app-sidebar-bottom,
+body.dark-theme .app-sidebar-bottom { border-top-color: #27272a; }

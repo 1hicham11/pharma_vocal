@@ -1,0 +1,53 @@
+@startuml
+autonumber
+actor Delegue
+participant "Frontend Web" as UI
+participant "AgentController" as AgentCtrl
+participant "AgentInitService" as InitSvc
+database "AvatarRepository\n(AVATARS_ASSISTANTS)" as AvatarRepo
+database "AssistanceSessionRepository\n(SESSIONS_ASSISTANCE)" as AssistSessionRepo
+participant "AgentOrchestrator" as Orchestrator
+database "MessageAssistanceRepository\n(MESSAGES)" as MsgRepo
+participant "Agent Python ReAct\n(FastAPI /agent)" as PyAgent
+database "RechercheRepository\n(ACTIONS_RECHERCHE)" as SearchRepo
+participant "SyntheseService" as SynthSvc
+participant "OpenAI Chat Completion" as OpenAI
+database "SyntheseRepository\n(SYNTHESE_ASSISTANCE)" as SynthRepo
+
+== Initialisation ==
+Delegue -> UI : Choisir avatar expert
+UI -> AgentCtrl : POST /api/agents/session {avatarId}
+AgentCtrl -> InitSvc : initSession({avatarId,userId})
+InitSvc -> AvatarRepo : findById(avatarId)
+InitSvc -> AssistSessionRepo : create(sessionId,userId,avatarId)
+InitSvc --> AgentCtrl : config session
+AgentCtrl --> UI : 201 {sessionId,nomAvatar,vocalId}
+
+== Dialogue multi-agent ==
+Delegue -> UI : Envoyer message
+UI -> AgentCtrl : POST /api/agents/session/:id/message
+AgentCtrl -> AssistSessionRepo : findById(sessionId)
+AgentCtrl -> MsgRepo : getHistory(sessionId)
+AgentCtrl -> Orchestrator : processMessage(...)
+Orchestrator -> MsgRepo : saveMessage(utilisateur)
+Orchestrator -> PyAgent : POST /agent {text,avatar_id}
+PyAgent --> Orchestrator : output (responseText)
+Orchestrator -> SearchRepo : saveAction(requete,sources)
+Orchestrator -> MsgRepo : saveMessage(assistant)
+Orchestrator --> AgentCtrl : {responseText,actions,sources}
+AgentCtrl --> UI : reponse + actions UI
+
+== Cloture ==
+Delegue -> UI : Terminer session
+UI -> AgentCtrl : PUT /api/agents/session/:id/end
+AgentCtrl -> AssistSessionRepo : findById(sessionId)
+AgentCtrl -> SynthSvc : clotureSession({sessionId,avatarNom})
+SynthSvc -> MsgRepo : getHistory(sessionId)
+SynthSvc -> OpenAI : completion JSON (resume + KPIs)
+OpenAI --> SynthSvc : synthese structuree
+SynthSvc -> SynthRepo : create(synthese)
+SynthSvc -> AssistSessionRepo : finalize(sessionId)
+SynthSvc --> AgentCtrl : synthese + succes
+AgentCtrl --> UI : Session cloturee
+@enduml
+

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+  <script>
+    (function () {
+      try {
+        var isDark = localStorage.getItem('site_theme') !== 'light';
+        var root = document.documentElement;
+        root.classList.toggle('dark-theme', isDark);
+        root.style.colorScheme = isDark ? 'dark' : 'light';
+        root.style.backgroundColor = isDark ? '#08101d' : '#f8fafc';
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voxeleon — Connexion</title>
+  <meta name="description" content="Plateforme d'entraînement vocal pour délégués pharmaceutiques" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/auth-pages.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body class="auth-page text-slate-900 antialiased selection:bg-emerald-500 selection:text-white">
+
+  <video class="auth-bg-video" autoplay muted loop playsinline preload="metadata"
+    src="/FPV%20Drone%20Flight%20through%20Beautiful%20Iceland%20Canyon.mp4"></video>
+  <div class="auth-bg-overlay"></div>
+
+  <div class="auth-shell">
+    <section class="auth-left">
+      <div class="auth-card fade-in">
+        <div class="auth-brand">
+          <div class="auth-brand-badge">V</div>
+          <div class="min-w-0">
+            <h1 class="auth-title">Voxeleon</h1>
+            <p class="auth-subtitle">Connectez-vous à votre espace de formation vocale.</p>
+          </div>
+        </div>
+
+        <div class="auth-tabs" role="tablist" aria-label="Connexion ou inscription">
+          <a class="auth-tab active" href="/login" role="tab" aria-selected="true">Connexion</a>
+          <a class="auth-tab" href="/register" role="tab" aria-selected="false">Inscription</a>
+        </div>
+
+        <form id="loginForm" class="auth-form-stack">
+          <div class="auth-field">
+            <label class="auth-label" for="email">Adresse email</label>
+            <input class="auth-input" type="email" id="email" placeholder="votre@email.com" required />
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="password">Mot de passe</label>
+            <input class="auth-input" type="password" id="password" placeholder="••••••••" required />
+          </div>
+
+          <div class="auth-muted-row">
+            <span>Compte démo : <strong>med@pharma.com</strong></span>
+            <a href="/contact">Besoin d'aide ?</a>
+          </div>
+
+          <p class="auth-error hidden" id="errorMsg">❌ Email ou mot de passe incorrect</p>
+
+          <button type="submit" class="auth-primary-btn" id="loginBtn">
+            <span id="loginText">Se connecter</span>
+            <div class="spinner hidden" id="loginSpinner"></div>
+          </button>
+        </form>
+
+        <div class="auth-divider">ou</div>
+
+        <a class="auth-secondary-btn" href="/register">Créer un compte</a>
+
+        <p class="auth-footnote auth-footnote--after-form">
+          En continuant, vous acceptez nos conditions et notre politique de confidentialité.
+        </p>
+      </div>
+    </section>
+
+    <aside class="auth-right" aria-hidden="true">
+      <div class="auth-right-content">
+        <div class="auth-right-pill">
+          <p class="auth-pill-title">Entraînement vocal premium</p>
+          <p class="auth-pill-text">
+            Un thème cohérent (dark/light) sans flash, des experts IA, et une expérience fluide sur tout le parcours.
+          </p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    if (localStorage.getItem('token')) window.location.href = '/dashboard';
+
+    const errorMsg = document.getElementById('errorMsg');
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('loginBtn');
+      const spinner = document.getElementById('loginSpinner');
+      const text = document.getElementById('loginText');
+      const emailVal = document.getElementById('email').value;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-80', 'cursor-not-allowed');
+      spinner.classList.remove('hidden');
+      text.classList.add('hidden');
+      errorMsg.classList.add('hidden');
+
+      const passwordVal = document.getElementById('password').value;
+
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailVal, mot_de_passe: passwordVal })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.location.href = '/dashboard';
+          } else {
+            throw new Error(data.error || 'Erreur de connexion');
+          }
+        })
+        .catch(err => {
+          console.error('[Login] Error:', err);
+          errorMsg.textContent = '❌ ' + (err.message || 'Email ou mot de passe incorrect');
+          errorMsg.classList.remove('hidden');
+
+          btn.disabled = false;
+          btn.classList.remove('opacity-80', 'cursor-not-allowed');
+          spinner.classList.add('hidden');
+          text.classList.remove('hidden');
+        });
+    });
+  </script>
+  <script src="theme-toggle.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <script>
+        (function () {
+            try {
+                var isDark = localStorage.getItem('site_theme') !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark-theme', isDark);
+                root.style.colorScheme = isDark ? 'dark' : 'light';
+                root.style.backgroundColor = isDark ? '#08101d' : '#ffffff';
+            } catch (_) {}
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxeleon — Aide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body class="bg-[#edf3fb] text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+    <div class="min-h-screen">
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <header class="px-6 lg:px-10 py-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.09 9a3 3 0 1 1 5.82 0c0 2-3 2.2-3 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="17.5" r="0.8" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>
+                    <h1 class="text-2xl font-bold text-slate-900">Centre d'aide</h1>
+                </div>
+                <button onclick="logout()" class="text-sm text-slate-500 hover:text-red-500 transition">Déconnexion</button>
+            </header>
+
+            <main class="flex-1 overflow-y-auto px-6 lg:px-10 pb-10 space-y-6">
+                <section class="max-w-3xl space-y-8">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 mb-4">Foire aux questions</h2>
+                        <div class="space-y-4">
+                            <details class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm cursor-pointer group">
+                                <summary class="font-bold text-slate-800 list-none flex justify-between items-center uppercase text-xs tracking-widest">
+                                    Comment créer un expert ?
+                                    <span class="group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <p class="mt-4 text-sm text-slate-600 leading-relaxed">Cliquez sur "+ Ajouter un agent" en bas de la barre latérale. Suivez ensuite les 4 étapes du wizard pour configurer l'identité, les documents et les ressources de votre agent.</p>
+                            </details>
+                            
+                            <details class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm cursor-pointer group">
+                                <summary class="font-bold text-slate-800 list-none flex justify-between items-center uppercase text-xs tracking-widest">
+                                    Qu'est-ce que le RAG ?
+                                    <span class="group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <p class="mt-4 text-sm text-slate-600 leading-relaxed">Le RAG (Retrieval-Augmented Generation) permet à l'agent de consulter vos propres documents (PDF, Docx) en temps réel pour répondre avec précision à partir de vos sources.</p>
+                            </details>
+                            
+                            <details class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm cursor-pointer group">
+                                <summary class="font-bold text-slate-800 list-none flex justify-between items-center uppercase text-xs tracking-widest">
+                                    Comment fonctionne le score ?
+                                    <span class="group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <p class="mt-4 text-sm text-slate-600 leading-relaxed">À la fin de chaque session, une IA évalue votre performance selon plusieurs critères (connaissance produit, empathie, persuasion) et vous attribue un score sur 100.</p>
+                            </details>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
+    <script src="js/overview.js"></script>
+    <script src="js/app-sidebar.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

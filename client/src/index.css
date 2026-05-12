@@ -1,0 +1,459 @@
+@import 'tailwindcss';
+@import '../../public/css/auth-pages.css';
+
+:root {
+    --vox-bg: #f8fafc;
+    --vox-bg-soft: #eef7f3;
+    --vox-surface: rgba(255, 255, 255, 0.92);
+    --vox-surface-solid: #ffffff;
+    --vox-text: #0f172a;
+    --vox-muted: #64748b;
+    --vox-border: #e2e8f0;
+    --vox-accent: #059669;
+    --vox-accent-light: #10b981;
+    --vox-radius-lg: 1.5rem;
+    --vox-radius-xl: 2rem;
+    --vox-shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
+    --vox-shadow-md: 0 18px 48px rgba(15, 23, 42, 0.10);
+    
+    /* Correction anti-flash : Variable pour le haut du dégradé */
+    --vox-gradient-top: #ffffff;
+
+    --bg-secondary: var(--vox-surface-solid);
+    --text-secondary: var(--vox-muted);
+    --border: var(--vox-border);
+    --accent: var(--vox-accent);
+    --accent-light: var(--vox-accent-light);
+    --shadow-lg: var(--vox-shadow-md);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    min-width: 320px;
+    min-height: 100vh;
+    /* Utilisation de la variable au lieu de #ffffff en dur */
+    background:
+        radial-gradient(circle at top left, rgba(16, 185, 129, 0.11), transparent 34rem),
+        linear-gradient(180deg, var(--vox-gradient-top) 0%, var(--vox-bg) 45%, var(--vox-bg-soft) 100%);
+    color: var(--vox-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    /* ~80 % du référentiel 16px → rendu proche d’un zoom arrière ~20 % (rem / Tailwind suivent). */
+    font-size: 12.8px;
+    scroll-behavior: smooth;
+    /* Assure que le fond du document correspond à la variable */
+    background-color: var(--vox-gradient-top);
+}
+
+::selection {
+    background: rgba(16, 185, 129, 0.24);
+    color: #064e3b;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid rgba(5, 150, 105, 0.35);
+    outline-offset: 3px;
+}
+
+#root .bg-gray-50 {
+    background:
+        radial-gradient(circle at top left, rgba(16, 185, 129, 0.10), transparent 34rem),
+        linear-gradient(180deg, var(--vox-gradient-top) 0%, #f8fafc 42%, #eef7f3 100%);
+}
+
+#root .bg-white {
+    background-color: var(--vox-surface);
+}
+
+#root .border-slate-100,
+#root .border-slate-200 {
+    border-color: var(--vox-border);
+}
+
+#root .shadow-sm,
+#root .shadow-\[0_8px_30px_rgb\(0\,0\,0\,0\.04\)\] {
+    box-shadow: var(--vox-shadow-sm);
+}
+
+#root .hover\:shadow-xl:hover {
+    box-shadow: var(--vox-shadow-md);
+}
+
+#root input,
+#root textarea,
+#root select {
+    min-height: 2.75rem;
+}
+
+#root input:focus,
+#root textarea:focus,
+#root select:focus {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.13);
+}
+
+#root .bg-green-600,
+#root .hover\:bg-green-700:hover {
+    background-image: linear-gradient(135deg, var(--vox-accent), var(--vox-accent-light));
+}
+
+#root .rounded-\[40px\],
+#root .rounded-\[32px\],
+#root .rounded-\[2rem\] {
+    border-radius: var(--vox-radius-xl);
+}
+
+#root .rounded-3xl {
+    border-radius: var(--vox-radius-lg);
+}
+
+#root .theme-toggle-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--vox-border);
+    border-radius: 9999px;
+    background: var(--vox-surface);
+    color: var(--vox-muted);
+    box-shadow: var(--vox-shadow-sm);
+    transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        background 160ms ease;
+}
+
+#root .theme-toggle-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--vox-accent-light);
+    color: var(--vox-accent);
+}
+
+#root .theme-toggle-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.bg-grid {
+    background-size: 40px 40px;
+    background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-position: center;
+}
+.fade-mask {
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+.modal {
+    display: none;
+}
+.modal.active {
+    display: flex;
+}
+.step-content {
+    display: none;
+}
+.step-content.active {
+    display: block;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+.slider:before {
+    position: absolute;
+    content: '';
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: #10b981;
+}
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.spinner {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 2px solid white;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Padding explicite des cartes auth. */
+.auth-form-card {
+    box-sizing: border-box;
+    padding: 2rem 1.75rem !important;
+}
+@media (min-width: 640px) {
+    .auth-form-card {
+        padding: 2.75rem 2.5rem !important;
+    }
+}
+@media (min-width: 768px) {
+    .auth-form-card {
+        padding: 3.25rem 3.5rem !important;
+    }
+}
+
+/* ===== React App Dark Theme ===== */
+body.dark-theme {
+    --vox-gradient-top: #08101d;
+    --vox-bg: #0b1220;
+    --vox-bg-soft: #111b2d;
+    --vox-surface: rgba(15, 23, 42, 0.76);
+    --vox-surface-solid: #111827;
+    --vox-text: #f8fafc;
+    --vox-muted: #94a3b8;
+    --vox-border: #334155;
+    --vox-accent: #10b981;
+    --vox-accent-light: #34d399;
+    --vox-shadow-sm: 0 10px 28px rgba(2, 6, 23, 0.45);
+    --vox-shadow-md: 0 22px 52px rgba(2, 6, 23, 0.56);
+    
+    /* Correction anti-flash : Fond sombre pour le haut du dégradé */
+    --vox-gradient-top: #08101d;
+
+    --bg-secondary: var(--vox-surface-solid);
+    --text-secondary: var(--vox-muted);
+    --border: var(--vox-border);
+    --accent: var(--vox-accent);
+    --accent-light: var(--vox-accent-light);
+    --shadow-lg: var(--vox-shadow-md);
+    
+    background:
+        linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, transparent 28%),
+        linear-gradient(180deg, var(--vox-gradient-top) 0%, var(--vox-bg) 55%, var(--vox-bg-soft) 100%);
+    color: var(--vox-text);
+}
+
+html.dark-theme {
+    background-color: #08101d !important;
+}
+
+body.dark-theme ::selection {
+    background: rgba(16, 185, 129, 0.35);
+    color: #ecfdf5;
+}
+
+body.dark-theme #root .bg-gray-50 {
+    background:
+        linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, transparent 28%),
+        linear-gradient(180deg, var(--vox-gradient-top) 0%, #0b1220 45%, #111b2d 100%) !important;
+}
+
+body.dark-theme #root .vox-home-hero {
+    background:
+        linear-gradient(180deg, rgba(8, 16, 29, 0.1) 0%, rgba(15, 23, 42, 0.92) 100%),
+        linear-gradient(135deg, rgba(16, 185, 129, 0.11) 0%, rgba(15, 23, 42, 0) 42%);
+    border-bottom: 1px solid rgba(51, 65, 85, 0.65);
+}
+
+body.dark-theme #root .vox-hero-fade {
+    background: linear-gradient(
+        to top,
+        rgba(11, 18, 32, 0.98) 0%,
+        rgba(11, 18, 32, 0.72) 42%,
+        rgba(11, 18, 32, 0.16) 100%
+    ) !important;
+}
+
+body.dark-theme #root .vox-hero-grid {
+    opacity: 0.26;
+}
+
+body.dark-theme #root .bg-white {
+    background-color: var(--vox-surface) !important;
+    backdrop-filter: blur(14px);
+}
+
+body.dark-theme #root .theme-toggle-btn {
+    background: rgba(15, 23, 42, 0.84);
+    border-color: rgba(148, 163, 184, 0.32);
+    color: #d5deea;
+}
+
+body.dark-theme #root .theme-toggle-btn:hover {
+    border-color: rgba(52, 211, 153, 0.72);
+    color: #6ee7b7;
+    background: rgba(30, 41, 59, 0.9);
+}
+
+body.dark-theme #root .vox-secondary-cta {
+    border-color: rgba(203, 213, 225, 0.35) !important;
+    color: #f8fafc !important;
+    background: rgba(15, 23, 42, 0.22);
+}
+
+body.dark-theme #root .vox-secondary-cta:hover {
+    background: rgba(30, 41, 59, 0.76) !important;
+    border-color: rgba(52, 211, 153, 0.58) !important;
+}
+
+body.dark-theme #root .bg-slate-50 {
+    background-color: rgba(30, 41, 59, 0.62) !important;
+}
+
+body.dark-theme #root .bg-slate-100 {
+    background-color: rgba(51, 65, 85, 0.68) !important;
+}
+
+body.dark-theme #root .bg-green-50,
+body.dark-theme #root .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.14) !important;
+}
+
+body.dark-theme #root .bg-blue-100 {
+    background-color: rgba(59, 130, 246, 0.24) !important;
+}
+
+body.dark-theme #root .bg-purple-100 {
+    background-color: rgba(139, 92, 246, 0.24) !important;
+}
+
+body.dark-theme #root .bg-orange-100 {
+    background-color: rgba(249, 115, 22, 0.24) !important;
+}
+
+body.dark-theme #root .text-emerald-950,
+body.dark-theme #root .text-slate-900,
+body.dark-theme #root .text-slate-800 {
+    color: #f8fafc !important;
+}
+
+body.dark-theme #root .text-slate-700,
+body.dark-theme #root .text-slate-600 {
+    color: #d5deea !important;
+}
+
+body.dark-theme #root .text-slate-500,
+body.dark-theme #root .text-slate-400,
+body.dark-theme #root .text-slate-300 {
+    color: #9db0c8 !important;
+}
+
+body.dark-theme #root .text-blue-700 {
+    color: #93c5fd !important;
+}
+
+body.dark-theme #root .text-green-700 {
+    color: #6ee7b7 !important;
+}
+
+body.dark-theme #root .border-slate-100,
+body.dark-theme #root .border-slate-200,
+body.dark-theme #root .border-slate-300 {
+    border-color: var(--vox-border) !important;
+}
+
+body.dark-theme #root .border-green-100 {
+    border-color: rgba(52, 211, 153, 0.32) !important;
+}
+
+body.dark-theme #root .shadow-sm,
+body.dark-theme #root .shadow-\[0_8px_30px_rgb\(0\,0\,0\,0\.04\)\] {
+    box-shadow: var(--vox-shadow-sm) !important;
+}
+
+body.dark-theme #root .hover\:shadow-xl:hover {
+    box-shadow: var(--vox-shadow-md) !important;
+}
+
+body.dark-theme #root input,
+body.dark-theme #root textarea,
+body.dark-theme #root select {
+    background-color: rgba(15, 23, 42, 0.64) !important;
+    border-color: var(--vox-border) !important;
+    color: var(--vox-text) !important;
+}
+
+body.dark-theme #root input::placeholder,
+body.dark-theme #root textarea::placeholder {
+    color: #94a3b8;
+}
+
+body.dark-theme #root .bg-grid {
+    background-image:
+        linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+}
