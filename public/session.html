@@ -89,6 +89,204 @@
         #userProfileMenu button:hover svg {
             color: #0f172a;
         }
+
+        /* Bouton vocal manuel — glassmorphism (cercle pastel + halo) */
+        .manual-voice-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .manual-voice-glow {
+            position: absolute;
+            inset: -14px;
+            border-radius: 50%;
+            background: radial-gradient(
+                ellipse 85% 75% at 50% 38%,
+                rgba(216, 180, 254, 0.5) 0%,
+                rgba(251, 207, 232, 0.38) 38%,
+                rgba(186, 230, 253, 0.28) 62%,
+                transparent 72%
+            );
+            filter: blur(16px);
+            opacity: 0.9;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .manual-voice-orb {
+            position: relative;
+            z-index: 1;
+            width: 5.5rem;
+            height: 5.5rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            background: linear-gradient(
+                145deg,
+                rgba(255, 255, 255, 0.58) 0%,
+                rgba(243, 232, 255, 0.52) 38%,
+                rgba(252, 231, 243, 0.48) 68%,
+                rgba(224, 242, 254, 0.52) 100%
+            );
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 4px 28px rgba(167, 139, 250, 0.14),
+                0 10px 40px rgba(244, 114, 182, 0.09),
+                inset 0 1px 0 rgba(255, 255, 255, 0.75),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.22s ease, box-shadow 0.28s ease, border-color 0.22s ease, background 0.28s ease;
+        }
+
+        .manual-voice-orb:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow:
+                0 8px 36px rgba(167, 139, 250, 0.22),
+                0 14px 48px rgba(244, 114, 182, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.85),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.28);
+        }
+
+        .manual-voice-orb:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .manual-voice-orb--recording {
+            animation: manual-voice-orb-pulse 1.35s ease-in-out infinite;
+            border-color: rgba(251, 113, 133, 0.55);
+            background: linear-gradient(
+                145deg,
+                rgba(255, 255, 255, 0.52) 0%,
+                rgba(254, 205, 211, 0.48) 45%,
+                rgba(252, 231, 243, 0.55) 100%
+            );
+        }
+
+        @keyframes manual-voice-orb-pulse {
+            0%, 100% {
+                box-shadow:
+                    0 4px 28px rgba(244, 63, 94, 0.18),
+                    0 12px 44px rgba(251, 113, 133, 0.12),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                    inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                box-shadow:
+                    0 6px 36px rgba(244, 63, 94, 0.28),
+                    0 16px 52px rgba(251, 113, 133, 0.18),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                    inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        .manual-voice-orb__mic {
+            width: 1.85rem;
+            height: 1.85rem;
+            color: rgba(100, 116, 139, 0.72);
+            transition: color 0.2s ease;
+        }
+
+        .manual-voice-orb__mic.manual-voice-orb__mic--recording {
+            color: rgba(225, 29, 72, 0.88);
+        }
+
+        html.dark-theme .manual-voice-orb {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: linear-gradient(
+                145deg,
+                rgba(30, 41, 59, 0.55) 0%,
+                rgba(76, 29, 149, 0.25) 45%,
+                rgba(131, 24, 67, 0.2) 100%
+            );
+            box-shadow:
+                0 4px 28px rgba(139, 92, 246, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        html.dark-theme .manual-voice-glow {
+            opacity: 0.65;
+        }
+
+        html.dark-theme .manual-voice-orb__mic {
+            color: rgba(203, 213, 225, 0.85);
+        }
+
+        html.dark-theme .manual-voice-orb__icon-x {
+            color: rgba(203, 213, 225, 0.85);
+        }
+
+        .manual-voice-pair {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: center;
+            gap: clamp(1.5rem, 5vw, 2.75rem);
+        }
+
+        .manual-voice-glow--cancel {
+            background: radial-gradient(
+                ellipse 85% 75% at 50% 38%,
+                rgba(186, 230, 253, 0.48) 0%,
+                rgba(216, 180, 254, 0.38) 42%,
+                rgba(251, 207, 232, 0.3) 64%,
+                transparent 72%
+            );
+        }
+
+        .manual-voice-orb--cancel {
+            background: linear-gradient(
+                145deg,
+                rgba(255, 255, 255, 0.58) 0%,
+                rgba(224, 242, 254, 0.52) 38%,
+                rgba(243, 232, 255, 0.48) 68%,
+                rgba(252, 231, 243, 0.52) 100%
+            );
+        }
+
+        .manual-voice-orb__icon-x {
+            width: 1.65rem;
+            height: 1.65rem;
+            color: rgba(100, 116, 139, 0.72);
+            transition: color 0.2s ease;
+        }
+
+        .manual-voice-orb--cancel:hover .manual-voice-orb__icon-x {
+            color: rgba(71, 85, 105, 0.92);
+        }
+
+        html.dark-theme .manual-voice-orb--cancel {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: linear-gradient(
+                145deg,
+                rgba(30, 41, 59, 0.55) 0%,
+                rgba(30, 58, 138, 0.22) 45%,
+                rgba(76, 29, 149, 0.22) 100%
+            );
+            box-shadow:
+                0 4px 28px rgba(56, 189, 248, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .manual-voice-orb--dimmed {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: saturate(0.7);
+        }
+
+        .manual-voice-orb--dimmed:hover,
+        .manual-voice-orb--dimmed:active {
+            transform: none;
+        }
+
+        html.dark-theme .manual-voice-orb--dimmed {
+            opacity: 0.35;
+        }
         
         .dark-scrollbar::-webkit-scrollbar {
             width: 4px;
@@ -1408,26 +1606,52 @@
                 </button>
             </div>
 
-            <div class="mb-4 flex flex-wrap items-center justify-center gap-3">
-                <button id="manualVoiceBtn" type="button" onclick="toggleManualVoiceMessage()"
-                    class="group inline-flex min-w-[260px] items-center gap-3 rounded-[1.35rem] border border-emerald-200/80 bg-white/90 px-4 py-3 text-left shadow-[0_14px_35px_rgba(15,23,42,0.10)] backdrop-blur transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50/90 hover:shadow-[0_18px_45px_rgba(16,185,129,0.18)] active:translate-y-0 active:scale-[0.99]">
-                    <span id="manualVoiceBtnIcon"
-                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xl text-white shadow-[0_10px_22px_rgba(16,185,129,0.32)] transition-transform group-hover:scale-105">
-                        🎙️
-                    </span>
-                    <span class="flex min-w-0 flex-col">
-                        <span id="manualVoiceBtnText" class="text-sm font-extrabold tracking-tight text-slate-800">
-                            Message vocal manuel
-                        </span>
-                        <span id="manualVoiceBtnHint" class="text-[0.72rem] font-semibold text-slate-400">
-                            Parlez librement, envoyez quand vous êtes prêt
-                        </span>
-                    </span>
-                </button>
-                <button id="manualVoiceCancelBtn" type="button" onclick="cancelManualVoiceMessage()"
-                    class="hidden inline-flex items-center gap-2 rounded-[1.2rem] border border-slate-200 bg-white/90 px-4 py-3 text-sm font-bold text-slate-500 shadow-[0_10px_25px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:text-slate-700 active:translate-y-0 active:scale-95">
-                    Annuler
-                </button>
+            <div class="mb-6 flex justify-center px-2">
+                <div class="manual-voice-pair">
+                    <div class="manual-voice-wrap">
+                        <div class="relative flex h-[5.75rem] w-[5.75rem] shrink-0 items-center justify-center">
+                            <div class="manual-voice-glow" aria-hidden="true"></div>
+                            <button id="manualVoiceBtn" type="button" onclick="toggleManualVoiceMessage()"
+                                title="Message vocal manuel"
+                                class="manual-voice-orb focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
+                                <svg id="manualVoiceBtnIcon" class="manual-voice-orb__mic" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <path
+                                        d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="max-w-[14rem] text-center px-1">
+                            <p id="manualVoiceBtnText" class="text-sm font-extrabold tracking-tight text-slate-800">
+                                Message vocal manuel
+                            </p>
+                            <p id="manualVoiceBtnHint" class="mt-1 text-[0.72rem] font-semibold leading-snug text-slate-400">
+                                Parlez librement, envoyez quand vous êtes prêt
+                            </p>
+                        </div>
+                    </div>
+                    <div id="manualVoiceCancelWrap" class="manual-voice-wrap">
+                        <div class="relative flex h-[5.75rem] w-[5.75rem] shrink-0 items-center justify-center">
+                            <div class="manual-voice-glow manual-voice-glow--cancel" aria-hidden="true"></div>
+                            <button id="manualVoiceCancelBtn" type="button" onclick="cancelManualVoiceMessage()"
+                                title="Annuler l'enregistrement"
+                                class="manual-voice-orb manual-voice-orb--cancel manual-voice-orb--dimmed focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                                aria-disabled="true">
+                                <svg class="manual-voice-orb__icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M18 6 6 18M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="max-w-[14rem] text-center px-1">
+                            <p class="text-sm font-extrabold tracking-tight text-slate-800">Annuler</p>
+                            <p id="manualVoiceCancelHint" class="mt-1 text-[0.72rem] font-semibold leading-snug text-slate-400">
+                                Pendant l'enregistrement
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div id="transcriptText" class="mt-8 w-full max-w-lg bg-white p-5 rounded-[2rem] shadow-[0_20px_40px_rgba(15,23,42,0.08)] border border-slate-100 min-h-[80px]">
@@ -2850,6 +3074,7 @@
         let speechQueue = [];
         let isSpeechQueueActive = false;
         let speechQueueGeneration = 0;
+        const ttsPrefetchCache = new Map(); // text → { status, objectUrl }
         let currentStreamingTts = null;
         function normalizeSpeechText(text) {
             return String(text || '')
@@ -3142,6 +3367,18 @@
         let bargeInSpeechStartAt = 0;
         let lastBargeInAt = 0;
         let chatRequestInFlight = false;
+        let realtimePeerConnection = null;
+        let realtimeDataChannel = null;
+        let realtimeLocalStream = null;
+        let realtimeRemoteAudio = null;
+        let realtimeAssistantDraft = '';
+        let realtimeFunctionCalls = new Map();
+        let realtimeEnabled = false;
+        let realtimeMicPausedForAssistant = false;
+        let realtimeSilenceTimer = null;
+        let realtimeWaitingForSilence = false;
+        const USE_REALTIME_HANDS_FREE = true;
+        const ENABLE_INCREMENTAL_TTS = true;
         
         const IGNORED_PHRASES = ['merci', 'merci.', 'merci beaucoup.', 'sous-titres', 'sous-titres.', 'merci de regarder', 'bye', 'bye.', 'au revoir', 'a bientôt'];
         
@@ -3151,6 +3388,14 @@
         let recorderChunks = [];
         let isRecordingAudio = false;
         let isManualVoiceRecording = false;
+        let manualVoiceSending = false; // allows classic pipeline when Realtime is off or non-manual session
+        let realtimeSessionMode = null; // null | 'handsfree' | 'manual'
+        let realtimeManualMicStream = null;
+        let realtimeManualRecordStream = null;
+        let manualRealtimeRecorder = null;
+        let manualRealtimeChunks = [];
+        let discardManualRealtimeStop = false;
+        let realtimeManualGraphCleanups = [];
         let discardNextRecording = false;
         
         // Canvas refs
@@ -3706,11 +3951,105 @@
             await startManualVoiceMessage();
         }
 
+        async function beginSecondManualRealtimeRecordingCycle() {
+            if (!realtimeDataChannel || realtimeDataChannel.readyState !== 'open') return;
+            try {
+                realtimeDataChannel.send(JSON.stringify({ type: 'input_audio_buffer.clear' }));
+            } catch (_) { }
+            if (manualRealtimeRecorder && manualRealtimeRecorder.state !== 'inactive') {
+                discardManualRealtimeStop = true;
+                await new Promise((resolve) => {
+                    const r = manualRealtimeRecorder;
+                    const done = () => {
+                        manualRealtimeChunks = [];
+                        discardManualRealtimeStop = false;
+                        resolve();
+                    };
+                    r.onstop = done;
+                    try {
+                        r.stop();
+                    } catch (_) {
+                        done();
+                    }
+                });
+            }
+            setupManualRealtimeRecorder();
+            clearPendingTranscriptCommit();
+            clearRecognitionRestartTimer();
+            isConversationActive = true;
+            isRecording = true;
+            isManualVoiceRecording = true;
+            isRecordingAudio = false;
+            userTurnCaptureStartedAt = Date.now();
+            lastSpeechAt = Date.now();
+            lastConfirmedUserSpeechAt = Date.now();
+            speechFrameCount = 0;
+            speechStartAt = 0;
+            updateMicUI(false);
+            updateManualVoiceUI();
+            updateStatusText("🎙️ Enregistrement manuel Realtime... cliquez sur Envoyer quand vous avez terminé.");
+            setMascotState({ speaking: false, listening: true });
+            startVisualization();
+        }
+
         async function startManualVoiceMessage() {
             if (chatRequestInFlight || isThinking || isAssistantSpeaking) {
                 updateStatusText("⏳ Attendez la fin de la réponse avant d'enregistrer.");
                 return;
             }
+
+            if (USE_REALTIME_HANDS_FREE) {
+                if (
+                    realtimeEnabled &&
+                    realtimeSessionMode === 'manual' &&
+                    realtimeDataChannel?.readyState === 'open'
+                ) {
+                    if (isManualVoiceRecording) return;
+                    await beginSecondManualRealtimeRecordingCycle();
+                    return;
+                }
+
+                if (realtimeEnabled || realtimePeerConnection || realtimeLocalStream) {
+                    stopRealtimeHandsFree();
+                    isConversationActive = false;
+                    isRecording = false;
+                    updateMicUI(false);
+                    stopVisualization();
+                }
+
+                updateStatusText("🔌 Connexion Realtime (vocal manuel)...");
+                setMascotState({ speaking: false, listening: true });
+                const ok = await startRealtimeHandsFree({ mode: 'manual' });
+                if (!ok) {
+                    updateStatusText("⚠️ Connexion Realtime impossible. Réessayez.");
+                    setMascotState({ speaking: false, listening: false });
+                    return;
+                }
+
+                clearPendingTranscriptCommit();
+                clearRecognitionRestartTimer();
+                browserInterimTranscript = '';
+                currentTranscript = '';
+                currentTurnClientTranscriptCommitted = false;
+                currentTurnRequestDispatched = false;
+                discardNextRecording = false;
+
+                isConversationActive = true;
+                isRecording = true;
+                isManualVoiceRecording = true;
+                isRecordingAudio = false;
+                userTurnCaptureStartedAt = Date.now();
+                lastSpeechAt = Date.now();
+                lastConfirmedUserSpeechAt = Date.now();
+                speechFrameCount = 0;
+                speechStartAt = 0;
+
+                updateMicUI(false);
+                updateManualVoiceUI();
+                startVisualization();
+                return;
+            }
+
             await initMedia();
             if (!mediaStream || !mediaRecorder) return;
             if (mediaRecorder.state && mediaRecorder.state !== 'inactive') return;
@@ -3757,8 +4096,72 @@
             startVisualization();
         }
 
-        function sendManualVoiceMessage() {
+        async function sendManualVoiceMessage() {
+            if (USE_REALTIME_HANDS_FREE && realtimeSessionMode === 'manual') {
+                if (!isManualVoiceRecording || !manualRealtimeRecorder) return;
+                if (manualRealtimeRecorder.state === 'inactive') return;
+                isManualVoiceRecording = false;
+                isRecordingAudio = false;
+                isRecording = false;
+                userTurnCaptureStartedAt = 0;
+                clearPendingTranscriptCommit();
+                clearRecognitionRestartTimer();
+                updateManualVoiceUI();
+                updateStatusText("⏳ Envoi du message vocal Realtime...");
+                setMascotState({ speaking: false, listening: false });
+
+                const rec = manualRealtimeRecorder;
+                const mimeType = rec?.mimeType || 'audio/webm';
+                manualRealtimeRecorder.onstop = async () => {
+                    if (discardManualRealtimeStop) {
+                        manualRealtimeChunks = [];
+                        discardManualRealtimeStop = false;
+                        return;
+                    }
+                    const blob = new Blob(manualRealtimeChunks, {
+                        type: mimeType,
+                    });
+                    manualRealtimeChunks = [];
+                    if (!blob || blob.size < MIN_AUDIO_BLOB_BYTES) {
+                        updateStatusText("🎤 Enregistrement trop court. Réessayez.");
+                        isConversationActive = false;
+                        stopRealtimeHandsFree();
+                        updateManualVoiceUI();
+                        setMascotState({ speaking: false, listening: false });
+                        stopVisualization();
+                        return;
+                    }
+                    try {
+                        const pcmChunks = await blobToPcm16Base64Chunks(blob);
+                        if (!realtimeDataChannel || realtimeDataChannel.readyState !== 'open') {
+                            throw new Error('Canal Realtime fermé');
+                        }
+                        for (const audioB64 of pcmChunks) {
+                            realtimeDataChannel.send(JSON.stringify({
+                                type: 'input_audio_buffer.append',
+                                audio: audioB64,
+                            }));
+                        }
+                        realtimeDataChannel.send(JSON.stringify({ type: 'input_audio_buffer.commit' }));
+                        realtimeDataChannel.send(JSON.stringify({ type: 'response.create' }));
+                    } catch (err) {
+                        console.warn('Manual realtime send failed:', err);
+                        updateStatusText("❌ Envoi vocal Realtime impossible. Réessayez.");
+                        isConversationActive = false;
+                        stopRealtimeHandsFree();
+                        stopVisualization();
+                    }
+                };
+                try {
+                    manualRealtimeRecorder.stop();
+                } catch (_) {
+                    updateStatusText("❌ Impossible d'envoyer l'audio. Réessayez.");
+                }
+                return;
+            }
+
             if (!isManualVoiceRecording || !mediaRecorder) return;
+            manualVoiceSending = true;
             isManualVoiceRecording = false;
             isRecordingAudio = false;
             isRecording = false;
@@ -3781,7 +4184,43 @@
         }
 
         function cancelManualVoiceMessage() {
+            if (USE_REALTIME_HANDS_FREE && realtimeSessionMode === 'manual') {
+                if (!isManualVoiceRecording) return;
+                manualVoiceSending = false;
+                isManualVoiceRecording = false;
+                isRecordingAudio = false;
+                isRecording = false;
+                isConversationActive = false;
+                userTurnCaptureStartedAt = 0;
+                clearPendingTranscriptCommit();
+                clearRecognitionRestartTimer();
+                updateManualVoiceUI();
+
+                if (manualRealtimeRecorder && manualRealtimeRecorder.state !== 'inactive') {
+                    discardManualRealtimeStop = true;
+                    manualRealtimeRecorder.onstop = () => {
+                        manualRealtimeChunks = [];
+                        discardManualRealtimeStop = false;
+                    };
+                    try {
+                        manualRealtimeRecorder.stop();
+                    } catch (_) { }
+                }
+                try {
+                    if (realtimeDataChannel?.readyState === 'open') {
+                        realtimeDataChannel.send(JSON.stringify({ type: 'input_audio_buffer.clear' }));
+                    }
+                } catch (_) { }
+                stopRealtimeHandsFree();
+                clearTranscriptUI();
+                updateStatusText("Message vocal annulé.");
+                setMascotState({ speaking: false, listening: false });
+                stopVisualization();
+                return;
+            }
+
             if (!isManualVoiceRecording) return;
+            manualVoiceSending = false;
             discardNextRecording = true;
             isManualVoiceRecording = false;
             isRecordingAudio = false;
@@ -3807,9 +4246,556 @@
             setMascotState({ speaking: false, listening: false });
             stopVisualization();
         }
+
+        async function saveRealtimeMessage(role, text) {
+            const clean = String(text || '').trim();
+            if (!SESSION_ID || !clean) return;
+            try {
+                await fetch('/api/realtime/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + token,
+                    },
+                    body: JSON.stringify({
+                        session_id: SESSION_ID,
+                        role,
+                        text: clean,
+                    }),
+                });
+            } catch (err) {
+                console.warn('Realtime message save failed:', err);
+            }
+        }
+
+        function getRealtimeFunctionCallKey(event) {
+            return String(event?.call_id || event?.item?.call_id || event?.item_id || event?.item?.id || '').trim();
+        }
+
+        function rememberRealtimeFunctionCall(event) {
+            const item = event?.item || {};
+            const callId = String(event?.call_id || item.call_id || '').trim();
+            const key = getRealtimeFunctionCallKey(event) || callId;
+            if (!key) return null;
+            const existing = realtimeFunctionCalls.get(key) || {};
+            const next = {
+                callId: callId || existing.callId || key,
+                name: String(event?.name || item.name || existing.name || 'lookup_agent_context').trim(),
+                argumentsText: String(event?.arguments || item.arguments || existing.argumentsText || ''),
+                fulfilled: Boolean(existing.fulfilled),
+            };
+            realtimeFunctionCalls.set(key, next);
+            if (next.callId && next.callId !== key) realtimeFunctionCalls.set(next.callId, next);
+            return next;
+        }
+
+        function appendRealtimeFunctionArguments(event) {
+            const key = getRealtimeFunctionCallKey(event);
+            if (!key) return;
+            const existing = realtimeFunctionCalls.get(key) || rememberRealtimeFunctionCall(event) || {};
+            existing.argumentsText = `${existing.argumentsText || ''}${event?.delta || ''}`;
+            if (event?.call_id) existing.callId = String(event.call_id);
+            if (event?.name) existing.name = String(event.name);
+            realtimeFunctionCalls.set(key, existing);
+            if (existing.callId) realtimeFunctionCalls.set(existing.callId, existing);
+        }
+
+        async function fulfillRealtimeFunctionCall(call) {
+            if (!call?.callId || call.name !== 'lookup_agent_context') return;
+            if (call.fulfilled) return;
+            call.fulfilled = true;
+            let args = {};
+            try {
+                args = JSON.parse(call.argumentsText || '{}');
+            } catch (err) {
+                console.warn('Realtime function arguments parse failed:', err);
+            }
+            const question = String(args?.question || currentTranscript || browserInterimTranscript || '').trim();
+            let output;
+            try {
+                const sid = await ensureSessionId();
+                const res = await fetch('/api/realtime/tool', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + token,
+                    },
+                    body: JSON.stringify({
+                        session_id: String(sid),
+                        question,
+                    }),
+                });
+                output = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    output = { error: output?.error || `HTTP ${res.status}` };
+                }
+            } catch (err) {
+                output = { error: err?.message || 'Erreur outil Realtime' };
+            }
+
+            if (!realtimeDataChannel || realtimeDataChannel.readyState !== 'open') return;
+            realtimeDataChannel.send(JSON.stringify({
+                type: 'conversation.item.create',
+                item: {
+                    type: 'function_call_output',
+                    call_id: call.callId,
+                    output: JSON.stringify(output),
+                },
+            }));
+            realtimeDataChannel.send(JSON.stringify({ type: 'response.create' }));
+        }
+
+        function handleRealtimeEvent(event) {
+            if (!event || !event.type) return;
+            if (event.type === 'response.output_item.added' && event?.item?.type === 'function_call') {
+                rememberRealtimeFunctionCall(event);
+                updateStatusText("🔎 Recherche dans les ressources de l'agent...");
+                return;
+            }
+            if (event.type === 'response.function_call_arguments.delta') {
+                appendRealtimeFunctionArguments(event);
+                return;
+            }
+            if (event.type === 'response.function_call_arguments.done') {
+                const call = rememberRealtimeFunctionCall(event) || realtimeFunctionCalls.get(getRealtimeFunctionCallKey(event));
+                if (call && event?.arguments) call.argumentsText = String(event.arguments || call.argumentsText || '');
+                fulfillRealtimeFunctionCall(call).catch((err) => console.warn('Realtime function fulfillment failed:', err));
+                return;
+            }
+            if (event.type === 'response.output_item.done' && event?.item?.type === 'function_call') {
+                const call = rememberRealtimeFunctionCall(event);
+                fulfillRealtimeFunctionCall(call).catch((err) => console.warn('Realtime function fulfillment failed:', err));
+                return;
+            }
+            if (event.type === 'response.created' || event.type === 'response.output_item.added') {
+                isAssistantSpeaking = true;
+                updateStatusText("🔊 L'expert parle... (parlez pour interrompre)");
+                setMascotState({ speaking: true, listening: false });
+                return;
+            }
+            if (event.type === 'input_audio_buffer.speech_started') {
+                // User started speaking — OpenAI server will cancel current response automatically.
+                realtimeWaitingForSilence = false;
+                clearTimeout(realtimeSilenceTimer);
+                realtimeAssistantDraft = '';
+                isAssistantSpeaking = false;
+                setMascotState({ speaking: false, listening: true });
+                updateStatusText("🎤 Je vous écoute...");
+                return;
+            }
+            if (event.type === 'input_audio_buffer.speech_stopped') {
+                updateStatusText("⏳ Réponse en cours...");
+                setMascotState({ speaking: false, listening: false });
+                return;
+            }
+            if (event.type === 'conversation.item.input_audio_transcription.completed') {
+                const text = String(event.transcript || '').trim();
+                if (text && !isLikelyInvalidUserTranscript(text)) {
+                    appendMessage('user', text);
+                    lastUserMessageNormalized = normalizeSpeechText(text);
+                    saveRealtimeMessage('user', text);
+                }
+                return;
+            }
+            if (event.type === 'response.audio.delta') {
+                // Keep mic enabled so the user can interrupt at any time (server VAD handles it).
+                isAssistantSpeaking = true;
+                updateStatusText("🔊 L'expert parle... (parlez pour interrompre)");
+                setMascotState({ speaking: true, listening: false });
+                return;
+            }
+            if (event.type === 'response.audio_transcript.delta' || event.type === 'response.text.delta') {
+                realtimeAssistantDraft += String(event.delta || '');
+                if (realtimeAssistantDraft.trim()) {
+                    updateAssistantDraftText(realtimeAssistantDraft);
+                }
+                return;
+            }
+            if (event.type === 'response.audio_transcript.done' || event.type === 'response.text.done') {
+                realtimeAssistantDraft = '';
+                return;
+            }
+            if (event.type === 'response.cancelled') {
+                clearTimeout(realtimeSilenceTimer);
+                realtimeWaitingForSilence = false;
+                realtimeAssistantDraft = '';
+                isAssistantSpeaking = false;
+                return;
+            }
+            if (event.type === 'response.done') {
+                // Extract assistant transcript from response output (works even without audio_transcript events)
+                const outputItems = event.response?.output || [];
+                for (const item of outputItems) {
+                    if (item.type === 'message' && item.role === 'assistant') {
+                        for (const content of item.content || []) {
+                            const transcript = (content.transcript || content.text || '').trim();
+                            if (transcript && transcript !== lastAssistantReplyText) {
+                                lastAssistantReplyText = transcript;
+                                finalizeAssistantDraftText(transcript); // already calls appendMessage internally
+                                saveRealtimeMessage('assistant', transcript);
+                            }
+                        }
+                    }
+                }
+                realtimeAssistantDraft = '';
+                if (isConversationActive && realtimeEnabled) {
+                    realtimeAssistantDone();
+                }
+                return;
+            }
+            if (event.type === 'error') {
+                console.warn('Realtime error:', event.error || event);
+                setRealtimeMicEnabled(true);
+                updateStatusText("⚠️ Erreur Realtime. Réessayez dans un instant.");
+            }
+        }
+
+        function setRealtimeMicEnabled(enabled) {
+            if (!realtimeLocalStream) return;
+            realtimeLocalStream.getAudioTracks().forEach((track) => {
+                track.enabled = Boolean(enabled);
+            });
+            realtimeMicPausedForAssistant = !enabled;
+        }
+
+        function cleanupRealtimeManualWebAudio() {
+            realtimeManualGraphCleanups.forEach((fn) => {
+                try { fn(); } catch (_) { }
+            });
+            realtimeManualGraphCleanups = [];
+            if (realtimeManualMicStream) {
+                realtimeManualMicStream.getTracks().forEach((t) => {
+                    try { t.stop(); } catch (_) { }
+                });
+                realtimeManualMicStream = null;
+            }
+            realtimeManualRecordStream = null;
+        }
+
+        async function blobToPcm16Base64Chunks(blob, targetRate = 24000) {
+            const arrayBuf = await blob.arrayBuffer();
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const audioBuf = await ctx.decodeAudioData(arrayBuf.slice(0));
+            const len = audioBuf.length;
+            const ch0 = audioBuf.getChannelData(0);
+            const ch1 = audioBuf.numberOfChannels > 1 ? audioBuf.getChannelData(1) : null;
+            const mono = new Float32Array(len);
+            for (let i = 0; i < len; i++) {
+                mono[i] = ch1 ? (ch0[i] + ch1[i]) * 0.5 : ch0[i];
+            }
+            const srcRate = audioBuf.sampleRate;
+            const outLen = Math.max(1, Math.ceil(len * targetRate / srcRate));
+            const resampled = new Float32Array(outLen);
+            for (let i = 0; i < outLen; i++) {
+                const t = (i / (outLen - 1 || 1)) * (len - 1 || 0);
+                const j = Math.floor(t);
+                const f = t - j;
+                const a = mono[j] || 0;
+                const b = j + 1 < len ? mono[j + 1] : a;
+                resampled[i] = a * (1 - f) + b * f;
+            }
+            const pcm = new Int16Array(resampled.length);
+            for (let i = 0; i < resampled.length; i++) {
+                const s = Math.max(-1, Math.min(1, resampled[i]));
+                pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+            }
+            const chunkBytes = 4800 * 2;
+            const chunks = [];
+            const u8 = new Uint8Array(pcm.buffer);
+            for (let o = 0; o < u8.length; o += chunkBytes) {
+                const slice = u8.subarray(o, Math.min(o + chunkBytes, u8.length));
+                let binary = '';
+                for (let i = 0; i < slice.length; i++) binary += String.fromCharCode(slice[i]);
+                chunks.push(btoa(binary));
+            }
+            await ctx.close().catch(() => { });
+            return chunks;
+        }
+
+        function setupManualRealtimeRecorder() {
+            if (!realtimeManualRecordStream) return;
+            const MicMimeTypes = ['audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4', ''];
+            let micMime = '';
+            for (const m of MicMimeTypes) {
+                if (MediaRecorder.isTypeSupported(m)) {
+                    micMime = m;
+                    break;
+                }
+            }
+            manualRealtimeChunks = [];
+            manualRealtimeRecorder = new MediaRecorder(
+                realtimeManualRecordStream,
+                micMime ? { mimeType: micMime } : undefined
+            );
+            manualRealtimeRecorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) manualRealtimeChunks.push(e.data);
+            };
+            manualRealtimeRecorder.start(250);
+        }
+
+        async function startRealtimeHandsFree(options = {}) {
+            if (!window.RTCPeerConnection || !navigator.mediaDevices?.getUserMedia) return false;
+            try {
+                const sid = await ensureSessionId();
+                const sessionRes = await fetch('/api/realtime/session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + token,
+                    },
+                    body: JSON.stringify({
+                        session_id: String(sid),
+                        language: getServerLanguageParam(),
+                    }),
+                });
+                const sessionData = await sessionRes.json().catch(() => ({}));
+                if (!sessionRes.ok) {
+                    throw new Error(sessionData?.error || 'Session Realtime indisponible');
+                }
+                const model = sessionData?.model || 'gpt-realtime';
+                const sessionMode = options.mode === 'manual' ? 'manual' : 'handsfree';
+
+                realtimePeerConnection = new RTCPeerConnection();
+                realtimeRemoteAudio = new Audio();
+                realtimeRemoteAudio.autoplay = true;
+                realtimePeerConnection.ontrack = (event) => {
+                    const [stream] = event.streams;
+                    if (stream) realtimeRemoteAudio.srcObject = stream;
+                };
+
+                if (sessionMode === 'handsfree') {
+                    realtimeLocalStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            channelCount: 1,
+                        },
+                        video: false,
+                    });
+
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume().catch(() => {});
+                    }
+                    const realtimeMicSource = audioContext.createMediaStreamSource(realtimeLocalStream);
+                    const realtimeMicAnalyser = audioContext.createAnalyser();
+                    realtimeMicAnalyser.fftSize = 256;
+                    realtimeMicSource.connect(realtimeMicAnalyser);
+                    analyser = realtimeMicAnalyser;
+                } else {
+                    cleanupRealtimeManualWebAudio();
+                    realtimeManualMicStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            channelCount: 1,
+                        },
+                        video: false,
+                    });
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume().catch(() => {});
+                    }
+                    const src = audioContext.createMediaStreamSource(realtimeManualMicStream);
+                    const destAudible = audioContext.createMediaStreamDestination();
+                    const gainZero = audioContext.createGain();
+                    gainZero.gain.value = 0;
+                    const destSilent = audioContext.createMediaStreamDestination();
+                    src.connect(destAudible);
+                    src.connect(gainZero);
+                    gainZero.connect(destSilent);
+                    realtimeLocalStream = destSilent.stream;
+                    realtimeManualRecordStream = destAudible.stream;
+                    const realtimeMicAnalyser = audioContext.createAnalyser();
+                    realtimeMicAnalyser.fftSize = 256;
+                    src.connect(realtimeMicAnalyser);
+                    analyser = realtimeMicAnalyser;
+                    realtimeManualGraphCleanups.push(() => {
+                        try { src.disconnect(); } catch (_) { }
+                        try { gainZero.disconnect(); } catch (_) { }
+                    });
+                }
+
+                realtimeLocalStream.getTracks().forEach((track) => {
+                    realtimePeerConnection.addTrack(track, realtimeLocalStream);
+                });
+
+                let dcOpenedResolve;
+                const dcOpenedPromise = new Promise((resolve, reject) => {
+                    dcOpenedResolve = resolve;
+                    setTimeout(() => reject(new Error('Realtime data channel timeout')), 25000);
+                });
+
+                realtimeDataChannel = realtimePeerConnection.createDataChannel('oai-events');
+                realtimeDataChannel.onmessage = (message) => {
+                    try {
+                        handleRealtimeEvent(JSON.parse(message.data));
+                    } catch (_) {
+                        // Ignore malformed diagnostic events.
+                    }
+                };
+                realtimeDataChannel.onopen = () => {
+                    realtimeSessionMode = sessionMode;
+                    realtimeEnabled = true;
+                    if (sessionMode === 'manual') {
+                        try {
+                            realtimeDataChannel.send(JSON.stringify({ type: 'input_audio_buffer.clear' }));
+                        } catch (_) { }
+                        setupManualRealtimeRecorder();
+                        updateStatusText("🎙️ Enregistrement manuel Realtime... cliquez sur Envoyer quand vous avez terminé.");
+                        setMascotState({ speaking: false, listening: true });
+                    } else {
+                        setRealtimeMicEnabled(true);
+                        updateStatusText("🎤 Mode mains libres Realtime activé. Parlez...");
+                        setMascotState({ speaking: false, listening: true });
+                    }
+                    updateManualVoiceUI();
+                    if (typeof dcOpenedResolve === 'function') dcOpenedResolve();
+                };
+                realtimeDataChannel.onerror = (event) => {
+                    console.warn('Realtime data channel error:', event);
+                };
+
+                const offer = await realtimePeerConnection.createOffer();
+                await realtimePeerConnection.setLocalDescription(offer);
+
+                const sdpRes = await fetch('/api/realtime/sdp', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Bearer ' + token,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model,
+                        session_id: String(sid),
+                        sdp: offer.sdp,
+                        realtime_mode: sessionMode,
+                    }),
+                });
+                if (!sdpRes.ok) {
+                    const errText = await sdpRes.text().catch(() => '');
+                    throw new Error(errText || `Realtime SDP HTTP ${sdpRes.status}`);
+                }
+                const answerSdp = await sdpRes.text();
+                await realtimePeerConnection.setRemoteDescription({
+                    type: 'answer',
+                    sdp: answerSdp,
+                });
+
+                await dcOpenedPromise;
+
+                return true;
+            } catch (err) {
+                console.warn('Realtime start failed:', err);
+                stopRealtimeHandsFree();
+                return false;
+            }
+        }
+
+        function stopRealtimeHandsFree() {
+            realtimeEnabled = false;
+            realtimeSessionMode = null;
+            realtimeWaitingForSilence = false;
+            clearTimeout(realtimeSilenceTimer);
+            realtimeMicPausedForAssistant = false;
+            realtimeAssistantDraft = '';
+            realtimeFunctionCalls = new Map();
+            discardManualRealtimeStop = false;
+            if (manualRealtimeRecorder && manualRealtimeRecorder.state !== 'inactive') {
+                try {
+                    manualRealtimeRecorder.stop();
+                } catch (_) { }
+            }
+            manualRealtimeRecorder = null;
+            manualRealtimeChunks = [];
+            if (realtimeDataChannel) {
+                try { realtimeDataChannel.close(); } catch (_) { }
+                realtimeDataChannel = null;
+            }
+            if (realtimePeerConnection) {
+                try { realtimePeerConnection.close(); } catch (_) { }
+                realtimePeerConnection = null;
+            }
+            if (realtimeLocalStream) {
+                realtimeLocalStream.getTracks().forEach((track) => {
+                    try { track.stop(); } catch (_) { }
+                });
+                realtimeLocalStream = null;
+            }
+            cleanupRealtimeManualWebAudio();
+            if (realtimeRemoteAudio) {
+                try {
+                    realtimeRemoteAudio.pause();
+                    realtimeRemoteAudio.srcObject = null;
+                } catch (_) { }
+                realtimeRemoteAudio = null;
+            }
+        }
         
+        function realtimeAssistantDone() {
+            if (realtimeSessionMode === 'manual') {
+                if (isManualVoiceRecording) return;
+                clearTimeout(realtimeSilenceTimer);
+                realtimeWaitingForSilence = true;
+                realtimeSilenceTimer = setTimeout(() => {
+                    realtimeWaitingForSilence = false;
+                    isAssistantSpeaking = false;
+                    if (isConversationActive && realtimeEnabled) {
+                        updateStatusText("📤 Touchez le bouton rond « vocal manuel » pour un nouvel enregistrement.");
+                        setMascotState({ speaking: false, listening: false });
+                    }
+                }, 700);
+                return;
+            }
+            clearTimeout(realtimeSilenceTimer);
+            realtimeWaitingForSilence = true;
+            realtimeSilenceTimer = setTimeout(() => {
+                realtimeWaitingForSilence = false;
+                isAssistantSpeaking = false;
+                if (isConversationActive && realtimeEnabled && !isManualVoiceRecording) {
+                    setRealtimeMicEnabled(true);
+                    updateStatusText("🎤 Je vous écoute...");
+                    setMascotState({ speaking: false, listening: true });
+                }
+            }, 700);
+        }
+
         async function startMic() {
+            if (isManualVoiceRecording) {
+                cancelManualVoiceMessage();
+            }
+            if (USE_REALTIME_HANDS_FREE && (realtimeEnabled || realtimePeerConnection) && realtimeSessionMode === 'manual') {
+                stopRealtimeHandsFree();
+                isConversationActive = false;
+                isRecording = false;
+                updateMicUI(false);
+                stopVisualization();
+            }
             if (isConversationActive) return;
+            if (USE_REALTIME_HANDS_FREE) {
+                isConversationActive = true;
+                isRecording = true;
+                updateMicUI(true);
+                updateStatusText("🔌 Connexion Realtime...");
+                setMascotState({ speaking: false, listening: true });
+                const realtimeStarted = await startRealtimeHandsFree();
+                if (realtimeStarted) {
+                    startVisualization();
+                    return;
+                }
+                isConversationActive = false;
+                isRecording = false;
+                updateMicUI(false);
+                updateStatusText("⚠️ Realtime indisponible. Vérifiez la clé OpenAI et réessayez.");
+                setMascotState({ speaking: false, listening: false });
+                return;
+            }
             await initMedia();
             if (!mediaStream) return;
             
@@ -3838,6 +4824,9 @@
             if (!isConversationActive) return;
             if (isManualVoiceRecording) {
                 cancelManualVoiceMessage();
+            }
+            if (realtimeEnabled || realtimePeerConnection || realtimeLocalStream) {
+                stopRealtimeHandsFree();
             }
             isConversationActive = false;
             isRecording = false;
@@ -3892,36 +4881,28 @@
             const hint = document.getElementById('manualVoiceBtnHint');
             const icon = document.getElementById('manualVoiceBtnIcon');
             const cancelBtn = document.getElementById('manualVoiceCancelBtn');
+            const cancelHint = document.getElementById('manualVoiceCancelHint');
             if (!btn || !text || !hint || !icon || !cancelBtn) return;
 
-            btn.classList.toggle('border-emerald-200/80', !isManualVoiceRecording);
-            btn.classList.toggle('hover:border-emerald-300', !isManualVoiceRecording);
-            btn.classList.toggle('hover:bg-emerald-50/90', !isManualVoiceRecording);
-            btn.classList.toggle('hover:shadow-[0_18px_45px_rgba(16,185,129,0.18)]', !isManualVoiceRecording);
-            btn.classList.toggle('border-rose-200', isManualVoiceRecording);
-            btn.classList.toggle('bg-rose-50/95', isManualVoiceRecording);
-            btn.classList.toggle('hover:border-rose-300', isManualVoiceRecording);
-            btn.classList.toggle('hover:bg-rose-50', isManualVoiceRecording);
-            btn.classList.toggle('hover:shadow-[0_18px_45px_rgba(244,63,94,0.18)]', isManualVoiceRecording);
-            btn.classList.toggle('animate-pulse', isManualVoiceRecording);
+            btn.classList.toggle('manual-voice-orb--recording', isManualVoiceRecording);
+            icon.classList.toggle('manual-voice-orb__mic--recording', isManualVoiceRecording);
 
-            icon.classList.toggle('from-emerald-500', !isManualVoiceRecording);
-            icon.classList.toggle('to-teal-600', !isManualVoiceRecording);
-            icon.classList.toggle('shadow-[0_10px_22px_rgba(16,185,129,0.32)]', !isManualVoiceRecording);
-            icon.classList.toggle('from-rose-500', isManualVoiceRecording);
-            icon.classList.toggle('to-orange-500', isManualVoiceRecording);
-            icon.classList.toggle('shadow-[0_10px_22px_rgba(244,63,94,0.30)]', isManualVoiceRecording);
-
-            icon.textContent = isManualVoiceRecording ? '📤' : '🎙️';
             text.textContent = isManualVoiceRecording ? 'Envoyer le message' : 'Message vocal manuel';
-            text.classList.toggle('text-rose-900', isManualVoiceRecording);
+            text.classList.toggle('text-rose-800', isManualVoiceRecording);
             text.classList.toggle('text-slate-800', !isManualVoiceRecording);
             hint.textContent = isManualVoiceRecording
-                ? 'Cliquez ici quand votre phrase est complète'
+                ? 'Cliquez sur le cercle quand votre phrase est complète'
                 : 'Parlez librement, envoyez quand vous êtes prêt';
             hint.classList.toggle('text-rose-500', isManualVoiceRecording);
             hint.classList.toggle('text-slate-400', !isManualVoiceRecording);
-            cancelBtn.classList.toggle('hidden', !isManualVoiceRecording);
+
+            cancelBtn.classList.toggle('manual-voice-orb--dimmed', !isManualVoiceRecording);
+            cancelBtn.setAttribute('aria-disabled', isManualVoiceRecording ? 'false' : 'true');
+            if (cancelHint) {
+                cancelHint.textContent = isManualVoiceRecording
+                    ? 'Abandon sans envoyer'
+                    : 'Actif pendant l\'enregistrement';
+            }
         }
         
         function updateStatusText(msg) {
@@ -3951,6 +4932,10 @@
         
         async function sendAudio(blob) {
             if (!blob) return;
+            if (USE_REALTIME_HANDS_FREE && !manualVoiceSending) {
+                updateStatusText("🎤 Mode Realtime actif : aucun envoi audio classique.");
+                return;
+            }
             if (chatRequestInFlight) return;
             let sid = SESSION_ID;
             chatRequestInFlight = true;
@@ -4051,7 +5036,9 @@
                         if (payload?.token) {
                             streamedReply += payload.token;
                             updateAssistantDraftText(streamedReply);
-                            maybeStartStreamingTts(streamedReply);
+                            if (ENABLE_INCREMENTAL_TTS) {
+                                maybeStartStreamingTts(streamedReply);
+                            }
                             continue;
                         }
                         if (payload?.done || payload?.stream_done) {
@@ -4082,11 +5069,16 @@
                 isThinking = false;
                 chatAbortController = null;
                 chatRequestInFlight = false;
+                manualVoiceSending = false;
             }
         }
 
         async function sendTextFallback(text) {
             if (!text) return;
+            if (USE_REALTIME_HANDS_FREE && !manualVoiceSending) {
+                updateStatusText("🎤 Mode Realtime actif : le texte vocal n'utilise pas le fallback classique.");
+                return;
+            }
             if (isThinking || chatRequestInFlight) return;
             let sid = SESSION_ID;
             chatRequestInFlight = true;
@@ -4148,7 +5140,9 @@
                         if (payload?.token) {
                             streamedReply += payload.token;
                             updateAssistantDraftText(streamedReply);
-                            maybeStartStreamingTts(streamedReply);
+                            if (ENABLE_INCREMENTAL_TTS) {
+                                maybeStartStreamingTts(streamedReply);
+                            }
                             continue;
                         }
                         if (payload?.done || payload?.stream_done) {
@@ -4179,6 +5173,7 @@
                 isThinking = false;
                 chatAbortController = null;
                 chatRequestInFlight = false;
+                manualVoiceSending = false;
             }
         }
         
@@ -4259,6 +5254,10 @@
             clearTranscriptUI();
 
             // Hard guarantee: once text is committed to chat UI, dispatch to backend immediately.
+            if (USE_REALTIME_HANDS_FREE) {
+                lastBrowserTranscriptAt = 0;
+                return true;
+            }
             if (!currentTurnRequestDispatched && !chatRequestInFlight && !isAssistantSpeaking) {
                 currentTurnRequestDispatched = true;
                 if (isRecordingAudio) {
@@ -4320,6 +5319,7 @@
         }
 
         function resetStreamingTtsState() {
+            clearTtsPrefetchCache();
             currentStreamingTts = {
                 started: false,
                 spokenLength: 0,
@@ -4350,6 +5350,7 @@
                 currentStreamingTts.spokenText = currentStreamingTts.spokenText
                     ? `${currentStreamingTts.spokenText} ${prefix}`
                     : prefix;
+                prefetchTtsSegment(prefix); // start fetching audio immediately
                 enqueueSpeakText(prefix);
             }
         }
@@ -4407,6 +5408,7 @@
             
             // Resume listening
             if (!isAssistantSpeaking && !isSpeechQueueActive) {
+                manualVoiceSending = false;
                 updateStatusText("🎙️ Votre tour. Cliquez sur le micro.");
             }
             if (!isRecording) {
@@ -4472,8 +5474,31 @@
             if (finalText) appendMessage('assistant', finalText);
         }
         
+        function prefetchTtsSegment(text) {
+            if (!text || ttsPrefetchCache.has(text)) return;
+            ttsPrefetchCache.set(text, { status: 'loading', objectUrl: null });
+            const currentAvatarId = resolveCurrentAvatarId();
+            const avatarParam = Number.isFinite(Number(currentAvatarId)) ? `&avatar_id=${encodeURIComponent(String(currentAvatarId))}` : '';
+            const url = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(getServerLanguageParam())}${avatarParam}&access_token=${encodeURIComponent(token)}`;
+            fetch(url)
+                .then(r => r.ok ? r.blob() : Promise.reject())
+                .then(blob => {
+                    const objectUrl = URL.createObjectURL(blob);
+                    ttsPrefetchCache.set(text, { status: 'ready', objectUrl });
+                })
+                .catch(() => ttsPrefetchCache.delete(text));
+        }
+
+        function clearTtsPrefetchCache() {
+            ttsPrefetchCache.forEach(entry => {
+                if (entry.objectUrl) try { URL.revokeObjectURL(entry.objectUrl); } catch (_) {}
+            });
+            ttsPrefetchCache.clear();
+        }
+
         function speakText(text, options = {}) {
             if (!text) return;
+            if (USE_REALTIME_HANDS_FREE && !manualVoiceSending && !isSpeechQueueActive) return;
             assistantInterruptedByUser = false;
             lastAssistantSpeechAt = Date.now();
             assistantAudioGuardUntil = Date.now() + 30000;
@@ -4581,6 +5606,21 @@
                     finishSpeakingState();
                 });
             };
+
+            // Pre-fetch next queued segment while current one loads
+            if (speechQueue.length > 0 && speechQueue[0]?.text) {
+                prefetchTtsSegment(speechQueue[0].text);
+            }
+
+            const cached = ttsPrefetchCache.get(text);
+            if (cached?.status === 'ready' && cached.objectUrl) {
+                // Audio already downloaded — play instantly, no gap
+                ttsPrefetchCache.delete(text);
+                const audio = new Audio(cached.objectUrl);
+                audio.preload = 'auto';
+                playAudioElement(audio, cached.objectUrl);
+                return;
+            }
 
             const currentAvatarId = resolveCurrentAvatarId();
             const avatarVoiceParam = Number.isFinite(Number(currentAvatarId))

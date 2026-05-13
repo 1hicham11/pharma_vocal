@@ -41,6 +41,29 @@ class MessageAssistanceRepository extends BaseRepository {
     }
 
     /**
+     * Récupère uniquement les derniers messages utiles au prompt vocal.
+     * @param {string} sessionId
+     * @param {number} limit
+     * @returns {Promise<Array<{ auteur, transcription_texte, date_envoi }>>}
+     */
+    async getRecentHistory(sessionId, limit = 10) {
+        const safeLimit = Math.min(30, Math.max(2, Number(limit) || 10));
+        const [rows] = await this.pool.query(
+            `SELECT id, auteur, transcription_texte, audio_url, date_envoi
+             FROM (
+                 SELECT id, auteur, transcription_texte, audio_url, date_envoi
+                 FROM MESSAGES
+                 WHERE session_id = ?
+                 ORDER BY date_envoi DESC, id DESC
+                 LIMIT ${safeLimit}
+             ) recent_messages
+             ORDER BY date_envoi ASC, id ASC`,
+            [sessionId]
+        );
+        return rows;
+    }
+
+    /**
      * Compte le nombre de messages d'une session.
      * @param {string} sessionId
      * @returns {Promise<number>}

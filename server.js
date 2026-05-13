@@ -46,6 +46,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const agentsRoutes = require('./routes/agents'); // V2 Multi-Agents
 const oauthConnectorRoutes = require('./routes/oauth-connectors');
 const meetingTranslateRoutes = require('./routes/meeting-translate');
+const realtimeRoutes = require('./routes/realtime');
 const setupMeetingRealtime = require('./services/meetingRealtimeService');
 
 app.use('/api/auth', authRoutes);
@@ -60,6 +61,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/agents', agentsRoutes); // V2 – Multi-Agents (RagFlow + GraphRAG)
 app.use('/api/meeting', meetingTranslateRoutes);
+app.use('/api/realtime', realtimeRoutes);
 
 // Réponse JSON pour toute route /api non reconnue (évite index.html en 200)
 app.use((req, res, next) => {

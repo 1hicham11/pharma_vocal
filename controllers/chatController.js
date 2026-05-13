@@ -7,6 +7,7 @@ const fs = require('fs');
 
 class ChatController {
     async handleChat(req, res) {
+        const startedAt = Date.now();
         const dto = ChatMessageDTO.fromRequest(req.body, req.file || null);
         const hasAudioFile = Boolean(req.file && req.file.path);
         const wantsStream = ['1', 'true', 'yes'].includes(String(req.query?.stream || '').toLowerCase());
@@ -24,6 +25,7 @@ class ChatController {
                     req.file.originalname || 'audio.webm'
                 );
                 dto.message = dto.message && String(dto.message).trim() ? String(dto.message).trim() : null;
+                console.info(`[ChatController] STT done in ${Date.now() - startedAt}ms`);
             }
 
             if (!dto.message) {
@@ -69,17 +71,24 @@ class ChatController {
 
             if (hasAudioFile) {
                 res.write(`data: ${JSON.stringify({ transcript: dto.message })}\n\n`);
+                if (typeof res.flush === 'function') res.flush();
             }
 
             const stream = await chatService.processMessageStream(dto);
             let fullResponse = '';
+            let firstTokenLogged = false;
 
             for await (const chunk of stream) {
                 if (closed) break;
                 const token = chunk.choices[0]?.delta?.content || '';
                 if (token) {
+                    if (!firstTokenLogged) {
+                        firstTokenLogged = true;
+                        console.info(`[ChatController] first SSE token in ${Date.now() - startedAt}ms`);
+                    }
                     fullResponse += token;
                     res.write(`data: ${JSON.stringify({ token })}\n\n`);
+                    if (typeof res.flush === 'function') res.flush();
                 }
             }
 

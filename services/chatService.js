@@ -36,6 +36,23 @@ function createChatOpenAI({ streaming, maxTokens, temperature }) {
     const openaiModel = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
 
     if (provider === 'openrouter') {
+        const model = resolveOpenRouterChatModelId();
+        const openAiViaRouterMatch = String(model || '').match(/^openai\/(.+)$/i);
+        const forceOpenRouter = ['1', 'true', 'yes'].includes(String(process.env.CHAT_FORCE_OPENROUTER || '').trim().toLowerCase());
+        if (openAiViaRouterMatch && openaiKey && !forceOpenRouter) {
+            const directModel = openAiViaRouterMatch[1];
+            if (!chatOpenRouterLogged) {
+                console.info(`[ChatService] OpenRouter bypass: modèle OpenAI direct (${directModel}) pour réduire la latence.`);
+                chatOpenRouterLogged = true;
+            }
+            return new ChatOpenAI({
+                apiKey: openaiKey,
+                model: directModel,
+                temperature,
+                maxTokens,
+                streaming,
+            });
+        }
         if (!routerKey) {
             console.warn(
                 '[ChatService] OpenRouter demandé (CHAT_LLM_PROVIDER / CHAT_USE_OPENROUTER) mais OPENROUTER_API_KEY est vide — repli sur OpenAI direct.'
@@ -48,7 +65,6 @@ function createChatOpenAI({ streaming, maxTokens, temperature }) {
                 streaming,
             });
         }
-        const model = resolveOpenRouterChatModelId();
         if (!chatOpenRouterLogged) {
             console.info(`[ChatService] LLM chat via OpenRouter (model=${model}).`);
             chatOpenRouterLogged = true;
@@ -79,14 +95,38 @@ function createChatOpenAI({ streaming, maxTokens, temperature }) {
     });
 }
 
+function elapsedMs(startedAt) {
+    return `${Date.now() - startedAt}ms`;
+}
+
+function compactContextText(value, maxChars = 700) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (text.length <= maxChars) return text;
+    return `${text.slice(0, maxChars).trim()}...`;
+}
+
+function withTimeout(promise, timeoutMs, fallbackValue, label = 'operation') {
+    const ms = Number(timeoutMs);
+    if (!Number.isFinite(ms) || ms <= 0) return promise;
+    return Promise.race([
+        promise,
+        new Promise((resolve) => {
+            setTimeout(() => {
+                console.warn(`[ChatService] ${label} timeout after ${ms}ms; continuing without it.`);
+                resolve(fallbackValue);
+            }, ms);
+        })
+    ]);
+}
+
 class ChatService {
     constructor(sttProvider = null, ttsProvider = null) {
         this.sttProvider = sttProvider;
         this.ttsProvider = ttsProvider;
         this.llm = createChatOpenAI({
             temperature: 0.1,
-            // Keep enough headroom to avoid hard truncation mid-sentence.
-            maxTokens: Number(process.env.OPENAI_CHAT_MAX_TOKENS || 420),
+            // Voice mode requires short answers; a lower cap improves latency.
+            maxTokens: Number(process.env.OPENAI_CHAT_MAX_TOKENS || 120),
             streaming: true,
         });
         this.resourceRouterLlm = createChatOpenAI({
@@ -109,18 +149,22 @@ class ChatService {
                 : String(question || '').trim();
             if (!query) return null;
 
-            const topK = Number(process.env.RAG_TOP_K || 10);
+            const topK = Number(process.env.RAG_TOP_K || 4);
             const normalizedQuery = query
                 .replace(/\s*[-/|]+\s*/g, ' et ')
                 .replace(/[^\p{L}\p{N}\s]/gu, ' ')
                 .replace(/\s+/g, ' ')
                 .trim();
 
-            let docs = await vectorStoreService.search(query, topK, undefined, avatarId);
-            if ((!Array.isArray(docs) || !docs.length) && normalizedQuery && normalizedQuery !== query) {
+            const fastRag = !['0', 'false', 'no'].includes(String(process.env.CHAT_FAST_RAG || '1').trim().toLowerCase());
+            let docs = await vectorStoreService.search(query, topK, undefined, avatarId, {
+                k: topK,
+                fetchK: Math.max(topK * 2, topK),
+            });
+            if (!fastRag && (!Array.isArray(docs) || !docs.length) && normalizedQuery && normalizedQuery !== query) {
                 docs = await vectorStoreService.search(normalizedQuery, topK, undefined, avatarId);
             }
-            if (!Array.isArray(docs) || !docs.length) {
+            if (!fastRag && (!Array.isArray(docs) || !docs.length)) {
                 const configuredMode = String(process.env.RAG_RETRIEVAL_MODE || 'mmr').toLowerCase();
                 const alternateMode = configuredMode === 'mmr' ? 'similarity' : 'mmr';
                 docs = await vectorStoreService.search(query, topK, undefined, avatarId, { mode: alternateMode });
@@ -130,7 +174,8 @@ class ChatService {
             }
             if (!Array.isArray(docs) || !docs.length) return null;
 
-            return `CONTEXTE DOCUMENTAIRE :\n${docs.slice(0, 10).map((d, i) => `[Source ${i + 1}] ${d.pageContent}`).join('\n\n')}`;
+            const docChars = Math.max(300, Number(process.env.RAG_CONTEXT_CHARS || 700));
+            return `CONTEXTE DOCUMENTAIRE :\n${docs.slice(0, topK).map((d, i) => `[Source ${i + 1}] ${compactContextText(d.pageContent, docChars)}`).join('\n\n')}`;
         } catch (e) { return null; }
     }
 
@@ -163,7 +208,7 @@ class ChatService {
                  FROM excel_schemas
                  WHERE avatar_id = ?
                  ORDER BY created_at DESC
-                 LIMIT 3`,
+                 LIMIT 2`,
                 [avatarNumeric]
             );
             if (!Array.isArray(schemas) || !schemas.length) return null;
@@ -188,7 +233,7 @@ class ChatService {
                 const safeCols = columns
                     .map((name) => String(name).replace(/`/g, '').trim())
                     .filter(Boolean)
-                    .slice(0, 20);
+                    .slice(0, 12);
                 if (!safeCols.length) continue;
 
                 const colExpr = safeCols.map((c) => `\`${c}\``).join(', ');
@@ -199,7 +244,7 @@ class ChatService {
                 const sql = `
                     SELECT * FROM \`${tableName}\`
                     ${whereClause}
-                    LIMIT 5
+                    LIMIT 3
                 `;
 
                 let rows = [];
@@ -209,7 +254,7 @@ class ChatService {
                 } catch (_) {
                     // Fallback: lire quelques lignes sans filtre si la requête filtrée échoue.
                     const [resFallback] = await connection.query(
-                        `SELECT * FROM \`${tableName}\` LIMIT 5`
+                        `SELECT * FROM \`${tableName}\` LIMIT 3`
                     );
                     rows = Array.isArray(resFallback) ? resFallback : [];
                 }
@@ -217,10 +262,10 @@ class ChatService {
 
                 const compactRows = rows.map((r) => {
                     const out = {};
-                    safeCols.slice(0, 8).forEach((k) => {
+                    safeCols.slice(0, 6).forEach((k) => {
                         const v = r[k];
                         if (v !== null && v !== undefined && String(v).trim() !== '') {
-                            out[k] = String(v).slice(0, 120);
+                            out[k] = compactContextText(v, 80);
                         }
                     });
                     return out;
@@ -353,7 +398,109 @@ class ChatService {
         return this.resolveAgenticResourcePriority(question, session, enabledKeys);
     }
 
+    async buildRealtimeResourceContext(sessionId, question) {
+        const startedAt = Date.now();
+        const sessionRepository = require('../repositories/sessionRepository');
+        const historyLimit = Math.max(2, Number(process.env.CHAT_HISTORY_LIMIT || 8));
+        const userMessage = String(question || '').trim();
+        if (!userMessage) throw new Error('question requise');
+
+        const [session, recentHistory] = await Promise.all([
+            sessionRepository.findById(sessionId),
+            messageAssistanceRepository.getRecentHistory(sessionId, historyLimit),
+        ]);
+        if (!session) throw new Error("Session introuvable");
+
+        const { ragEnabled, dbEnabled, knowledgeEnabled } = this.getEnabledResources(session);
+        const enabledResourceKeys = ['rag', 'db', 'knowledge'].filter((k) => ({
+            rag: ragEnabled,
+            db: dbEnabled,
+            knowledge: knowledgeEnabled,
+        })[k]);
+        const resourcePriority = await this.resolveResourcePriority(userMessage, session, enabledResourceKeys);
+        const recentUserHints = ragEnabled
+            ? recentHistory
+                .filter((m) => String(m?.auteur || '').toLowerCase() === 'utilisateur')
+                .slice(-4)
+                .map((m) => String(m?.transcription_texte || '').trim())
+                .filter(Boolean)
+            : [];
+        const resourceTimeoutMs = Number(process.env.CHAT_RESOURCE_TIMEOUT_MS || 1200);
+        let [ragContext, dbContext] = await Promise.all([
+            ragEnabled
+                ? withTimeout(this.getRagContext(userMessage, session.avatar_id, recentUserHints), resourceTimeoutMs, null, 'Realtime RAG')
+                : Promise.resolve(null),
+            dbEnabled
+                ? withTimeout(this.getDbContext(userMessage, session.avatar_id), resourceTimeoutMs, null, 'Realtime DB')
+                : Promise.resolve(null),
+        ]);
+
+        const noResourceReply = "Désolé, je ne peux pas vous répondre car aucune ressource n'est activée.";
+        const ragMissingReply = "Désolé, je ne peux pas répondre à cette question car l'information n'est pas présente dans vos documents RAG.";
+        const dbMissingReply = "Désolé, je ne trouve pas cette information dans les fichiers Excel importés pour cet agent.";
+        const ragDbMissingReply = "Désolé, je ne trouve pas cette information dans vos documents RAG ni dans les fichiers Excel importés.";
+        const conversationFallback = this.buildConversationFallback(recentHistory, ragMissingReply, noResourceReply);
+        if (!ragContext && conversationFallback) {
+            ragContext = conversationFallback;
+        }
+
+        const resourceContexts = { rag: ragContext, db: dbContext };
+        const activeContextKeysOrdered = resourcePriority
+            .filter((k) => k !== 'knowledge')
+            .filter((k) => Boolean(resourceContexts[k]));
+        const missingContextKeysOrdered = resourcePriority
+            .filter((k) => k !== 'knowledge')
+            .filter((k) => !resourceContexts[k]);
+        const blockLabelByKey = {
+            rag: 'CONTEXTE DOCUMENTAIRE (RAG)',
+            db: 'CONTEXTE BASE DE DONNÉES (Excel importés)',
+        };
+        const resourceBlocks = activeContextKeysOrdered
+            .map((k) => {
+                const body = String(resourceContexts[k] || '').trim();
+                if (!body) return '';
+                if (body.startsWith('CONTEXTE ')) return body;
+                return `${blockLabelByKey[k]} :\n${body}`;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+
+        let strictReply = null;
+        if (!knowledgeEnabled) {
+            if (!ragEnabled && !dbEnabled) {
+                strictReply = noResourceReply;
+            } else if (!resourceBlocks) {
+                strictReply = ragEnabled && dbEnabled
+                    ? ragDbMissingReply
+                    : ragEnabled
+                        ? ragMissingReply
+                        : dbMissingReply;
+            }
+        }
+
+        console.info(`[ChatService] realtime resources ready in ${elapsedMs(startedAt)} (rag=${ragContext ? 'yes' : 'no'}, db=${dbContext ? 'yes' : 'no'}, knowledge=${knowledgeEnabled ? 'yes' : 'no'})`);
+        return {
+            question: userMessage,
+            resources_enabled: {
+                rag: ragEnabled,
+                db: dbEnabled,
+                knowledge: knowledgeEnabled,
+            },
+            resource_priority: resourcePriority,
+            has_context: Boolean(resourceBlocks),
+            context: resourceBlocks,
+            missing_context_keys: missingContextKeysOrdered,
+            strict_reply: strictReply,
+            instructions: strictReply
+                ? `Réponds exactement avec ce message: ${strictReply}`
+                : knowledgeEnabled
+                    ? 'Utilise d’abord le contexte local fourni. Si une information manque, tu peux compléter avec tes connaissances générales.'
+                    : 'Réponds uniquement avec les informations présentes dans le contexte local fourni.',
+        };
+    }
+
     async processMessageStream(dtoOrSessionId, message = null) {
+        const startedAt = Date.now();
         let sessionId, userMessage;
         if (typeof dtoOrSessionId === 'object' && dtoOrSessionId !== null) {
             sessionId = dtoOrSessionId.sessionId;
@@ -364,14 +511,16 @@ class ChatService {
         }
 
         const sessionRepository = require('../repositories/sessionRepository');
+        const historyLimit = Math.max(2, Number(process.env.CHAT_HISTORY_LIMIT || 8));
         const saveUserMessagePromise = messageAssistanceRepository
             .saveMessage({ session_id: sessionId, auteur: 'utilisateur', transcription_texte: userMessage })
             .catch((err) => console.warn('[ChatService] Save user message async:', err?.message || err));
-        const [session, rawHistory] = await Promise.all([
+        const [session, recentHistory] = await Promise.all([
             sessionRepository.findById(sessionId),
-            messageAssistanceRepository.getHistory(sessionId),
+            messageAssistanceRepository.getRecentHistory(sessionId, historyLimit),
         ]);
         if (!session) throw new Error("Session introuvable");
+        console.info(`[ChatService] session+history ready in ${elapsedMs(startedAt)} (recentHistory=${recentHistory.length})`);
 
         const roleplayHeader = `TU ES "${session.nom_avatar}". Oublie que tu es une IA. Tes instructions : ${session.prompt_systeme}.`;
         const languageGuardrail = [
@@ -381,8 +530,8 @@ class ChatService {
             "- Si l'utilisateur parle en Darija marocaine (arabe dialectal marocain, même écrit en alphabet latin), réponds en Darija marocaine naturelle.",
             "- Si l'utilisateur mélange plusieurs langues, réponds principalement dans la langue dominante et garde le même style de mélange si c'est naturel.",
             "- Ne force jamais le français sauf si l'utilisateur parle français ou le demande explicitement.",
-            '- Réponse courte: 1 à 2 phrases maximum, concise et directe.',
-            "- Maximum 70 mots au total.",
+            '- Réponse vocale très courte: 1 phrase par défaut, 2 seulement si nécessaire.',
+            "- Maximum 35 mots au total.",
             "- Interdit: listes numérotées, puces, titres, markdown."
         ].join('\n');
         const temporalGuardrail = this.buildTemporalGuardrail();
@@ -396,22 +545,28 @@ class ChatService {
         })[k]);
         const resourcePriority = await this.resolveResourcePriority(userMessage, session, enabledResourceKeys);
         const recentUserHints = ragEnabled
-            ? rawHistory
+            ? recentHistory
                 .filter((m) => String(m?.auteur || '').toLowerCase() === 'utilisateur')
                 .slice(-4)
                 .map((m) => String(m?.transcription_texte || '').trim())
                 .filter(Boolean)
             : [];
+        const resourceTimeoutMs = Number(process.env.CHAT_RESOURCE_TIMEOUT_MS || 1200);
         let [ragContext, dbContext] = await Promise.all([
-            ragEnabled ? this.getRagContext(userMessage, session.avatar_id, recentUserHints) : Promise.resolve(null),
-            dbEnabled ? this.getDbContext(userMessage, session.avatar_id) : Promise.resolve(null),
+            ragEnabled
+                ? withTimeout(this.getRagContext(userMessage, session.avatar_id, recentUserHints), resourceTimeoutMs, null, 'RAG')
+                : Promise.resolve(null),
+            dbEnabled
+                ? withTimeout(this.getDbContext(userMessage, session.avatar_id), resourceTimeoutMs, null, 'DB')
+                : Promise.resolve(null),
         ]);
+        console.info(`[ChatService] resources ready in ${elapsedMs(startedAt)} (rag=${ragContext ? 'yes' : 'no'}, db=${dbContext ? 'yes' : 'no'}, knowledge=${knowledgeEnabled ? 'yes' : 'no'})`);
 
         const noResourceReply = "Désolé, je ne peux pas vous répondre car aucune ressource n'est activée.";
         const ragMissingReply = "Désolé, je ne peux pas répondre à cette question car l'information n'est pas présente dans vos documents RAG.";
         const dbMissingReply = "Désolé, je ne trouve pas cette information dans les fichiers Excel importés pour cet agent.";
         const ragDbMissingReply = "Désolé, je ne trouve pas cette information dans vos documents RAG ni dans les fichiers Excel importés.";
-        const conversationFallback = this.buildConversationFallback(rawHistory, ragMissingReply, noResourceReply);
+        const conversationFallback = this.buildConversationFallback(recentHistory, ragMissingReply, noResourceReply);
         if (!ragContext && conversationFallback) {
             ragContext = conversationFallback;
         }
@@ -486,19 +641,27 @@ class ChatService {
             finalSystemPrompt = `${languageGuardrail}\n\n${temporalGuardrail}\n\nRéponds EXACTEMENT : "${noResourceReply}"`;
         }
 
-        const history = rawHistory.map(m => m.auteur === 'assistant' ? new AIMessage(m.transcription_texte) : new HumanMessage(m.transcription_texte));
+        const history = recentHistory.map(m => m.auteur === 'assistant' ? new AIMessage(m.transcription_texte) : new HumanMessage(m.transcription_texte));
         if (history.length > 0 && history[history.length - 1].content === userMessage) history.pop();
 
         const formatted = await this.promptTemplate.formatMessages({ systemPrompt: finalSystemPrompt, history, question: userMessage });
+        const llmStartedAt = Date.now();
         const stream = await this.llm.stream(formatted);
+        console.info(`[ChatService] llm stream opened in ${elapsedMs(llmStartedAt)} (${elapsedMs(startedAt)} total)`);
 
         async function* streamGenerator() {
             let fullText = "";
+            let firstTokenLogged = false;
             for await (const chunk of stream) {
                 const token = chunk.content || "";
+                if (token && !firstTokenLogged) {
+                    firstTokenLogged = true;
+                    console.info(`[ChatService] first token in ${elapsedMs(startedAt)}`);
+                }
                 fullText += token;
                 yield { choices: [{ delta: { content: token } }] };
             }
+            console.info(`[ChatService] stream completed in ${elapsedMs(startedAt)} (chars=${fullText.length})`);
             if (fullText) {
                 messageAssistanceRepository
                     .saveMessage({ session_id: sessionId, auteur: 'assistant', transcription_texte: fullText })

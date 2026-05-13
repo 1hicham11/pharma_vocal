@@ -29,13 +29,6 @@ class TtsController {
             return res.status(400).json({ error: 'Texte requis' });
         }
 
-        res.set({
-            'Content-Type': 'audio/mpeg',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'Transfer-Encoding': 'chunked'
-        });
-
         let closed = false;
         res.on('close', () => { 
             closed = true;
@@ -70,12 +63,20 @@ class TtsController {
 
             let chunkCount = 0;
             let totalBytes = 0;
+            let audioHeadersSent = false;
 
             try {
                 for await (const chunk of stream) {
                     if (closed) {
                         console.log('[TtsController] ⏹ Connexion fermée, arrêt du stream');
                         break;
+                    }
+                    if (!audioHeadersSent) {
+                        res.set({
+                            'Content-Type': 'audio/mpeg',
+                            'Cache-Control': 'no-cache',
+                        });
+                        audioHeadersSent = true;
                     }
                     res.write(chunk);
                     chunkCount++;
